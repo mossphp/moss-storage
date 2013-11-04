@@ -2,11 +2,12 @@
 
 ## Usage
 
-	$Driver = new \moss\storage\driver\PDO('mysql', 'database', 'username', 'password');
-	$Adapter = new \moss\storage\adapter\MySQL($Driver);
-	$Storage = new \moss\storage\Storage($Adapter);
+	$driver = new \moss\storage\driver\PDO('mysql', 'database', 'username', 'password');
+	$adapter = new \moss\storage\adapter\MySQL($Driver);
+	$storage = new \moss\storage\Storage($Adapter);
 
-	$Storage->registerModel(
+	$storage->registerModel(
+		'stdclass',
 	    new \moss\storage\model\Model(
 	        '\stdClass',
 	        'std_class',
@@ -26,7 +27,7 @@
 	);
 
 	/* DROP TABLE IF EXISTS `std_class` */
-	$Storage
+	$storage
 	    ->drop('\stdClass')
 	    ->execute();
 
@@ -42,16 +43,16 @@
 		PRIMARY KEY (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci
 	*/
-	$Storage
+	$storage
 	    ->create('\stdClass')
 	    ->execute();
 
-	$Entity = new stdClass();
-	$Entity->integer = 1;
-	$Entity->string = 'foo';
-	$Entity->numeric = 44.222;
-	$Entity->datetime = new DateTime();
-	$Entity->serial = array(1, 2, 3);
+	$entity = new stdClass();
+	$entity->integer = 1;
+	$entity->string = 'foo';
+	$entity->numeric = 44.222;
+	$entity->datetime = new DateTime();
+	$entity->serial = array(1, 2, 3);
 
 	/*
 	INSERT INTO `std_class` (
@@ -70,7 +71,7 @@
 		:value_5_bool
 	)
 	*/
-	$Storage
+	$storage
 	    ->write($Entity)
 	    ->execute();
 
@@ -84,7 +85,7 @@ Operations described below assume that entity models, classes and containers exi
 
 Checks if data container for entity exists (does not check if is up-to-date)
 
-	$bool = $Storage
+	$bool = $storage
 		->check('\SomeEntity')
 		->execute();
 
@@ -93,7 +94,7 @@ Checks if data container for entity exists (does not check if is up-to-date)
 Creates data container for entity based on its model
 
 	/* CREATE TABLE ... */
-	$Storage
+	$storage
 		->create('\SomeEntity')
 		->execute();
 
@@ -102,7 +103,7 @@ Creates data container for entity based on its model
 Updates existing data container to match current model
 
 	/* ALTER TABLE ... */
-	$Storage
+	$storage
 		->alter('\SomeEntity')
 		->execute();
 
@@ -111,7 +112,7 @@ Updates existing data container to match current model
 Drops entity container
 
 	/* DROP TABLE IF EXISTS ... */
-	$Storage
+	$storage
 		->drop('\SomeEntity')
 		->execute();
 
@@ -120,7 +121,7 @@ Drops entity container
 Returns number of entities that will be read by query (reads only primary keys).
 
 	/* SELECT ... WHERE ... */
-	$count = $Storage
+	$count = $storage
 		->count('\SomeEntity')
 		[->condition(..)]
 		->execute();
@@ -130,7 +131,7 @@ Returns number of entities that will be read by query (reads only primary keys).
 Reads entities matching conditions, returns array of read entities
 
 	/* SELECT ... WHERE ... ORDER ... LIMIT ... */
-	$entities = $Storage
+	$entities = $storage
 		->read('\SomeEntity')
 		[->condition(..)]
 		[->order(..)]
@@ -140,7 +141,7 @@ Reads entities matching conditions, returns array of read entities
 Reads only first matching entity, will throw exception if none found.
 
 	/* SELECT ... WHERE ... ORDER ... LIMIT 1 */
-	$Entity = $Storage
+	$Entity = $storage
 		->readOne('\SomeEntity')
 		[->condition(..)]
 		[->order(..)]
@@ -152,7 +153,7 @@ Inserts entity into storage, will update passed entity primary keys
 
 	/* INSERT INTO ... VALUES ... */
 	$Entity = new \SomeEntity();
-	$bool = $Storage
+	$bool = $storage
 		->insert($Entity)
 		->execute();
 
@@ -162,7 +163,7 @@ Updates existing entity
 
 	/* UPDATE ... SET ... */
 	$Entity = new \SomeEntity();
-	$Entity = $Storage
+	$Entity = $storage
 		->update($Entity)
 		->execute();
 
@@ -172,7 +173,7 @@ Writes entity, if entity with same primary keys exists will be updated, otherwis
 Returns entity with updated primary fields
 
 	$Entity = new \SomeEntity();
-	$Entity = $Storage
+	$Entity = $storage
 		->write($Entity)
 		->execute();
 
@@ -182,7 +183,7 @@ Removes entity from storage, also removes values from entity primary fields
 
 	/* DELETE FROM ... WHERE */
 	$Entity = new \SomeEntity();
-	$Entity = $Storage
+	$Entity = $storage
 		->delete($Entity)
 		->execute();
 
@@ -192,7 +193,7 @@ Removes all entities from storage (just like truncate table)
 
 	/* TRUNCATE TABLE ... */
 	$Entity = new \SomeEntity();
-	$bool = $Storage
+	$bool = $storage
 		->clear('\SomeEntity)
 		->execute();
 
@@ -204,7 +205,7 @@ Storage provides modifiers for operations, such as `condition`, `limit`, `order`
 
 The `condition` method allows to add as many conditions as needed to count/read operations.
 
-	$entities = $Storage
+	$entities = $storage
 		->read('\SomeEntity')
 		->condition($field, $value, $comparisonOperator, $logicalOperator)
 		->execute();
@@ -214,60 +215,61 @@ Where
  * `$field` contains property name (or array of properties) included in conditions
  * `$value` is a value (or array of values) for comparison
  * `$comparisonOperator` must be supported comparison operator:
-    * `==` - equal (default)
+    * `=` - equal (default)
     * `!=` - not equal
     * `<` - less than
     * `>` - greater than
     * `>=` - less or equal than
     * `<=` - greater or equal than
-    * `%%` - like
+    * `like` - like
+    * `regex` - regex
  * `$logicalOperator`:
-    * `&&` - and
-    * `||` - or
+    * `and` - and (default)
+    * `or` - or
 
 Examples:
 
 	/* ... WHERE (`foo` = 'bar') */
-    $entities = $Storage
+    $entities = $storage
         ->read('\SomeEntity')
         ->condition('foo', 'bar')
         ->execute();
 
     /* ... WHERE (`foo` = 'bar' OR `foo` = 'yada') */
-    $entities = $Storage
+    $entities = $storage
 	    ->read('\SomeEntity')
 	    ->condition('foo', array('bar', 'yada'))
 	    ->execute();
 
     /* ... WHERE (`foo` = 'bar') OR (`foo` = 'yada') */
-    $entities = $Storage
+    $entities = $storage
 	    ->read('\SomeEntity')
-	    ->condition('foo', 'bar', '==', '||')
+	    ->condition('foo', 'bar', '=', 'or')
 	    ->condition('bar', 'yada')
 	    ->execute();
 
     /* ... WHERE (`foo` = 'bar' OR `bar` = 'yada') */
-    $entities = $Storage
+    $entities = $storage
 	    ->read('\SomeEntity')
 	    ->condition(array('foo', 'bar'), 'yada')
 	    ->execute();
 
     /* ... WHERE (`foo` = 'bar') OR (`bar` = 'yada') */
-    $entities = $Storage
+    $entities = $storage
 	    ->read('\SomeEntity')
-	    ->condition('foo', 'yada', '==', '||')
+	    ->condition('foo', 'yada', '=', 'or')
 	    ->condition('bar', 'yada')
 	    ->execute();
 
     /* ... WHERE (`foo` = 'foofoo' OR `bar` = 'barbar') */
-    $entities = $Storage
+    $entities = $storage
 	    ->read('\SomeEntity')
 	    ->condition(array('foo', 'bar'), array('foofoo', 'barbar'))
 	    ->execute();
 
     /* ... WHERE (`foo` = 'foofoo') OR (`bar` = 'barbar') */
-    $entities = $Storage
-	    ->read('\SomeEntity')->condition('foo', 'foofoo', '==', '||')
+    $entities = $storage
+	    ->read('\SomeEntity')->condition('foo', 'foofoo', '=', 'or')
 	    ->condition('bar', 'barbar')
 	    ->execute();
 
@@ -276,7 +278,7 @@ Examples:
 To set order for operation type:
 
 	/* ... ORDER BY field ASC, otherfield DESC */
-	$result = $Storage
+	$result = $storage
 		->read('\SomeEntity')
 		->order('field', 'asc')
 		->order('otherfield', 'desc')
@@ -287,7 +289,7 @@ To set order for operation type:
 Limiting operation result
 
 	/* ... LIMIT 30,60 */
-    $result = $Storage
+    $result = $storage
         ->read('\SomeEntity')
         ->limit(30,60)
         ->execute();
@@ -297,7 +299,7 @@ Limiting operation result
 Allows to restrain read fields.
 
 	/* SELECT `id`, `title`, `slug` FROM ... */
-	$result = $Storage
+	$result = $storage
 		->read('\SomeEntity')
 		->fields(array('id', 'title', 'slug'))
 		->execute();
@@ -306,7 +308,7 @@ Allows to restrain read fields.
 
 When needed, data can be aggregated and read with rest of entity.
 
-	$result = $Storage
+	$result = $storage
 		->read('\SomeEntity')
 		->aggregate($method, $field, $group)
 		->execute();
@@ -326,7 +328,6 @@ Where:
 ## Relations
 ### One-To-One
 ### One-To-Many
-#### Transparency
 
 ## Model
 
@@ -347,10 +348,12 @@ To create model type:
 	$relations = array(...); /* another array with relation definitions
 	$SomeModel = new \moss\storage\model\Model('someTable', '\some\Entity', $fields, $indexes, $relations)
 
-Each entity class must have separate model and model must be registered in `Storage`:
+Each entity class must have separate model and model must be registered in `Storage` under some alias:
 
-	$Storage = new Storage($Adapter);
-	$Storage->register($SomeModel);
+	$storage = new Storage($Adapter);
+	$storage->register('alias', $SomeModel);
+
+When creating query you can call entity by namespaced class name or its alias.
 
 ### Fields
 
@@ -393,7 +396,7 @@ They are used for creating insert/update/write/delete queries.
 Each index consist of its name, type and indexed fields:
 
 	$fields = array('id');
-	$Index = new Index($name, $fields, $type)
+	$Index = new Index($name, $fields, $type);
 
 Supported index types:
 
@@ -431,7 +434,3 @@ All `Comment` entities with `visibility` property equal to `1` will be placed in
 
 **Important**
 Relations are unidirectional, therefore if `Author` should point to `BlogEntry`, new relation in `Author` model must be defined.
-
-## Adapter
-
-## Driver
