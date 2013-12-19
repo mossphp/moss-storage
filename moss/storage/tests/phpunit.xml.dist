@@ -18,8 +18,8 @@
 	<testsuites>
 		<testsuite name="Storage tests">
 			<directory>./builder/mysql/</directory>
-			<directory>./model/</directory>
-			<directory>./query/</directory>
+			<!--<directory>./model/</directory>-->
+			<!--<directory>./query/</directory>-->
 		</testsuite>
 	</testsuites>
 </phpunit>

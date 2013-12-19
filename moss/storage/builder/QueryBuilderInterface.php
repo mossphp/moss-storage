@@ -1,9 +1,10 @@
 <?php
 namespace moss\storage\builder;
 
-interface QueryBuilderInterface extends BuilderInterface
+
+interface QueryBuilderInterface
 {
-    // Supported operation
+    // Query operations
     const OPERATION_SELECT = 'select';
     const OPERATION_INSERT = 'insert';
     const OPERATION_UPDATE = 'update';
@@ -17,6 +18,11 @@ interface QueryBuilderInterface extends BuilderInterface
     const AGGREGATE_MAX = 'max';
     const AGGREGATE_MIN = 'min';
     const AGGREGATE_SUM = 'sum';
+
+    // Join types
+    const JOIN_INNER = 'inner';
+    const JOIN_LEFT = 'left';
+    const JOIN_RIGHT = 'right';
 
     // Comparison operator types
     const COMPARISON_EQUAL = '=';
@@ -40,13 +46,24 @@ interface QueryBuilderInterface extends BuilderInterface
      * Sets container name
      *
      * @param string $container
+     * @param string $alias
      *
      * @return $this
      */
-    public function container($container);
+    public function container($container, $alias = null);
 
     /**
-     * Sets fields to query
+     * Sets operation for builder
+     *
+     * @param string $operation
+     *
+     * @return $this
+     * @throws BuilderException
+     */
+    public function operation($operation);
+
+    /**
+     * Adds fields to query
      *
      * @param array $fields
      *
@@ -65,24 +82,70 @@ interface QueryBuilderInterface extends BuilderInterface
     public function field($field, $alias = null);
 
     /**
-     * Adds aggregate method to query
+     * Adds distinct method to query
      *
-     * @param string $method
      * @param string $field
      *
      * @return $this
      */
-    public function aggregate($method, $field);
+    public function distinct($field);
 
     /**
-     * Adds sub query
+     * Adds count method to query
      *
-     * @param QueryBuilderInterface $subSelect
-     * @param string          $alias
+     * @param string $field
      *
      * @return $this
      */
-    public function sub(QueryBuilderInterface $subSelect, $alias);
+    public function count($field);
+
+    /**
+     * Adds average method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function average($field);
+
+    /**
+     * Adds max method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function max($field);
+
+    /**
+     * Adds min method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function min($field);
+
+    /**
+     * Adds sum method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function sum($field);
+
+    /**
+     * Adds aggregate method to query
+     *
+     * @param string $method
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     * @throws BuilderException
+     */
+    public function aggregate($method, $field, $alias = null);
 
     /**
      * Adds grouping to query
@@ -94,14 +157,66 @@ interface QueryBuilderInterface extends BuilderInterface
     public function group($field);
 
     /**
+     * Adds sub query
+     *
+     * @param QueryBuilderInterface $query
+     * @param string                $alias
+     *
+     * @return $this
+     */
+    public function sub(QueryBuilderInterface $query, $alias);
+
+    /**
      * Adds value to query
      *
-     * @param string $field
+     * @param string $col
      * @param mixed  $value
      *
      * @return $this
      */
-    public function value($field, $value);
+    public function value($col, $value);
+
+    /**
+     * Adds inner join with set container
+     *
+     * @param string $container
+     * @param array  $joins
+     *
+     * @return $this
+     */
+    public function innerJoin($container, array $joins);
+
+    /**
+     * Adds left join with set container
+     *
+     * @param string $container
+     * @param array  $joins
+     *
+     * @return $this
+     */
+    public function leftJoin($container, array $joins);
+
+    /**
+     * Adds right join with set container
+     *
+     * @param string $container
+     * @param array  $joins
+     *
+     * @return $this
+     */
+    public function rightJoin($container, array $joins);
+
+    /**
+     * Adds join to query
+     *
+     * @param string $type
+     * @param array  $container
+     * @param array  $joins
+     *
+     * @return $this
+     * @throws BuilderException
+     */
+    public function join($type, $container, array $joins);
 
     /**
      * Adds condition to builder
@@ -112,8 +227,9 @@ interface QueryBuilderInterface extends BuilderInterface
      * @param string $log
      *
      * @return $this
+     * @throws BuilderException
      */
-    public function condition($field, $value, $comp = self::COMPARISON_EQUAL, $log = self::LOGICAL_OR);
+    public function condition($field, $value, $comp = self::COMPARISON_EQUAL, $log = self::LOGICAL_AND);
 
     /**
      * Adds sorting to query
@@ -122,8 +238,9 @@ interface QueryBuilderInterface extends BuilderInterface
      * @param string|array $order
      *
      * @return $this
+     * @throws BuilderException
      */
-    public function order($field, $order = SelectInterface::ORDER_DESC);
+    public function order($field, $order = self::ORDER_DESC);
 
     /**
      * Sets limits to query
@@ -134,4 +251,25 @@ interface QueryBuilderInterface extends BuilderInterface
      * @return $this
      */
     public function limit($limit, $offset = null);
-}
+
+    /**
+     * Builds query string
+     *
+     * @return string
+     */
+    public function build();
+
+    /**
+     * Resets builder
+     *
+     * @return $this
+     */
+    public function reset();
+
+    /**
+     * Casts query to string (builds it)
+     *
+     * @return string
+     */
+    public function __toString();
+} 

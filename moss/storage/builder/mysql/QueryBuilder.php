@@ -1,14 +1,16 @@
 <?php
 namespace moss\storage\builder\mysql;
 
+
 use moss\storage\builder\BuilderException;
 use moss\storage\builder\QueryBuilderInterface;
 
-class Query implements QueryBuilderInterface
+class QueryBuilder implements QueryBuilderInterface
 {
     const QUOTE = '`';
+    const SEPARATOR = '.';
 
-    private $aggregateMethods = array(
+    protected $aggregateMethods = array(
         self::AGGREGATE_DISTINCT => 'DISTINCT',
         self::AGGREGATE_COUNT => 'COUNT',
         self::AGGREGATE_AVERAGE => 'AVERAGE',
@@ -17,7 +19,13 @@ class Query implements QueryBuilderInterface
         self::AGGREGATE_SUM => 'SUM'
     );
 
-    private $comparisonOperators = array(
+    protected $joinTypes = array(
+        self::JOIN_INNER => 'INNER JOIN',
+        self::JOIN_LEFT => 'LEFT OUTER JOIN',
+        self::JOIN_RIGHT => 'RIGHT OUTER JOIN',
+    );
+
+    protected $comparisonOperators = array(
         self::COMPARISON_EQUAL => '=',
         self::COMPARISON_NOT_EQUAL => '!=',
         self::COMPARISON_LESS => '<',
@@ -28,44 +36,93 @@ class Query implements QueryBuilderInterface
         self::COMPARISON_REGEX => 'REGEX'
     );
 
-    private $logicalOperators = array(
+    protected $logicalOperators = array(
         self::LOGICAL_AND => 'AND',
         self::LOGICAL_OR => 'OR',
     );
 
-    private $orderMethods = array(
+    protected $orderMethods = array(
         self::ORDER_ASC => 'ASC',
         self::ORDER_DESC => 'DESC',
     );
 
-    private $operation;
+    protected $operation;
 
-    private $container;
+    protected $container;
+    protected $joins = array();
 
-    private $values = array();
+    protected $fields = array();
+    protected $aggregates = array();
+    protected $group = array();
+    protected $subs = array();
 
-    private $fields = array();
-    private $aggregates = array();
-    private $group = array();
-    private $sub = array();
+    protected $values = array();
 
-    private $conditions = array();
+    protected $conditions = array();
 
-    private $order = array();
+    protected $order = array();
 
-    private $limit = null;
-    private $offset = null;
+    protected $limit = null;
+    protected $offset = null;
 
     /**
      * Constructor
      *
+     * @param string $container
+     * @param string $alias
      * @param string $operation
      */
-    public function __construct($operation = null)
+    public function __construct($container, $alias = null, $operation = self::OPERATION_SELECT)
     {
-        if ($operation !== null) {
-            $this->operation($operation);
+        $this->container($container, $alias);
+        $this->operation($operation);
+    }
+
+    protected function quote($string, $container = null)
+    {
+        $array = explode(self::SEPARATOR, $string, 2);
+
+        if($this->operation !== self::OPERATION_SELECT) {
+            return self::QUOTE . $string . self::QUOTE;
         }
+
+        if (count($array) !== 2 && $container === null) {
+            return self::QUOTE . $string . self::QUOTE;
+        }
+
+        if (!isset($array[1])) {
+            array_unshift($array, $container);
+        }
+
+        if (strpos($array[0], self::QUOTE) !== 0) {
+            $array[0] = self::QUOTE . $array[0] . self::QUOTE;
+        }
+
+        return $array[0] . self::SEPARATOR . self::QUOTE . $array[1] . self::QUOTE;
+    }
+
+    /**
+     * Sets container name
+     *
+     * @param string $container
+     * @param string $alias
+     *
+     * @return $this
+     * @throws BuilderException
+     */
+    public function container($container, $alias = null)
+    {
+        $this->container = array(
+            $this->quote($container),
+            $alias ? $this->quote($alias) : null
+        );
+
+        return $this;
+    }
+
+    protected function mapping()
+    {
+        return $this->container[1] ? $this->container[1] : $this->container[0];
     }
 
     /**
@@ -86,29 +143,10 @@ class Query implements QueryBuilderInterface
             case self::OPERATION_CLEAR:
                 break;
             default:
-                throw new BuilderException(sprintf('Unknown operation %s', $operation));
+                throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
         }
 
         $this->operation = $operation;
-
-        return $this;
-    }
-
-    protected function quote($string)
-    {
-        return self::QUOTE . $string . self::QUOTE;
-    }
-
-    /**
-     * Sets container name
-     *
-     * @param string $container
-     *
-     * @return $this
-     */
-    public function container($container)
-    {
-        $this->container = $container;
 
         return $this;
     }
@@ -119,7 +157,35 @@ class Query implements QueryBuilderInterface
             throw new BuilderException('Missing container name');
         }
 
-        return $this->quote($this->container);
+        $result = array();
+        $result[] = $this->container[0];
+
+        if($this->operation !== self::OPERATION_SELECT) {
+            return implode(' ', $result);
+        }
+
+        if ($this->container[1]) {
+            $result[] = 'AS';
+            $result[] = $this->container[1];
+        }
+
+        foreach ($this->joins as $node) {
+            list($type, $container, $joins) = $node;
+
+            $result[] = $this->joinTypes[$type];
+            $result[] = $container[0];
+            if ($container[1]) {
+                $result[] = 'AS';
+                $result[] = $container[1];
+            }
+            $result[] = 'ON';
+
+            foreach ($joins as $join) {
+                $result[] = $join[0] . ' ' . self::COMPARISON_EQUAL . ' ' . $join[1];
+            }
+        }
+
+        return implode(' ', $result);
     }
 
     /**
@@ -133,7 +199,7 @@ class Query implements QueryBuilderInterface
     {
         $this->fields = array();
         foreach ($fields as $key => $val) {
-            $this->fields[] = is_numeric($key) ? array($val, null) : array($key, $val);
+            is_numeric($key) ? $this->field($val) : $this->field($key, $val);
         }
 
         return $this;
@@ -149,9 +215,84 @@ class Query implements QueryBuilderInterface
      */
     public function field($field, $alias = null)
     {
-        $this->fields[] = array($field, $alias);
+        $this->fields[] = array(
+            $this->quote($field, $this->mapping()),
+            $alias ? $this->quote($alias) : null
+        );
 
         return $this;
+    }
+
+    /**
+     * Adds distinct method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function distinct($field)
+    {
+        return $this->aggregate(self::AGGREGATE_DISTINCT, $field);
+    }
+
+    /**
+     * Adds count method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function count($field)
+    {
+        return $this->aggregate(self::AGGREGATE_COUNT, $field);
+    }
+
+    /**
+     * Adds average method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function average($field)
+    {
+        return $this->aggregate(self::AGGREGATE_AVERAGE, $field);
+    }
+
+    /**
+     * Adds max method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function max($field)
+    {
+        return $this->aggregate(self::AGGREGATE_MAX, $field);
+    }
+
+    /**
+     * Adds min method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function min($field)
+    {
+        return $this->aggregate(self::AGGREGATE_MIN, $field);
+    }
+
+    /**
+     * Adds sum method to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function sum($field)
+    {
+        return $this->aggregate(self::AGGREGATE_SUM, $field);
     }
 
     /**
@@ -159,63 +300,26 @@ class Query implements QueryBuilderInterface
      *
      * @param string $method
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      * @throws BuilderException
      */
-    public function aggregate($method, $field)
+    public function aggregate($method, $field, $alias = null)
     {
         if (!isset($this->aggregateMethods[$method])) {
-            throw new BuilderException(sprintf('Query builder does not supports aggregation method %s', $method));
+            throw new BuilderException(sprintf('Query builder does not supports aggregation method "%s"', $method));
         }
 
-        $this->aggregates[] = array($method, $field);
+        $this->aggregates[] = array(
+            $method,
+            $this->quote($field, $this->mapping()),
+            $this->quote($alias ? $alias : strtolower($method)),
+        );
 
         return $this;
     }
 
-    /**
-     * Adds sub query
-     *
-     * @param QueryBuilderInterface $subSelect
-     * @param string                $alias
-     *
-     * @return $this
-     */
-    public function sub(QueryBuilderInterface $subSelect, $alias)
-    {
-        $this->sub[] = array($subSelect, $alias);
-
-        return $this;
-    }
-
-    protected function buildFields()
-    {
-        if (empty($this->fields)) {
-            throw new BuilderException('No fields selected for reading in query');
-        }
-
-        $result = array();
-
-        foreach ($this->aggregates as $node) {
-            $result[] = $this->aggregateMethods[$node[0]] . '(' . $this->quote($node[1]) . ') AS ' . strtolower($this->quote($node[0]));
-        }
-
-        foreach ($this->fields as $node) {
-            if ($node[1] === null) {
-                $result[] = $this->quote($node[0]);
-                continue;
-            }
-
-            $result[] = $this->quote($node[0]) . ' AS ' . $this->quote($node[1], false);
-        }
-
-        foreach ($this->sub as $node) {
-            $result[] = '( ' . $node[0] . ' ) AS ' . $this->quote($node[1]);
-        }
-
-        return implode(', ', $result);
-    }
 
     /**
      * Adds grouping to query
@@ -226,7 +330,7 @@ class Query implements QueryBuilderInterface
      */
     public function group($field)
     {
-        $this->group[] = $field;
+        $this->group[] = $this->quote($field, $this->mapping());
 
         return $this;
     }
@@ -237,9 +341,55 @@ class Query implements QueryBuilderInterface
             return null;
         }
 
-        $group = array_map(array($this, 'quote'), $this->group);
+        return 'GROUP BY ' . implode(', ', $this->group);
+    }
 
-        return 'GROUP BY ' . implode(', ', $group);
+    /**
+     * Adds sub query
+     *
+     * @param QueryBuilderInterface $query
+     * @param string                $alias
+     *
+     * @return $this
+     */
+    public function sub(QueryBuilderInterface $query, $alias)
+    {
+        $this->subs[] = array($query, $this->quote($alias));
+
+        return $this;
+    }
+
+    protected function buildFields()
+    {
+        if (empty($this->fields)) {
+            return '*';
+        }
+
+        $result = array();
+
+        foreach ($this->aggregates as $node) {
+            $result[] = sprintF(
+                '%s(%s) AS %s',
+                $this->aggregateMethods[$node[0]],
+                $node[1],
+                $node[2]
+            );
+        }
+
+        foreach ($this->fields as $node) {
+            if ($node[1] === null) {
+                $result[] = $node[0];
+                continue;
+            }
+
+            $result[] = $node[0] . ' AS ' . $node[1];
+        }
+
+        foreach ($this->subs as $node) {
+            $result[] = '( ' . $node[0] . ' ) AS ' . $node[1];
+        }
+
+        return implode(', ', $result);
     }
 
     /**
@@ -252,7 +402,10 @@ class Query implements QueryBuilderInterface
      */
     public function value($col, $value)
     {
-        $this->values[] = array($col, $value);
+        $this->values[] = array(
+            $this->quote($col, $this->mapping()),
+            $value
+        );
 
         return $this;
     }
@@ -267,7 +420,7 @@ class Query implements QueryBuilderInterface
         $values = array();
 
         foreach ($this->values as $node) {
-            $fields[] = $this->quote($node[0]);
+            $fields[] = $node[0];
             $values[] = ($node[1] === null ? 'NULL' : $node[1]);
         }
 
@@ -283,10 +436,101 @@ class Query implements QueryBuilderInterface
         $result = array();
 
         foreach ($this->values as $node) {
-            $result[] = $this->quote($node[0]) . ' = ' . ($node[1] === null ? 'NULL' : $node[1]);
+            $result[] = $node[0] . ' = ' . ($node[1] === null ? 'NULL' : $node[1]);
         }
 
         return 'SET ' . implode(', ', $result);
+    }
+
+    /**
+     * Adds inner join with set container
+     *
+     * @param string $container
+     * @param array  $joins
+     *
+     * @return $this
+     */
+    public function innerJoin($container, array $joins)
+    {
+        return $this->join(self::JOIN_INNER, $container, $joins);
+    }
+
+    /**
+     * Adds left join with set container
+     *
+     * @param string $container
+     * @param array  $joins
+     *
+     * @return $this
+     */
+    public function leftJoin($container, array $joins)
+    {
+        return $this->join(self::JOIN_LEFT, $container, $joins);
+    }
+
+    /**
+     * Adds right join with set container
+     *
+     * @param string $container
+     * @param array  $joins
+     *
+     * @return $this
+     */
+    public function rightJoin($container, array $joins)
+    {
+        return $this->join(self::JOIN_RIGHT, $container, $joins);
+    }
+
+    /**
+     * Adds join to query
+     *
+     * @param string $type
+     * @param array  $container
+     * @param array  $joins
+     *
+     * @return $this
+     * @throws BuilderException
+     */
+    public function join($type, $container, array $joins)
+    {
+        if (!isset($this->joinTypes[$type])) {
+            throw new BuilderException(sprintf('Query builder does not supports join type "%s"', $type));
+        }
+
+        if(empty($joins)) {
+            throw new BuilderException(sprintf('Empty join array for join type "%s"', $type));
+        }
+
+        if (is_array($container) && !is_numeric(key($container))) {
+            $container = array(key($container), reset($container));
+        } elseif (is_array($container) && count($container) == 2) {
+            $container = array(reset($container), end($container));
+        } else {
+            $container = array($container, null);
+        }
+
+        $container = array(
+            $this->quote($container[0]),
+            $container[1] ? $this->quote($container[1]) : null
+        );
+
+        $join = array(
+            $type,
+            $container,
+            array()
+        );
+
+        $mapping = isset($container[1]) ? $container[1] : $container[0];
+        foreach ($joins as $local => $foreign) {
+            $join[2][] = array(
+                $this->quote($local, $this->mapping()),
+                $this->quote($foreign, $mapping)
+            );
+        }
+
+        $this->joins[] = $join;
+
+        return $this;
     }
 
     /**
@@ -300,24 +544,35 @@ class Query implements QueryBuilderInterface
      * @return $this
      * @throws BuilderException
      */
-    public function condition($field, $value, $comp = self::COMPARISON_EQUAL, $log = self::LOGICAL_OR)
+    public function condition($field, $value, $comp = self::COMPARISON_EQUAL, $log = self::LOGICAL_AND)
     {
         if (!isset($this->comparisonOperators[$comp])) {
-            throw new BuilderException(sprintf('Query builder does not supports comparison operator %s', $comp));
+            throw new BuilderException(sprintf('Query builder does not supports comparison operator "%s"', $comp));
         }
 
         if (!isset($this->logicalOperators[$log])) {
-            throw new BuilderException(sprintf('Query builder does not supports logical operator %s', $log));
+            throw new BuilderException(sprintf('Query builder does not supports logical operator "%s"', $log));
+        }
+
+        if (is_array($field)) {
+            array_walk_recursive($field, array($this, 'quoteCallback'));
+        } else {
+            $field = $this->quote($field, $this->mapping());
         }
 
         $this->conditions[] = array(
-            is_array($field) ? array_map(array($this, 'quote'), $field) : $this->quote($field),
+            $field,
             $value,
             $this->comparisonOperators[$comp],
             $this->logicalOperators[$log]
         );
 
         return $this;
+    }
+
+    protected function quoteCallback(&$field)
+    {
+        $field = $this->quote($field, $this->mapping());
     }
 
     protected function buildConditions()
@@ -327,6 +582,7 @@ class Query implements QueryBuilderInterface
         }
 
         $result = array();
+
         foreach ($this->conditions as $node) {
             if (!is_array($node[0])) {
                 $result[] = $this->buildConditionString($node[0], $node[1], $node[2]);
@@ -356,13 +612,17 @@ class Query implements QueryBuilderInterface
                 unset($val);
             }
 
-            $operator = $operator == '!=' ? self::LOGICAL_AND : self::LOGICAL_OR;
+            $operator = $operator == self::COMPARISON_NOT_EQUAL ? self::LOGICAL_AND : self::LOGICAL_OR;
 
             return '(' . implode(sprintf(' %s ', $this->logicalOperators[$operator]), $bind) . ')';
         }
 
         if ($bind === null) {
             return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
+        }
+
+        if ($operator == self::COMPARISON_REGEX) {
+            return sprintf('LOWER(%s) %s LOWER(%s)', $field, $operator, $bind);
         }
 
         return $field . ' ' . $operator . ' ' . $bind;
@@ -380,12 +640,14 @@ class Query implements QueryBuilderInterface
     public function order($field, $order = self::ORDER_DESC)
     {
         if (!is_array($order) && !isset($this->orderMethods[$order])) {
-            throw new BuilderException(sprintf('Query builder does not supports order method %s', $order));
+            throw new BuilderException(sprintf('Query builder does not supports order method "%s"', $order));
         }
+
+        $field = $this->quote($field, $this->mapping());
 
         if (is_array($order)) {
             $this->order[] = array(
-                $this->quote($field),
+                $field,
                 $order
             );
 
@@ -409,7 +671,7 @@ class Query implements QueryBuilderInterface
         $output = array();
         foreach ($this->order as $node) {
             if (!is_array($node[1])) {
-                $output[] = $this->quote($node[0]) . ' ' . $node[1];
+                $output[] = $node[0] . ' ' . $node[1];
                 continue;
             }
 
@@ -500,20 +762,23 @@ class Query implements QueryBuilderInterface
     }
 
     /**
-     * Resets query builder
+     * Resets builder
+     *
+     * @return $this
      */
     public function reset()
     {
         $this->operation = null;
 
         $this->container = null;
-
-        $this->values = array();
+        $this->joins = array();
 
         $this->fields = array();
         $this->aggregates = array();
         $this->group = array();
-        $this->sub = array();
+        $this->subs = array();
+
+        $this->values = array();
 
         $this->conditions = array();
 
@@ -524,6 +789,7 @@ class Query implements QueryBuilderInterface
 
         return $this;
     }
+
 
     /**
      * Casts query to string (builds it)
@@ -538,4 +804,4 @@ class Query implements QueryBuilderInterface
             return $e->getMessage();
         }
     }
-} 
+}
