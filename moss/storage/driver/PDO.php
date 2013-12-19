@@ -132,59 +132,6 @@ class PDO implements DriverInterface
     }
 
     /**
-     * Executes prepared query with set parameters
-     *
-     * @param array $parameters
-     *
-     * @return $this
-     * @throws DriverException
-     */
-    public function execute($parameters = array())
-    {
-        if (!$this->statement) {
-            throw new DriverException('No statement to execute');
-        }
-
-        var_dump($this->statement->queryString);
-
-        if ($this->statement->execute($parameters) === false) {
-            throw new DriverException(sprintf("Statement error!\n%s\n%s", implode(', ', $this->pdo->errorInfo()), $this->statement->queryString));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Returns number of affected rows
-     *
-     * @return int
-     * @throws DriverException
-     */
-    public function affectedRows()
-    {
-        if (!$this->statement) {
-            throw new DriverException('Result instance missing');
-        }
-
-        return $this->statement->rowCount();
-    }
-
-    /**
-     * Returns last inserted id
-     *
-     * @return string
-     * @throws DriverException
-     */
-    public function lastInsertId()
-    {
-        if (!$this->statement) {
-            throw new DriverException('Result instance missing');
-        }
-
-        return $this->pdo->lastInsertId();
-    }
-
-    /**
      * Unbinds value, casts from internal type
      *
      * @param mixed  $value
@@ -223,6 +170,57 @@ class PDO implements DriverInterface
         }
 
         return $value;
+    }
+
+    /**
+     * Executes prepared query with set parameters
+     *
+     * @param array $parameters
+     *
+     * @return $this
+     * @throws DriverException
+     */
+    public function execute($parameters = array())
+    {
+        if (!$this->statement) {
+            throw new DriverException('No statement to execute');
+        }
+
+        if ($this->statement->execute($parameters) === false) {
+            throw new DriverException(sprintf("Statement error!\n%s\n%s", implode(', ', $this->pdo->errorInfo()), $this->statement->queryString));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Returns number of affected rows
+     *
+     * @return int
+     * @throws DriverException
+     */
+    public function affectedRows()
+    {
+        if (!$this->statement) {
+            throw new DriverException('Result instance missing');
+        }
+
+        return $this->statement->rowCount();
+    }
+
+    /**
+     * Returns last inserted id
+     *
+     * @return string
+     * @throws DriverException
+     */
+    public function lastInsertId()
+    {
+        if (!$this->statement) {
+            throw new DriverException('Result instance missing');
+        }
+
+        return $this->pdo->lastInsertId();
     }
 
     /**
