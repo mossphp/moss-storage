@@ -2,7 +2,7 @@
 namespace moss\storage\builder;
 
 
-interface QueryBuilderInterface
+interface QueryInterface
 {
     // Query operations
     const OPERATION_SELECT = 'select';
@@ -158,13 +158,15 @@ interface QueryBuilderInterface
 
     /**
      * Adds sub query
+
      *
-     * @param QueryBuilderInterface $query
+*@param QueryInterface $query
      * @param string                $alias
+
      *
-     * @return $this
+*@return $this
      */
-    public function sub(QueryBuilderInterface $query, $alias);
+    public function sub(QueryInterface $query, $alias);
 
     /**
      * Adds value to query

@@ -3,9 +3,9 @@ namespace moss\storage\builder\mysql;
 
 
 use moss\storage\builder\BuilderException;
-use moss\storage\builder\QueryBuilderInterface;
+use moss\storage\builder\QueryInterface;
 
-class QueryBuilder implements QueryBuilderInterface
+class Query implements QueryInterface
 {
     const QUOTE = '`';
     const SEPARATOR = '.';
@@ -72,17 +72,19 @@ class QueryBuilder implements QueryBuilderInterface
      * @param string $alias
      * @param string $operation
      */
-    public function __construct($container, $alias = null, $operation = self::OPERATION_SELECT)
+    public function __construct($container = null, $alias = null, $operation = self::OPERATION_SELECT)
     {
-        $this->container($container, $alias);
-        $this->operation($operation);
+        if ($container !== null) {
+            $this->container($container, $alias);
+            $this->operation($operation);
+        }
     }
 
     protected function quote($string, $container = null)
     {
         $array = explode(self::SEPARATOR, $string, 2);
 
-        if($this->operation !== self::OPERATION_SELECT) {
+        if ($this->operation !== self::OPERATION_SELECT) {
             return self::QUOTE . $string . self::QUOTE;
         }
 
@@ -112,6 +114,10 @@ class QueryBuilder implements QueryBuilderInterface
      */
     public function container($container, $alias = null)
     {
+        if (empty($container)) {
+            throw new BuilderException('Missing container name');
+        }
+
         $this->container = array(
             $this->quote($container),
             $alias ? $this->quote($alias) : null
@@ -153,14 +159,10 @@ class QueryBuilder implements QueryBuilderInterface
 
     protected function buildContainer()
     {
-        if (empty($this->container)) {
-            throw new BuilderException('Missing container name');
-        }
-
         $result = array();
         $result[] = $this->container[0];
 
-        if($this->operation !== self::OPERATION_SELECT) {
+        if ($this->operation !== self::OPERATION_SELECT) {
             return implode(' ', $result);
         }
 
@@ -347,12 +349,12 @@ class QueryBuilder implements QueryBuilderInterface
     /**
      * Adds sub query
      *
-     * @param QueryBuilderInterface $query
-     * @param string                $alias
+     * @param QueryInterface $query
+     * @param string         $alias
      *
      * @return $this
      */
-    public function sub(QueryBuilderInterface $query, $alias)
+    public function sub(QueryInterface $query, $alias)
     {
         $this->subs[] = array($query, $this->quote($alias));
 
@@ -497,7 +499,7 @@ class QueryBuilder implements QueryBuilderInterface
             throw new BuilderException(sprintf('Query builder does not supports join type "%s"', $type));
         }
 
-        if(empty($joins)) {
+        if (empty($joins)) {
             throw new BuilderException(sprintf('Empty join array for join type "%s"', $type));
         }
 
@@ -719,6 +721,10 @@ class QueryBuilder implements QueryBuilderInterface
      */
     public function build()
     {
+        if (empty($this->container)) {
+            throw new BuilderException('Missing container name');
+        }
+
         $stmt = array();
 
         switch ($this->operation) {
