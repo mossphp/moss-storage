@@ -1,7 +1,7 @@
 <?php
 namespace moss\storage\builder\mysql;
 
-class QueryBuilderTest extends \PHPUnit_Framework_TestCase
+class QueryTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \moss\storage\builder\BuilderException
@@ -9,19 +9,19 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testMissingContainer()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->operation(QueryBuilder::OPERATION_SELECT)
+              ->operation(Query::OPERATION_SELECT)
               ->fields(array('foo', 'bar'))
               ->build();
     }
 
     public function testContainer()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
               ->container('foobar', 'fb')
-              ->operation(QueryBuilder::OPERATION_SELECT)
+              ->operation(Query::OPERATION_SELECT)
               ->fields(array('foo', 'bar'))
               ->build();
 
@@ -31,11 +31,11 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
     public function operationProvider()
     {
         return array(
-            array('SELECT `table`.`foo`, `table`.`bar` FROM `table`', QueryBuilder::OPERATION_SELECT),
-            array('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', QueryBuilder::OPERATION_INSERT),
-            array('UPDATE `table` SET `foo` = :bind1, `bar` = :bind2', QueryBuilder::OPERATION_UPDATE),
-            array('DELETE FROM `table`', QueryBuilder::OPERATION_DELETE),
-            array('TRUNCATE TABLE `table`', QueryBuilder::OPERATION_CLEAR),
+            array('SELECT `table`.`foo`, `table`.`bar` FROM `table`', Query::OPERATION_SELECT),
+            array('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', Query::OPERATION_INSERT),
+            array('UPDATE `table` SET `foo` = :bind1, `bar` = :bind2', Query::OPERATION_UPDATE),
+            array('DELETE FROM `table`', Query::OPERATION_DELETE),
+            array('TRUNCATE TABLE `table`', Query::OPERATION_CLEAR),
         );
     }
 
@@ -44,7 +44,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperation($expected, $operation)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
               ->container('table')
               ->operation($operation)
@@ -62,7 +62,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidOperation()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
               ->container('table')
               ->operation('foo')
@@ -74,13 +74,13 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testSelectWithoutFields()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $this->assertEquals('SELECT * FROM `table` AS `t`', $query->build());
     }
 
     public function testSelect()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo', 'bar', 'yada_yada' => 'yada'));
         $this->assertEquals('SELECT `t`.`foo`, `t`.`bar`, `t`.`yada_yada` AS `yada` FROM `table` AS `t`', $query->build());
     }
@@ -91,7 +91,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidComparison()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
               ->condition('foo', ':bind', '!!');
     }
@@ -102,17 +102,17 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidLogical()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
               ->condition('foo', ':bind', '=', 'BOO');
     }
 
     public function testSelectWithSubQuery()
     {
-        $sub = new QueryBuilder('bar', 'b');
+        $sub = new Query('bar', 'b');
         $sub->fields(array('bar'));
 
-        $query = new QueryBuilder('foo', 'f', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('foo', 'f', Query::OPERATION_SELECT);
         $query->fields(array('foo'))->sub($sub, 'b');
 
         $this->assertEquals('SELECT `f`.`foo`, ( SELECT `b`.`bar` FROM `bar` AS `b` ) AS `b` FROM `foo` AS `f`', $query->build());
@@ -123,15 +123,15 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithConditions($conditions, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'));
 
         foreach ($conditions as $condition) {
             $query->condition(
                   $condition[0],
                   $condition[1],
-                  isset($condition[2]) ? $condition[2] : QueryBuilder::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : QueryBuilder::LOGICAL_AND
+                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 
@@ -143,49 +143,49 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_EQUAL)
                 ),
                 'WHERE `t`.`foo` = :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_NOT_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_NOT_EQUAL)
                 ),
                 'WHERE `t`.`foo` != :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_LESS)
+                    array('foo', ':bind', Query::COMPARISON_LESS)
                 ),
                 'WHERE `t`.`foo` < :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_LESS_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_LESS_EQUAL)
                 ),
                 'WHERE `t`.`foo` <= :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_GREATER)
+                    array('foo', ':bind', Query::COMPARISON_GREATER)
                 ),
                 'WHERE `t`.`foo` > :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_GREATER_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_GREATER_EQUAL)
                 ),
                 'WHERE `t`.`foo` >= :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_LIKE)
+                    array('foo', ':bind', Query::COMPARISON_LIKE)
                 ),
                 'WHERE `t`.`foo` LIKE :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_REGEX)
+                    array('foo', ':bind', Query::COMPARISON_REGEX)
                 ),
                 'WHERE `t`.`foo` REGEX :bind'
             ),
@@ -209,15 +209,15 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 array(
-                    array('foo', ':bindFoo', null, QueryBuilder::LOGICAL_AND),
-                    array('bar', ':bindBar', null, QueryBuilder::LOGICAL_AND)
+                    array('foo', ':bindFoo', null, Query::LOGICAL_AND),
+                    array('bar', ':bindBar', null, Query::LOGICAL_AND)
                 ),
                 'WHERE `t`.`foo` = :bindFoo AND `t`.`bar` = :bindBar'
             ),
             array(
                 array(
-                    array('foo', ':bindFoo', null, QueryBuilder::LOGICAL_OR),
-                    array('bar', ':bindBar', null, QueryBuilder::LOGICAL_OR)
+                    array('foo', ':bindFoo', null, Query::LOGICAL_OR),
+                    array('bar', ':bindBar', null, Query::LOGICAL_OR)
                 ),
                 'WHERE `t`.`foo` = :bindFoo OR `t`.`bar` = :bindBar'
             )
@@ -230,7 +230,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidAggregate()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->aggregate('foo', 'bar');
     }
 
@@ -239,7 +239,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithAggregate($expected, $method)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
               ->aggregate($method, 'bar');
 
@@ -249,17 +249,17 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
     public function aggregateProvider()
     {
         return array(
-            array('DISTINCT(`t`.`bar`) AS `distinct`', QueryBuilder::AGGREGATE_DISTINCT),
-            array('COUNT(`t`.`bar`) AS `count`', QueryBuilder::AGGREGATE_COUNT),
-            array('AVERAGE(`t`.`bar`) AS `average`', QueryBuilder::AGGREGATE_AVERAGE),
-            array('MIN(`t`.`bar`) AS `min`', QueryBuilder::AGGREGATE_MIN),
-            array('MAX(`t`.`bar`) AS `max`', QueryBuilder::AGGREGATE_MAX),
-            array('SUM(`t`.`bar`) AS `sum`', QueryBuilder::AGGREGATE_SUM)
+            array('DISTINCT(`t`.`bar`) AS `distinct`', Query::AGGREGATE_DISTINCT),
+            array('COUNT(`t`.`bar`) AS `count`', Query::AGGREGATE_COUNT),
+            array('AVERAGE(`t`.`bar`) AS `average`', Query::AGGREGATE_AVERAGE),
+            array('MIN(`t`.`bar`) AS `min`', Query::AGGREGATE_MIN),
+            array('MAX(`t`.`bar`) AS `max`', Query::AGGREGATE_MAX),
+            array('SUM(`t`.`bar`) AS `sum`', Query::AGGREGATE_SUM)
         );
     }
 
     public function testSelectWithGroup() {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
               ->group('bar');
 
@@ -272,7 +272,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidOrder()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->order('foo', 'bar');
     }
 
@@ -281,7 +281,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithOrder($field, $order, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'));
         $query->order($field, $order);
         $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` ' . $expected, $query->build());
@@ -290,8 +290,8 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
     public function orderProvider()
     {
         return array(
-            array('foo', QueryBuilder::ORDER_ASC, 'ORDER BY `t`.`foo` ASC'),
-            array('foo', QueryBuilder::ORDER_DESC, 'ORDER BY `t`.`foo` DESC'),
+            array('foo', Query::ORDER_ASC, 'ORDER BY `t`.`foo` ASC'),
+            array('foo', Query::ORDER_DESC, 'ORDER BY `t`.`foo` DESC'),
             array('foo', array('one', 'two', 'three'), 'ORDER BY `t`.`foo` = one DESC, `t`.`foo` = two DESC, `t`.`foo` = three DESC'),
         );
     }
@@ -301,7 +301,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithLimit($limit, $offset, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'));
         $query->limit($limit, $offset);
         $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` ' . $expected, $query->build());
@@ -323,7 +323,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidJoin()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
         $query->join('foo', 'bar', array('f' => 'b'));
@@ -335,10 +335,10 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidJoinsArray()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
-        $query->join(QueryBuilder::JOIN_INNER, 'bar', array());
+        $query->join(Query::JOIN_INNER, 'bar', array());
     }
 
     /**
@@ -346,7 +346,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithJoin($join, $container, $joins, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_SELECT);
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
         $query->join($join, $container, $joins);
@@ -357,31 +357,31 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                QueryBuilder::JOIN_INNER,
+                Query::JOIN_INNER,
                 'bar',
                 array('foo' => 'bar'),
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` INNER JOIN `bar` ON `t`.`foo` = `bar`.`bar`'
             ),
             array(
-                QueryBuilder::JOIN_INNER,
+                Query::JOIN_INNER,
                 array('bar', 'b'),
                 array('foo' => 'bar'),
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` INNER JOIN `bar` AS `b` ON `t`.`foo` = `b`.`bar`'
             ),
             array(
-                QueryBuilder::JOIN_INNER,
+                Query::JOIN_INNER,
                 array('bar' => 'b'),
                 array('foo' => 'bar'),
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` INNER JOIN `bar` AS `b` ON `t`.`foo` = `b`.`bar`'
             ),
             array(
-                QueryBuilder::JOIN_LEFT,
+                Query::JOIN_LEFT,
                 'bar',
                 array('foo' => 'bar'),
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` LEFT OUTER JOIN `bar` ON `t`.`foo` = `bar`.`bar`'
             ),
             array(
-                QueryBuilder::JOIN_RIGHT,
+                Query::JOIN_RIGHT,
                 'bar',
                 array('foo' => 'bar'),
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` RIGHT OUTER JOIN `bar` ON `t`.`foo` = `bar`.`bar`'
@@ -396,20 +396,20 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testInsertWithoutValues()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->build();
     }
 
     public function testInsertSingleValue()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->value('foo', ':bind');
         $this->assertEquals('INSERT INTO `table` (`foo`) VALUE (:bind)', $query->build());
     }
 
     public function testInsertMultipleValues()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_INSERT);
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->value('foo', ':bind1');
         $query->value('bar', ':bind2');
         $this->assertEquals('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', $query->build());
@@ -423,13 +423,13 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateWithoutValues()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_UPDATE);
+        $query = new Query('table', 't', Query::OPERATION_UPDATE);
         $query->build();
     }
 
     public function testUpdate()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_UPDATE);
+        $query = new Query('table', 't', Query::OPERATION_UPDATE);
         $query->value('foo', ':bind');
         $this->assertEquals('UPDATE `table` SET `foo` = :bind', $query->build());
     }
@@ -439,15 +439,15 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateWithConditions($conditions, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_UPDATE);
+        $query = new Query('table', 't', Query::OPERATION_UPDATE);
         $query->value('foo', ':bind');
 
         foreach ($conditions as $condition) {
             $query->condition(
                   $condition[0],
                   $condition[1],
-                  isset($condition[2]) ? $condition[2] : QueryBuilder::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : QueryBuilder::LOGICAL_AND
+                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 
@@ -459,7 +459,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateWithLimit($limit, $offset, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_UPDATE);
+        $query = new Query('table', 't', Query::OPERATION_UPDATE);
         $query->value('foo', ':bind');
         $query->limit($limit, $offset);
         $this->assertEquals('UPDATE `table` SET `foo` = :bind ' . $expected, $query->build());
@@ -468,7 +468,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
     // DELETE
     public function testDelete()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_DELETE);
+        $query = new Query('table', 't', Query::OPERATION_DELETE);
         $this->assertEquals('DELETE FROM `table`', $query->build());
     }
 
@@ -477,14 +477,14 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testDeleteWithConditions($conditions, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_DELETE);
+        $query = new Query('table', 't', Query::OPERATION_DELETE);
 
         foreach ($conditions as $condition) {
             $query->condition(
                   $condition[0],
                   $condition[1],
-                  isset($condition[2]) ? $condition[2] : QueryBuilder::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : QueryBuilder::LOGICAL_AND
+                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 
@@ -496,7 +496,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testDeleteWithLimit($limit, $offset, $expected)
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_DELETE);
+        $query = new Query('table', 't', Query::OPERATION_DELETE);
         $query->fields(array('foo'));
         $query->limit($limit, $offset);
         $this->assertEquals('DELETE FROM `table` ' . $expected, $query->build());
@@ -505,7 +505,7 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
     // TRUNCATE
     public function testTruncate()
     {
-        $query = new QueryBuilder('table', 't', QueryBuilder::OPERATION_CLEAR);
+        $query = new Query('table', 't', Query::OPERATION_CLEAR);
         $this->assertEquals('TRUNCATE TABLE `table`', $query->build());
     }
 
@@ -514,49 +514,49 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_EQUAL)
                 ),
                 'WHERE `foo` = :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_NOT_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_NOT_EQUAL)
                 ),
                 'WHERE `foo` != :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_LESS)
+                    array('foo', ':bind', Query::COMPARISON_LESS)
                 ),
                 'WHERE `foo` < :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_LESS_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_LESS_EQUAL)
                 ),
                 'WHERE `foo` <= :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_GREATER)
+                    array('foo', ':bind', Query::COMPARISON_GREATER)
                 ),
                 'WHERE `foo` > :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_GREATER_EQUAL)
+                    array('foo', ':bind', Query::COMPARISON_GREATER_EQUAL)
                 ),
                 'WHERE `foo` >= :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_LIKE)
+                    array('foo', ':bind', Query::COMPARISON_LIKE)
                 ),
                 'WHERE `foo` LIKE :bind'
             ),
             array(
                 array(
-                    array('foo', ':bind', QueryBuilder::COMPARISON_REGEX)
+                    array('foo', ':bind', Query::COMPARISON_REGEX)
                 ),
                 'WHERE `foo` REGEX :bind'
             ),
@@ -580,15 +580,15 @@ class QueryBuilderTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 array(
-                    array('foo', ':bindFoo', null, QueryBuilder::LOGICAL_AND),
-                    array('bar', ':bindBar', null, QueryBuilder::LOGICAL_AND)
+                    array('foo', ':bindFoo', null, Query::LOGICAL_AND),
+                    array('bar', ':bindBar', null, Query::LOGICAL_AND)
                 ),
                 'WHERE `foo` = :bindFoo AND `bar` = :bindBar'
             ),
             array(
                 array(
-                    array('foo', ':bindFoo', null, QueryBuilder::LOGICAL_OR),
-                    array('bar', ':bindBar', null, QueryBuilder::LOGICAL_OR)
+                    array('foo', ':bindFoo', null, Query::LOGICAL_OR),
+                    array('bar', ':bindBar', null, Query::LOGICAL_OR)
                 ),
                 'WHERE `foo` = :bindFoo OR `bar` = :bindBar'
             )
