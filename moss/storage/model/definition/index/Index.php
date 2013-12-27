@@ -7,6 +7,7 @@ use moss\storage\model\ModelInterface;
 
 class Index implements IndexInterface
 {
+    protected $container;
     protected $name;
     protected $type;
     protected $fields = array();
@@ -25,6 +26,22 @@ class Index implements IndexInterface
         }
 
         $this->fields = $fields;
+    }
+
+    /**
+     * Returns name of container
+     *
+     * @param string $container
+     *
+     * @return string
+     */
+    public function container($container = null)
+    {
+        if ($container !== null) {
+            $this->container = $container;
+        }
+
+        return $this->container;
     }
 
     /**

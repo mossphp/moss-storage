@@ -10,6 +10,13 @@ namespace moss\storage\model\definition;
 interface IndexInterface
 {
     /**
+     * Returns container that field belongs to
+     *
+     * @return string
+     */
+    public function container();
+
+    /**
      * Returns relation name in entity
      *
      * @return string

@@ -2,10 +2,10 @@
 namespace moss\storage\model\definition\index;
 
 use moss\storage\model\definition\DefinitionException;
-use moss\storage\model\definition\IndexInterface;
+use moss\storage\model\definition\ForeignInterface;
 use moss\storage\model\ModelInterface;
 
-class Foreign extends Index
+class Foreign extends Index implements ForeignInterface
 {
     protected $container;
 
@@ -34,15 +34,5 @@ class Foreign extends Index
     public function hasField($field)
     {
         return isset($this->fields[$field]);
-    }
-
-    /**
-     * Returns name of foreign container
-     *
-     * @return string
-     */
-    public function container()
-    {
-        return $this->container;
     }
 }
