@@ -7,18 +7,17 @@ use moss\storage\model\ModelInterface;
 
 class Field implements FieldInterface
 {
-    private $name;
-    private $type;
-    private $mapping;
-    private $attributes;
+    protected $container;
+    protected $name;
+    protected $type;
+    protected $mapping;
+    protected $attributes;
 
     public function __construct($field, $type = ModelInterface::FIELD_STRING, $attributes = array(), $mapping = null)
     {
-        $this->assertType($type, $field);
-
-        $this->name = $field;
-        $this->type = $type;
-        $this->mapping = $mapping;
+        if (!in_array($type, array(ModelInterface::FIELD_BOOLEAN, ModelInterface::FIELD_INTEGER, ModelInterface::FIELD_DECIMAL, ModelInterface::FIELD_STRING, ModelInterface::FIELD_DATETIME, ModelInterface::FIELD_SERIAL))) {
+            throw new DefinitionException(sprintf('Invalid type "%s" for field "%s"', $type, $field));
+        }
 
         foreach ($attributes as $key => $value) {
             if (!is_numeric($key)) {
@@ -29,13 +28,19 @@ class Field implements FieldInterface
             $attributes[$value] = true;
         }
 
+        $this->name = $field;
+        $this->type = $type;
+        $this->mapping = $mapping;
         $this->attributes = $attributes;
     }
 
-    protected function assertType($type, $field) {
-        if (!in_array($type, array(ModelInterface::FIELD_BOOLEAN, ModelInterface::FIELD_INTEGER, ModelInterface::FIELD_DECIMAL, ModelInterface::FIELD_STRING, ModelInterface::FIELD_DATETIME, ModelInterface::FIELD_SERIAL))) {
-            throw new DefinitionException(sprintf('Invalid type "%s" for field "%s"', $type, $field));
+    public function container($container = null)
+    {
+        if ($container !== null) {
+            $this->container = $container;
         }
+
+        return $this->container;
     }
 
     /**

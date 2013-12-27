@@ -9,6 +9,14 @@ namespace moss\storage\model\definition;
  */
 interface FieldInterface
 {
+
+    /**
+     * Returns container that field belongs to
+     *
+     * @return string
+     */
+    public function container();
+
     /**
      * Returns relation name in entity
      *
