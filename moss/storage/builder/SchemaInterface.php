@@ -68,7 +68,7 @@ interface SchemaInterface
     /**
      * Sets key/index to container
      *
-     * @param array  $localFields
+     * @param array $localFields
      *
      * @return $this
      */
@@ -101,14 +101,10 @@ interface SchemaInterface
      *
      * @param string $name
      * @param array  $localFields
-     * @param string $type
-     * @param string $foreignContainer
-     * @param array  $foreignFields
      *
      * @return $this
-     * @throws BuilderException
      */
-    public function index($name, array $localFields, $type = self::INDEX_INDEX, $foreignContainer = null, array $foreignFields = array());
+    public function index($name, array $localFields);
 
     /**
      * Builds query string
@@ -116,6 +112,15 @@ interface SchemaInterface
      * @return string
      */
     public function build();
+
+    /**
+     * Parsers create table statement into array
+     *
+     * @param string $statement
+     *
+     * @return array
+     */
+    public function parse($statement);
 
     /**
      * Resets builder

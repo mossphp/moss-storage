@@ -233,6 +233,8 @@ class Schema implements SchemaInterface
      */
     public function primary(array $localFields)
     {
+        $this->assertIndexFields($localFields);
+
         $this->index('primary', $localFields, self::INDEX_PRIMARY);
     }
 
@@ -248,7 +250,18 @@ class Schema implements SchemaInterface
      */
     public function foreign($name, array $localFields, $foreignContainer, array $foreignFields)
     {
-        $this->index($name, $localFields, self::INDEX_FOREIGN, $foreignContainer, $foreignFields);
+        $this->assertIndexFields($localFields);
+        $this->assertIndexFields($foreignFields);
+
+        $this->indexes[] = array(
+            $name,
+            (array) $localFields,
+            self::INDEX_FOREIGN,
+            $foreignContainer,
+            (array) $foreignFields
+        );
+
+        return $this;
     }
 
     /**
@@ -261,7 +274,15 @@ class Schema implements SchemaInterface
      */
     public function unique($name, array $localFields)
     {
-        $this->index($name, $localFields, self::INDEX_UNIQUE);
+        $this->assertIndexFields($localFields);
+
+        $this->indexes[] = array(
+            $name,
+            (array) $localFields,
+            self::INDEX_UNIQUE,
+            null,
+            array()
+        );
 
         return $this;
     }
@@ -271,33 +292,22 @@ class Schema implements SchemaInterface
      *
      * @param string $name
      * @param array  $localFields
-     * @param string $type
-     * @param string $foreignContainer
-     * @param array  $foreignFields
      *
      * @return $this
-     * @throws BuilderException
      */
-    public function index($name, array $localFields, $type = self::INDEX_INDEX, $foreignContainer = null, array $foreignFields = array())
+    public function index($name, array $localFields)
     {
-        $this->assertIndexFields($type);
+        $this->assertIndexFields($localFields);
 
         $this->indexes[] = array(
             $name,
             (array) $localFields,
-            $type,
-            $foreignContainer,
-            (array) $foreignFields
+            self::INDEX_INDEX,
+            null,
+            array()
         );
 
         return $this;
-    }
-
-    protected function assertIndexType($type)
-    {
-        if (!in_array($type, array(self::INDEX_PRIMARY, self::INDEX_FOREIGN, self::INDEX_UNIQUE, self::INDEX_INDEX))) {
-            throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->container));
-        }
     }
 
     protected function assertIndexFields($fields)
@@ -342,7 +352,7 @@ class Schema implements SchemaInterface
      */
     public function build()
     {
-        if(empty($this->container)) {
+        if (empty($this->container)) {
             throw new BuilderException('Missing container name');
         }
 
@@ -433,6 +443,123 @@ class Schema implements SchemaInterface
     }
 
     /**
+     * Parsers create statement into array
+     *
+     * @param string $statement
+     *
+     * @return array
+     * @throws BuilderException
+     */
+    public function parse($statement)
+    {
+        $statement = str_replace(array("\n", "\r", "\t", '  '), array(null, null, ' ', '  '), $statement);
+
+        $result = array(
+            'container' => preg_replace('/CREATE TABLE `([^`]+)`.*/i', '$1', $statement),
+            'fields' => $this->parseColumns($statement),
+            'indexes' => $this->parseIndexes($statement)
+        );
+
+        return $result;
+    }
+
+    protected function parseColumns($statement)
+    {
+        preg_match_all('/`(?P<name>[^`]+)` (?P<type>((tiny|small|medium|big)?int|integer|decimal|(var)?char|(tiny|medium|long)?text|(date)?time(stamp)?|year))(\((?P<length>[\d]+)(\,(?P<precision>[\d]+))?\))?(?P<attributes>[^,]+)?,?/i', $statement, $matches, \PREG_SET_ORDER);
+
+        $columns = array();
+        foreach ($matches as $match) {
+            $node = array(
+                'name' => $match['name'],
+                'type' => $match['type'],
+                'attributes' => array(
+                    self::ATTRIBUTE_LENGTH => (int) $match['length'],
+                    self::ATTRIBUTE_PRECISION => (int) $match['precision'],
+                    self::ATTRIBUTE_NULL => stripos($match['attributes'], 'not null') === false,
+                    self::ATTRIBUTE_UNSIGNED => stripos($match['attributes'], 'unsigned') !== false,
+                    self::ATTRIBUTE_AUTO => stripos($match['attributes'], 'auto_increment') !== false,
+                    self::ATTRIBUTE_DEFAULT => stripos($match['attributes'], 'default') !== false ? preg_replace('/.*DEFAULT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null,
+                    self::ATTRIBUTE_COMMENT => stripos($match['attributes'], 'comment') !== false ? preg_replace('/.*COMMENT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null
+                )
+            );
+
+            $type = strtolower($node['type']);
+            $comm = strtolower($node['attributes'][self::ATTRIBUTE_COMMENT]);
+            switch ($type) {
+                case in_array($type . ':' . $comm, $this->fieldTypes[self::FIELD_BOOLEAN]):
+                    $node['type'] = self::FIELD_BOOLEAN;
+                    break;
+                case in_array($type . ':' . $comm, $this->fieldTypes[self::FIELD_SERIAL]):
+                    $node['type'] = self::FIELD_SERIAL;
+                    break;
+                case in_array($type, $this->fieldTypes[self::FIELD_INTEGER]):
+                    $node['type'] = self::FIELD_INTEGER;
+                    break;
+                case in_array($type, $this->fieldTypes[self::FIELD_DECIMAL]):
+                    $node['type'] = self::FIELD_DECIMAL;
+                    break;
+                case in_array($type, $this->fieldTypes[self::FIELD_STRING]):
+                    $node['type'] = self::FIELD_STRING;
+                    break;
+                case in_array($type, $this->fieldTypes[self::FIELD_DATETIME]):
+                    $node['type'] = self::FIELD_DATETIME;
+                    break;
+                default:
+                    throw new BuilderException(sprintf('Invalid or unsupported field type "%s" in container "%s"', $type, $this->container));
+            }
+
+            foreach ($node['attributes'] as $i => $attr) {
+                if (!$attr) {
+                    unset($node['attributes'][$i]);
+                }
+            }
+
+            $columns[] = $node;
+        }
+
+        return $columns;
+    }
+
+    protected function parseIndexes($statement)
+    {
+        preg_match_all('/(?P<fname>`[^`]+`)? ?(?P<type>PRIMARY KEY|FOREIGN KEY|UNIQUE KEY|KEY) (?P<name>`[^`]+`)? ?\((?P<fields>[^)]+)\)( REFERENCES `(?P<container>[^`]+)` ?\((?P<foreign>[^)]+)\))?/i', $statement, $matches, \PREG_SET_ORDER);
+
+        $indexes = array();
+        foreach ($matches as $match) {
+            $node = array(
+                'name' => trim($match['fname'] ? $match['fname'] : $match['name'], '`'),
+                'type' => trim($match['type']),
+                'fields' => explode(',', str_replace(array('`', ' '), null, $match['fields'])),
+                'container' => isset($match['container']) ? trim($match['container'], '`') : null,
+                'foreign' => isset($match['foreign']) ? explode(',', str_replace(array('`', ' '), null, $match['foreign'])) : array()
+            );
+
+            switch ($node['type']) {
+                case 'PRIMARY KEY':
+                    $node['name'] = self::INDEX_PRIMARY;
+                    $node['type'] = self::INDEX_PRIMARY;
+                    break;
+                case 'FOREIGN KEY':
+                    $node['type'] = self::INDEX_FOREIGN;
+                    break;
+                case 'UNIQUE KEY':
+                    $node['type'] = self::INDEX_UNIQUE;
+                    break;
+                default:
+                    $node['type'] = self::INDEX_INDEX;
+            }
+
+            if ($node['type'] != self::INDEX_FOREIGN) {
+                unset($node['container'], $node['foreign']);
+            }
+
+            $indexes[] = $node;
+        }
+
+        return $indexes;
+    }
+
+    /**
      * Resets builder
      *
      * @return $this
@@ -449,6 +576,10 @@ class Schema implements SchemaInterface
      */
     public function __toString()
     {
-        return (string) $this->build();
+        try {
+            return (string) $this->build();
+        } catch(\Exception $e) {
+            return get_class($e).' - '.$e->getMessage();
+        }
     }
 } 
