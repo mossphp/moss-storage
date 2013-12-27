@@ -39,6 +39,16 @@ interface DriverInterface
     public function cast($value, $type);
 
     /**
+     * Unbinds value, casts from internal type
+     *
+     * @param mixed  $value
+     * @param string $type
+     *
+     * @return mixed
+     */
+    public function reCast($value, $type);
+
+    /**
      * Executes prepared query with set parameters
      *
      * @param array $parameters
@@ -63,16 +73,6 @@ interface DriverInterface
      * @throws DriverException
      */
     public function lastInsertId();
-
-    /**
-     * Unbinds value, casts from internal type
-     *
-     * @param mixed  $value
-     * @param string $type
-     *
-     * @return mixed
-     */
-    public function reCast($value, $type);
 
     /**
      * Retches result element as object
