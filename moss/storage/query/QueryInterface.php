@@ -1,7 +1,9 @@
 <?php
 namespace moss\storage\query;
 
+use moss\storage\driver\DriverInterface;
 use moss\storage\builder\QueryInterface as BuilderInterface;
+use moss\storage\model\ModelInterface;
 
 /**
  * Query representation
@@ -15,24 +17,45 @@ interface QueryInterface
     const OPERATION_COUNT = 'count';
     const OPERATION_READ_ONE = 'readOne';
     const OPERATION_READ = 'read';
-    const OPERATION_INSERT = 'insert';
     const OPERATION_WRITE = 'write';
+    const OPERATION_INSERT = 'insert';
     const OPERATION_UPDATE = 'update';
     const OPERATION_DELETE = 'delete';
     const OPERATION_CLEAR = 'clear';
 
+    /**
+     * Returns driver instance
+     *
+     * @return DriverInterface
+     */
+    public function driver();
+
+    /**
+     * Returns builder instance
+     *
+     * @return BuilderInterface
+     */
+    public function builder();
+
+    /**
+     * Returns model instance
+     *
+     * @return ModelInterface
+     */
+    public function model();
 
     /**
      * Sets query operation
      *
-     * @param string $operation
+     * @param string        $operation
+     * @param string|object $entity
      *
      * @return $this
      */
-    public function operation($operation);
+    public function operation($operation, $entity);
 
     /**
-     * Sets fields read by query
+     * Sets field names which will be read
      *
      * @param array $fields
      *
@@ -41,41 +64,80 @@ interface QueryInterface
     public function fields($fields = array());
 
     /**
-     * Adds aggregation method to read results
+     * Adds aggregate method to query
      *
-     * @param string      $method
-     * @param string      $field
-     * @param null|string $group
-     *
-     * @return $this
-     */
-    public function aggregate($method, $field, $group = null);
-
-
-    /**
-     * Adds condition to query
-     *
-     * @param string|array $field
-     * @param string|array $value
-     * @param string       $comparisonOperator
-     * @param string       $logicalOperator
+     * @param string $method
+     * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function condition($field, $value, $comparisonOperator = BuilderInterface::COMPARISON_EQUAL, $logicalOperator = BuilderInterface::LOGICAL_AND);
+    public function aggregate($method, $field, $alias = null);
 
     /**
-     * Adds order method to query
+     * Adds grouping to query
      *
      * @param string $field
-     * @param string $order
      *
      * @return $this
      */
-    public function order($field, $order = BuilderInterface::ORDER_ASC);
+    public function group($field);
 
     /**
-     * Sets limits to results
+     * Sets field names which values will be written
+     *
+     * @param array $values
+     *
+     * @return $this
+     */
+    public function values($values = array());
+
+    /**
+     * Adds join to query
+     *
+     * @param string $type
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function join($type, $entity);
+
+    /**
+     * Adds where condition to builder
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function where($field, $value, $comparison = BuilderInterface::COMPARISON_EQUAL, $logical = BuilderInterface::LOGICAL_AND);
+
+    /**
+     * Adds having condition to builder
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function having($field, $value, $comparison = BuilderInterface::COMPARISON_EQUAL, $logical = BuilderInterface::LOGICAL_AND);
+
+    /**
+     * Adds sorting to query
+     *
+     * @param string       $field
+     * @param string|array $order
+     *
+     * @return $this
+     */
+    public function order($field, $order = BuilderInterface::ORDER_DESC);
+
+    /**
+     * Sets limits to query
      *
      * @param int      $limit
      * @param null|int $offset
@@ -88,7 +150,7 @@ interface QueryInterface
      * Adds relation to query
      *
      * @param string $relation
-     * @param bool $transparent
+     * @param bool   $transparent
      *
      * @return $this
      */
@@ -108,7 +170,7 @@ interface QueryInterface
      *
      * @return string
      */
-    public function preview();
+    public function queryString();
 
     /**
      * Resets adapter
