@@ -20,9 +20,9 @@ class Relation implements RelationInterface
             throw new DefinitionException(sprintf('Invalid relation type %s in relation for %s', $type, $entity));
         }
 
-        $this->entity = $entity;
+        $this->entity = '\\'.ltrim($entity, '\\');
         $this->type = $type;
-        $this->container = $container ? $container : substr($entity, strrpos($entity, '\\') + 1);
+        $this->container = $container ? $container : substr($this->entity, strrpos($this->entity, '\\') + 1);
 
         if (empty($keys)) {
             throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
