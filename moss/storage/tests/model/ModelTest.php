@@ -17,14 +17,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Foo', $model->entity());
     }
 
-    public function testAddField()
-    {
-        $model = new Model('foo', 'Foo', array());
-        $model->setField($this->mockField('foo'));
-        $this->assertTrue($model->hasField('foo'));
-        $this->assertFalse($model->hasField('bar'));
-    }
-
     public function testHasField()
     {
         $model = new Model('foo', 'Foo', array($this->mockField('foo')));
@@ -52,13 +44,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $model->field('yada');
     }
 
-    public function testSetIndex()
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')));
-        $model->setIndex($this->mockIndex('foo', 'primary', array('foo')));
-        $this->assertTrue($model->isIndex('foo'));
-    }
-
     public function testIsPrimary()
     {
         $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'primary', array('foo'))));
@@ -77,8 +62,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     public function testPrimaryFields()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'primary', array('foo'))));
-        $this->assertEquals(array('foo'), $model->primaryFields());
+        $fields = array($this->mockField('foo'), $this->mockField('bar'));
+
+        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', 'primary', array('foo'))));
+        $this->assertEquals(array($fields[0]), $model->primaryFields());
     }
 
     public function testIsIndex()
@@ -98,8 +85,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     public function testIndexFields()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('foo'))));
-        $this->assertEquals(array('foo'), $model->indexFields());
+        $fields = array($this->mockField('foo'), $this->mockField('bar'));
+
+        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', 'index', array('foo'))));
+        $this->assertEquals(array($fields[0]), $model->indexFields());
     }
 
     public function testIndex()
@@ -115,17 +104,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
     {
         $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('foo'))));
         $model->index('yada');
-    }
-
-    public function testSetRelation()
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array());
-        $this->assertFalse($model->hasRelations());
-
-        $model->setRelation($this->mockRelation('bar', 'one', array('foo' => 'bar')));
-
-        $this->assertTrue($model->hasRelations());
-        $this->assertTrue($model->hasRelation('bar'));
     }
 
     /**
