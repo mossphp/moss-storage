@@ -86,7 +86,7 @@ interface ModelInterface
     /**
      * Returns array containing names of primary indexes
      *
-     * @return array
+     * @return array|FieldInterface[]
      */
     public function primaryFields();
 
@@ -103,7 +103,7 @@ interface ModelInterface
     /**
      * Returns array containing names of indexes
      *
-     * @return array|IndexInterface[]
+     * @return array|FieldInterface[]
      */
     public function indexFields();
 

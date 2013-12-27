@@ -4,6 +4,7 @@ namespace moss\storage\model;
 use moss\storage\model\definition\FieldInterface;
 use moss\storage\model\definition\IndexInterface;
 use moss\storage\model\definition\RelationInterface;
+use moss\storage\model\definition\ForeignInterface;
 
 /**
  * Entity model representation for storage
@@ -37,34 +38,82 @@ class Model implements ModelInterface
      *
      * @throws ModelException
      */
-    public function __construct($entityClass, $container, $fields, $indexes = array(), $relations = array())
+    public function __construct($entityClass, $container, array $fields, array $indexes = array(), array $relations = array())
     {
         $this->container = $container;
         $this->entity = ltrim($entityClass, '\\');
 
+        $this->assignFields($fields);
+        $this->assignIndexes($indexes);
+        $this->assignRelations($relations);
+    }
+
+    protected function assignFields($fields)
+    {
         foreach ($fields as $field) {
             if (!$field instanceof FieldInterface) {
-                throw new ModelException(sprintf('Field must be an instance of FieldInterface, got "%s"', gettype($field)));
+                throw new ModelException(sprintf('Field must be an instance of FieldInterface, got "%s"', $this->getType($field)));
             }
 
-            $this->setField($field);
-        }
+            if (!$field instanceof ForeignInterface) {
+                $field->container($this->container);
+            }
 
+            $this->fields[$field->name()] = $field;
+        }
+    }
+
+    protected function assignIndexes($indexes)
+    {
         foreach ($indexes as $index) {
             if (!$index instanceof IndexInterface) {
-                throw new ModelException(sprintf('Index must be an instance of IndexInterface, got "%s"', gettype($index)));
+                throw new ModelException(sprintf('Index must be an instance of IndexInterface, got "%s"', $this->getType($index)));
             }
 
-            $this->setIndex($index);
-        }
+            foreach ($index->fields() as $field) {
+                if (!$this->hasField($field)) {
+                    throw new ModelException(sprintf('Index field "%s" does not exist in entity model "%s"', $field, $this->entity));
+                }
+            }
 
+            if (!$index instanceof ForeignInterface) {
+                $index->container($this->container);
+            }
+
+            $this->indexes[$index->name()] = $index;
+        }
+    }
+
+    protected function assignRelations($relations)
+    {
         foreach ($relations as $relation) {
             if (!$relation instanceof RelationInterface) {
-                throw new ModelException(sprintf('Relation must be an instance of RelationInterface, got "%s"', gettype($relation)));
+                throw new ModelException(sprintf('Relation must be an instance of RelationInterface, got "%s"', $this->getType($relation)));
             }
 
-            $this->setRelation($relation);
+            foreach ($relation->keys() as $field => $trash) {
+                if (!$this->hasField($field)) {
+                    throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
+                }
+            }
+
+            foreach ($relation->localValues() as $field => $trash) {
+                if (!$this->hasField($field)) {
+                    throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
+                }
+            }
+
+            $this->relations[$relation->name()] = $relation;
         }
+    }
+
+    private function getType($var)
+    {
+        if (is_object($var)) {
+            return get_class($var);
+        }
+
+        return gettype($var);
     }
 
     /**
@@ -85,20 +134,6 @@ class Model implements ModelInterface
     public function entity()
     {
         return $this->entity;
-    }
-
-    /**
-     * Sets field in model
-     *
-     * @param FieldInterface $field
-     *
-     * @return $this
-     */
-    public function setField(FieldInterface $field)
-    {
-        $this->fields[$field->name()] = $field;
-
-        return $this;
     }
 
     /**
@@ -166,7 +201,7 @@ class Model implements ModelInterface
     /**
      * Returns array containing names of primary indexes
      *
-     * @return array
+     * @return array|FieldInterface[]
      */
     public function primaryFields()
     {
@@ -176,31 +211,12 @@ class Model implements ModelInterface
                 continue;
             }
 
-            $result = array_merge($result, $index->fields());
-        }
-
-        return $result;
-    }
-
-    /**
-     * Sets index in model
-     *
-     * @param IndexInterface $index
-     *
-     * @return $this
-     * @throws ModelException
-     */
-    public function setIndex(IndexInterface $index)
-    {
-        foreach ($index->fields() as $field) {
-            if (!$this->hasField($field)) {
-                throw new ModelException(sprintf('Index field "%s" does not exist in entity model "%s"', $field, $this->entity));
+            foreach ($index->fields() as $field) {
+                $result[] = $this->field($field);
             }
         }
 
-        $this->indexes[$index->name()] = $index;
-
-        return $this;
+        return $result;
     }
 
     /**
@@ -229,13 +245,15 @@ class Model implements ModelInterface
     /**
      * Returns array containing names of indexes
      *
-     * @return array|IndexInterface[]
+     * @return array|FieldInterface[]
      */
     public function indexFields()
     {
         $result = array();
         foreach ($this->indexes as $index) {
-            $result = array_merge($result, $index->fields());
+            foreach ($index->fields() as $field) {
+                $result[] = $this->field($field);
+            }
         }
 
         return $result;
@@ -267,31 +285,6 @@ class Model implements ModelInterface
         }
 
         return $this->indexes[$index];
-    }
-
-    /**
-     * Sets relation in model
-     *
-     * @param RelationInterface $relation
-     *
-     * @return $this
-     * @throws ModelException
-     */
-    public function setRelation(RelationInterface $relation)
-    {
-        foreach ($relation->keys() as $field => $trash) {
-            if (!$this->hasField($field)) {
-                throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
-            }
-        }
-
-        foreach ($relation->localValues() as $field => $trash) {
-            if (!$this->hasField($field)) {
-                throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
-            }
-        }
-
-        $this->relations[$relation->name()] = $relation;
     }
 
     /**
