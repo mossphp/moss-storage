@@ -8,7 +8,6 @@ use moss\storage\builder\QueryInterface;
 class Query implements QueryInterface
 {
     const QUOTE = '`';
-    const SEPARATOR = '.';
 
     protected $aggregateMethods = array(
         self::AGGREGATE_DISTINCT => 'DISTINCT',
@@ -58,7 +57,8 @@ class Query implements QueryInterface
 
     protected $values = array();
 
-    protected $conditions = array();
+    protected $where = array();
+    protected $having = array();
 
     protected $order = array();
 
@@ -229,72 +229,78 @@ class Query implements QueryInterface
      * Adds distinct method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function distinct($field)
+    public function distinct($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_DISTINCT, $field);
+        return $this->aggregate(self::AGGREGATE_DISTINCT, $field, $alias);
     }
 
     /**
      * Adds count method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function count($field)
+    public function count($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_COUNT, $field);
+        return $this->aggregate(self::AGGREGATE_COUNT, $field, $alias);
     }
 
     /**
      * Adds average method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function average($field)
+    public function average($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_AVERAGE, $field);
+        return $this->aggregate(self::AGGREGATE_AVERAGE, $field, $alias);
     }
 
     /**
      * Adds max method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function max($field)
+    public function max($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_MAX, $field);
+        return $this->aggregate(self::AGGREGATE_MAX, $field, $alias);
     }
 
     /**
      * Adds min method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function min($field)
+    public function min($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_MIN, $field);
+        return $this->aggregate(self::AGGREGATE_MIN, $field, $alias);
     }
 
     /**
      * Adds sum method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function sum($field)
+    public function sum($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_SUM, $field);
+        return $this->aggregate(self::AGGREGATE_SUM, $field, $alias);
     }
 
     /**
@@ -392,6 +398,24 @@ class Query implements QueryInterface
         }
 
         return implode(', ', $result);
+    }
+
+    /**
+     * Adds values to query
+     *
+     * @param array $values
+     *
+     * @return $this
+     */
+    public function values(array $values)
+    {
+        $this->values = array();
+
+        foreach ($values as $col => $value) {
+            $this->value($col, $value);
+        }
+
+        return $this;
     }
 
     /**
@@ -536,25 +560,20 @@ class Query implements QueryInterface
     }
 
     /**
-     * Adds condition to builder
+     * Adds where condition to builder
      *
      * @param mixed  $field
      * @param mixed  $value
-     * @param string $comp
-     * @param string $log
+     * @param string $comparison
+     * @param string $logical
      *
      * @return $this
      * @throws BuilderException
      */
-    public function condition($field, $value, $comp = self::COMPARISON_EQUAL, $log = self::LOGICAL_AND)
+    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
     {
-        if (!isset($this->comparisonOperators[$comp])) {
-            throw new BuilderException(sprintf('Query builder does not supports comparison operator "%s"', $comp));
-        }
-
-        if (!isset($this->logicalOperators[$log])) {
-            throw new BuilderException(sprintf('Query builder does not supports logical operator "%s"', $log));
-        }
+        $this->assertComparisonOperator($comparison);
+        $this->assertLogicalOperator($logical);
 
         if (is_array($field)) {
             array_walk_recursive($field, array($this, 'quoteCallback'));
@@ -562,14 +581,60 @@ class Query implements QueryInterface
             $field = $this->quote($field, $this->mapping());
         }
 
-        $this->conditions[] = array(
+        $this->where[] = array(
             $field,
             $value,
-            $this->comparisonOperators[$comp],
-            $this->logicalOperators[$log]
+            $this->comparisonOperators[$comparison],
+            $this->logicalOperators[$logical]
         );
 
         return $this;
+    }
+
+    /**
+     * Adds having condition to builder
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     * @throws BuilderException
+     */
+    public function having($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
+    {
+        $this->assertComparisonOperator($comparison);
+        $this->assertLogicalOperator($logical);
+
+        if (is_array($field)) {
+            array_walk_recursive($field, array($this, 'quoteCallback'));
+        } else {
+            $field = $this->quote($field, $this->mapping());
+        }
+
+        $this->having[] = array(
+            $field,
+            $value,
+            $this->comparisonOperators[$comparison],
+            $this->logicalOperators[$logical]
+        );
+
+        return $this;
+    }
+
+    protected function assertComparisonOperator($operator)
+    {
+        if (!isset($this->comparisonOperators[$operator])) {
+            throw new BuilderException(sprintf('Query builder does not supports comparison operator "%s"', $operator));
+        }
+    }
+
+    protected function assertLogicalOperator($operator)
+    {
+        if (!isset($this->logicalOperators[$operator])) {
+            throw new BuilderException(sprintf('Query builder does not supports logical operator "%s"', $operator));
+        }
     }
 
     protected function quoteCallback(&$field)
@@ -577,15 +642,37 @@ class Query implements QueryInterface
         $field = $this->quote($field, $this->mapping());
     }
 
-    protected function buildConditions()
+    protected function buildWhere()
     {
-        if (empty($this->conditions)) {
+        if (empty($this->where)) {
+            return null;
+        }
+
+        $result = $this->buildConditions($this->where);
+
+        return 'WHERE ' . implode(' ', $result);
+    }
+
+    protected function buildHaving()
+    {
+        if (empty($this->having)) {
+            return null;
+        }
+
+        $result = $this->buildConditions($this->having);
+
+        return 'HAVING ' . implode(' ', $result);
+    }
+
+    protected function buildConditions(&$conditions)
+    {
+        if (empty($conditions)) {
             return null;
         }
 
         $result = array();
 
-        foreach ($this->conditions as $node) {
+        foreach ($conditions as $node) {
             if (!is_array($node[0])) {
                 $result[] = $this->buildConditionString($node[0], $node[1], $node[2]);
                 $result[] = $node[3];
@@ -603,7 +690,7 @@ class Query implements QueryInterface
 
         array_pop($result);
 
-        return 'WHERE ' . implode(' ', $result);
+        return $result;
     }
 
     protected function buildConditionString($field, $bind, $operator)
@@ -718,6 +805,7 @@ class Query implements QueryInterface
      * Builds query string
      *
      * @return string
+     * @throws BuilderException
      */
     public function build()
     {
@@ -733,8 +821,9 @@ class Query implements QueryInterface
                 $stmt[] = $this->buildFields();
                 $stmt[] = 'FROM';
                 $stmt[] = $this->buildContainer();
-                $stmt[] = $this->buildConditions();
+                $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildGroup();
+                $stmt[] = $this->buildHaving();
                 $stmt[] = $this->buildOrder();
                 $stmt[] = $this->buildLimit();
                 break;
@@ -747,13 +836,13 @@ class Query implements QueryInterface
                 $stmt[] = 'UPDATE';
                 $stmt[] = $this->buildContainer();
                 $stmt[] = $this->buildUpdateValues();
-                $stmt[] = $this->buildConditions();
+                $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildLimit();
                 break;
             case self::OPERATION_DELETE:
                 $stmt[] = 'DELETE FROM';
                 $stmt[] = $this->buildContainer();
-                $stmt[] = $this->buildConditions();
+                $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildLimit();
                 break;
             case self::OPERATION_CLEAR:
@@ -786,7 +875,8 @@ class Query implements QueryInterface
 
         $this->values = array();
 
-        $this->conditions = array();
+        $this->where = array();
+        $this->having = array();
 
         $this->order = array();
 
@@ -807,7 +897,7 @@ class Query implements QueryInterface
         try {
             return $this->build();
         } catch(BuilderException $e) {
-            return $e->getMessage();
+            return get_class($e) . ' - ' . $e->getMessage();
         }
     }
 }

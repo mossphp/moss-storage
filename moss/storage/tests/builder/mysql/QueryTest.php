@@ -93,7 +93,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->condition('foo', ':bind', '!!');
+              ->where('foo', ':bind', '!!');
     }
 
     /**
@@ -104,7 +104,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->condition('foo', ':bind', '=', 'BOO');
+              ->where('foo', ':bind', '=', 'BOO');
     }
 
     public function testSelectWithSubQuery()
@@ -121,13 +121,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider aliasedConditionProvider
      */
-    public function testSelectWithConditions($conditions, $expected)
+    public function testSelectWithWhere($conditions, $expected)
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'));
 
         foreach ($conditions as $condition) {
-            $query->condition(
+            $query->where(
                   $condition[0],
                   $condition[1],
                   isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
@@ -135,7 +135,27 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` ' . $expected, $query->build());
+        $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` WHERE ' . $expected, $query->build());
+    }
+
+    /**
+     * @dataProvider aliasedConditionProvider
+     */
+    public function testSelectWithHaving($conditions, $expected)
+    {
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
+        $query->fields(array('foo'));
+
+        foreach ($conditions as $condition) {
+            $query->having(
+                  $condition[0],
+                  $condition[1],
+                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
+            );
+        }
+
+        $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` HAVING ' . $expected, $query->build());
     }
 
     public function aliasedConditionProvider()
@@ -145,81 +165,81 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', Query::COMPARISON_EQUAL)
                 ),
-                'WHERE `t`.`foo` = :bind'
+                '`t`.`foo` = :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_NOT_EQUAL)
                 ),
-                'WHERE `t`.`foo` != :bind'
+                '`t`.`foo` != :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_LESS)
                 ),
-                'WHERE `t`.`foo` < :bind'
+                '`t`.`foo` < :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_LESS_EQUAL)
                 ),
-                'WHERE `t`.`foo` <= :bind'
+                '`t`.`foo` <= :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_GREATER)
                 ),
-                'WHERE `t`.`foo` > :bind'
+                '`t`.`foo` > :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_GREATER_EQUAL)
                 ),
-                'WHERE `t`.`foo` >= :bind'
+                '`t`.`foo` >= :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_LIKE)
                 ),
-                'WHERE `t`.`foo` LIKE :bind'
+                '`t`.`foo` LIKE :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', Query::COMPARISON_REGEX)
                 ),
-                'WHERE `t`.`foo` REGEX :bind'
+                '`t`.`foo` REGEX :bind'
             ),
             array(
                 array(
                     array('foo', array(':bind1', ':bind2'))
                 ),
-                'WHERE (`t`.`foo` = :bind1 OR `t`.`foo` = :bind2)'
+                '(`t`.`foo` = :bind1 OR `t`.`foo` = :bind2)'
             ),
             array(
                 array(
                     array(array('foo', 'bar'), ':bind')
                 ),
-                'WHERE (`t`.`foo` = :bind OR `t`.`bar` = :bind)'
+                '(`t`.`foo` = :bind OR `t`.`bar` = :bind)'
             ),
             array(
                 array(
                     array(array('foo', 'bar'), array(':bind1', ':bind2'))
                 ),
-                'WHERE (`t`.`foo` = :bind1 OR `t`.`bar` = :bind2)'
+                '(`t`.`foo` = :bind1 OR `t`.`bar` = :bind2)'
             ),
             array(
                 array(
                     array('foo', ':bindFoo', null, Query::LOGICAL_AND),
                     array('bar', ':bindBar', null, Query::LOGICAL_AND)
                 ),
-                'WHERE `t`.`foo` = :bindFoo AND `t`.`bar` = :bindBar'
+                '`t`.`foo` = :bindFoo AND `t`.`bar` = :bindBar'
             ),
             array(
                 array(
                     array('foo', ':bindFoo', null, Query::LOGICAL_OR),
                     array('bar', ':bindBar', null, Query::LOGICAL_OR)
                 ),
-                'WHERE `t`.`foo` = :bindFoo OR `t`.`bar` = :bindBar'
+                '`t`.`foo` = :bindFoo OR `t`.`bar` = :bindBar'
             )
         );
     }
@@ -443,7 +463,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query->value('foo', ':bind');
 
         foreach ($conditions as $condition) {
-            $query->condition(
+            $query->where(
                   $condition[0],
                   $condition[1],
                   isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
@@ -480,7 +500,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new Query('table', 't', Query::OPERATION_DELETE);
 
         foreach ($conditions as $condition) {
-            $query->condition(
+            $query->where(
                   $condition[0],
                   $condition[1],
                   isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,

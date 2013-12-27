@@ -4,6 +4,8 @@ namespace moss\storage\builder;
 
 interface QueryInterface
 {
+    const SEPARATOR = '.';
+
     // Query operations
     const OPERATION_SELECT = 'select';
     const OPERATION_INSERT = 'insert';
@@ -58,7 +60,6 @@ interface QueryInterface
      * @param string $operation
      *
      * @return $this
-     * @throws BuilderException
      */
     public function operation($operation);
 
@@ -85,55 +86,61 @@ interface QueryInterface
      * Adds distinct method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function distinct($field);
+    public function distinct($field, $alias = null);
 
     /**
      * Adds count method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function count($field);
+    public function count($field, $alias = null);
 
     /**
      * Adds average method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function average($field);
+    public function average($field, $alias = null);
 
     /**
      * Adds max method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function max($field);
+    public function max($field, $alias = null);
 
     /**
      * Adds min method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function min($field);
+    public function min($field, $alias = null);
 
     /**
      * Adds sum method to query
      *
      * @param string $field
+     * @param string $alias
      *
      * @return $this
      */
-    public function sum($field);
+    public function sum($field, $alias = null);
 
     /**
      * Adds aggregate method to query
@@ -143,7 +150,6 @@ interface QueryInterface
      * @param string $alias
      *
      * @return $this
-     * @throws BuilderException
      */
     public function aggregate($method, $field, $alias = null);
 
@@ -158,15 +164,22 @@ interface QueryInterface
 
     /**
      * Adds sub query
-
      *
-*@param QueryInterface $query
-     * @param string                $alias
-
+     * @param QueryInterface $query
+     * @param string         $alias
      *
-*@return $this
+     * @return $this
      */
     public function sub(QueryInterface $query, $alias);
+
+    /**
+     * Adds values to query
+     *
+     * @param array $values
+     *
+     * @return $this
+     */
+    public function values(array $values);
 
     /**
      * Adds value to query
@@ -216,22 +229,32 @@ interface QueryInterface
      * @param array  $joins
      *
      * @return $this
-     * @throws BuilderException
      */
     public function join($type, $container, array $joins);
 
     /**
-     * Adds condition to builder
+     * Adds where condition to builder
      *
      * @param mixed  $field
      * @param mixed  $value
-     * @param string $comp
-     * @param string $log
+     * @param string $comparison
+     * @param string $logical
      *
      * @return $this
-     * @throws BuilderException
      */
-    public function condition($field, $value, $comp = self::COMPARISON_EQUAL, $log = self::LOGICAL_AND);
+    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND);
+
+    /**
+     * Adds having condition to builder
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function having($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND);
 
     /**
      * Adds sorting to query
@@ -240,7 +263,6 @@ interface QueryInterface
      * @param string|array $order
      *
      * @return $this
-     * @throws BuilderException
      */
     public function order($field, $order = self::ORDER_DESC);
 
