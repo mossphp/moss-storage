@@ -66,7 +66,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema('table', Schema::OPERATION_CREATE);
         $schema->column('foo', $actual);
-        $this->assertEquals('CREATE TABLE `table` ( `foo` '.$expected.' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
+        $this->assertEquals('CREATE TABLE `table` ( `foo` ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
 
     /**
@@ -76,7 +76,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema('table', Schema::OPERATION_ADD);
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE `table` ADD `foo` '.$expected.'', $schema->build());
+        $this->assertEquals('ALTER TABLE `table` ADD `foo` ' . $expected . '', $schema->build());
     }
 
     /**
@@ -86,7 +86,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema('table', Schema::OPERATION_CHANGE);
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE `table` CHANGE `foo` `foo` '.$expected.'', $schema->build());
+        $this->assertEquals('ALTER TABLE `table` CHANGE `foo` `foo` ' . $expected . '', $schema->build());
     }
 
     /**
@@ -137,7 +137,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema('table', Schema::OPERATION_ADD);
         $schema->column('foo', $type, $attributes);
-        $this->assertEquals('ALTER TABLE `table` ADD `foo` '.$expected.'', $schema->build());
+        $this->assertEquals('ALTER TABLE `table` ADD `foo` ' . $expected . '', $schema->build());
     }
 
     public function attributeProvider()
@@ -209,23 +209,22 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider indexProvider
      */
-    public function testCreateIndex($actual, $expected)
+    public function testCreateIndex($type, $fields, $container, $expected)
     {
-        $this->markTestIncomplete();
         $schema = new Schema('table', Schema::OPERATION_CREATE);
-        $schema->column('foo', $actual);
-        $this->assertEquals('CREATE TABLE `table` ( `foo` '.$expected.' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
+        $schema->column('foo', Schema::FIELD_INTEGER)
+               ->index('foo', $fields, $type, $container);
+        $this->assertEquals('CREATE TABLE `table` ( `foo` INT(10) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
 
     /**
      * @dataProvider indexProvider
      */
-    public function testAddIndex($actual, $expected)
+    public function testAddIndex($type, $fields, $container, $expected)
     {
-        $this->markTestIncomplete();
         $schema = new Schema('table', Schema::OPERATION_ADD);
-        $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE `table` ADD `foo` '.$expected.'', $schema->build());
+        $schema->index('foo', $fields, $type, $container);
+        $this->assertEquals('ALTER TABLE `table` ADD ' . $expected . '', $schema->build());
     }
 
 
@@ -234,19 +233,27 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 Schema::INDEX_PRIMARY,
-                'TINYINT(1) COMMENT \'boolean\' NOT NULL'
+                array('foo'),
+                null,
+                'PRIMARY KEY (`foo`)'
             ),
             array(
                 Schema::INDEX_UNIQUE,
-                'INT(10) NOT NULL',
+                array('foo'),
+                null,
+                'UNIQUE KEY `foo` (`foo`)'
             ),
             array(
                 Schema::INDEX_INDEX,
-                'DECIMAL(10,0) NOT NULL',
+                array('foo'),
+                null,
+                'KEY `foo` (`foo`)'
             ),
             array(
                 Schema::INDEX_FOREIGN,
-                'TEXT NOT NULL'
+                array('foo' => 'bar'),
+                'yada',
+                'CONSTRAINT `foo` FOREIGN KEY (`foo`) REFERENCES yada(`bar`) ON UPDATE CASCADE ON DELETE RESTRICT'
             ),
         );
     }
@@ -254,12 +261,11 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider dropIndexProvider
      */
-    public function testRemoveIndex($actual, $expected)
+    public function testRemoveIndex($type, $fields, $container, $expected)
     {
-        $this->markTestIncomplete();
         $schema = new Schema('table', Schema::OPERATION_REMOVE);
-        $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE `table` DROP `foo`', $schema->build());
+        $schema->index('foo', $fields, $type, $container);
+        $this->assertEquals('ALTER TABLE `table` DROP ' . $expected, $schema->build());
     }
 
     public function dropIndexProvider()
@@ -267,19 +273,27 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 Schema::INDEX_PRIMARY,
-                'TINYINT(1) COMMENT \'boolean\' NOT NULL'
+                array('foo'),
+                null,
+                'PRIMARY KEY'
             ),
             array(
                 Schema::INDEX_UNIQUE,
-                'INT(10) NOT NULL',
+                array('foo'),
+                null,
+                'KEY `foo`',
             ),
             array(
                 Schema::INDEX_INDEX,
-                'DECIMAL(10,0) NOT NULL',
+                array('foo'),
+                null,
+                'KEY `foo`',
             ),
             array(
                 Schema::INDEX_FOREIGN,
-                'TEXT NOT NULL'
+                array('bar'),
+                'yada',
+                'FOREIGN KEY `foo`',
             ),
         );
     }
