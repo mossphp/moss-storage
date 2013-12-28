@@ -181,7 +181,7 @@ class Query implements QueryInterface
                       ->container($this->model->container());
 
         foreach ($this->model->primaryFields() as $field) {
-            $this->field($field);
+            $this->assignField($field);
         }
     }
 
@@ -259,7 +259,7 @@ class Query implements QueryInterface
     protected function resolveField($field)
     {
         if (strpos($field, BuilderInterface::SEPARATOR) === false) {
-            if(!$this->model->hasField($field)) {
+            if (!$this->model->hasField($field)) {
                 throw new QueryException(sprintf('Unable to access field "%s", from local model "%s"', $field, $this->model->entity()));
             }
 
@@ -295,21 +295,34 @@ class Query implements QueryInterface
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
-                $this->field($field);
+                $this->assignField($field);
             }
 
             return $this;
         }
 
         foreach ($fields as $field) {
-            $this->field($this->resolveField($field));
-
+            $this->assignField($this->resolveField($field));
         }
 
         return $this;
     }
 
-    protected function field(FieldInterface $field)
+    /**
+     * Adds field to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function field($field)
+    {
+        $this->assignField($this->resolveField($field));
+
+        return $this;
+    }
+
+    protected function assignField(FieldInterface $field)
     {
         $this->builder->field(
                       $field->container() . BuilderInterface::SEPARATOR . $field->name(),
@@ -317,6 +330,96 @@ class Query implements QueryInterface
         );
 
         $this->casts[$field->mapping()] = $field->type();
+    }
+
+    /**
+     * Adds distinct method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function distinct($field, $alias = null)
+    {
+        $this->aggregate(BuilderInterface::AGGREGATE_DISTINCT, $field, $alias);
+
+        return $this;
+    }
+
+    /**
+     * Adds count method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function count($field, $alias = null)
+    {
+        $this->aggregate(BuilderInterface::AGGREGATE_COUNT, $field, $alias);
+
+        return $this;
+    }
+
+    /**
+     * Adds average method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function average($field, $alias = null)
+    {
+        $this->aggregate(BuilderInterface::AGGREGATE_AVERAGE, $field, $alias);
+
+        return $this;
+    }
+
+    /**
+     * Adds max method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function max($field, $alias = null)
+    {
+        $this->aggregate(BuilderInterface::AGGREGATE_MAX, $field, $alias);
+
+        return $this;
+    }
+
+    /**
+     * Adds min method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function min($field, $alias = null)
+    {
+        $this->aggregate(BuilderInterface::AGGREGATE_MIN, $field, $alias);
+
+        return $this;
+    }
+
+    /**
+     * Adds sum method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function sum($field, $alias = null)
+    {
+        $this->aggregate(BuilderInterface::AGGREGATE_SUM, $field, $alias);
+
+        return $this;
     }
 
     /**
@@ -378,32 +481,46 @@ class Query implements QueryInterface
     /**
      * Sets field names which values will be written
      *
-     * @param array $values
+     * @param array $fields
      *
      * @return $this
      */
-    public function values($values = array())
+    public function values($fields = array())
     {
         $this->builder->values(array());
         $this->binds = array();
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
-                $this->value($field);
+                $this->assignValue($field);
             }
 
             return $this;
         }
 
         foreach ($fields as $field) {
-            $this->value($this->resolveField($field));
-
+            $this->assignValue($this->resolveField($field));
         }
 
         return $this;
     }
 
-    protected function value(FieldInterface $field)
+    /**
+     * Adds field which value will be written
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function value($field)
+    {
+        $this->assignValue($this->resolveField($field));
+
+        return $this;
+    }
+
+
+    protected function assignValue(FieldInterface $field)
     {
         if ($field->container() != $this->model->container()) {
             return;
@@ -420,6 +537,49 @@ class Query implements QueryInterface
                       $this->bind('value', $field, $value)
         );
     }
+
+    /**
+     * Adds inner join with set container
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function innerJoin($entity)
+    {
+        $this->join(BuilderInterface::JOIN_INNER, $entity);
+
+        return $this;
+    }
+
+    /**
+     * Adds left join with set container
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function leftJoin($entity)
+    {
+        $this->join(BuilderInterface::JOIN_LEFT, $entity);
+
+        return $this;
+    }
+
+    /**
+     * Adds right join with set container
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function rightJoin($entity)
+    {
+        $this->join(BuilderInterface::JOIN_RIGHT, $entity);
+
+        return $this;
+    }
+
 
     /**
      * Adds join to query

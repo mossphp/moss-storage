@@ -64,6 +64,75 @@ interface QueryInterface
     public function fields($fields = array());
 
     /**
+     * Adds field to query
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function field($field);
+
+    /**
+     * Adds distinct method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function distinct($field, $alias = null);
+
+    /**
+     * Adds count method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function count($field, $alias = null);
+
+    /**
+     * Adds average method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function average($field, $alias = null);
+
+    /**
+     * Adds max method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function max($field, $alias = null);
+
+    /**
+     * Adds min method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function min($field, $alias = null);
+
+    /**
+     * Adds sum method to query
+     *
+     * @param string $field
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function sum($field, $alias = null);
+
+    /**
      * Adds aggregate method to query
      *
      * @param string $method
@@ -86,11 +155,47 @@ interface QueryInterface
     /**
      * Sets field names which values will be written
      *
-     * @param array $values
+     * @param array $fields
      *
      * @return $this
      */
-    public function values($values = array());
+    public function values($fields = array());
+
+    /**
+     * Adds field which value will be written
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function value($field);
+
+    /**
+     * Adds inner join with set container
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function innerJoin($entity);
+
+    /**
+     * Adds left join with set container
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function leftJoin($entity);
+
+    /**
+     * Adds right join with set container
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function rightJoin($entity);
 
     /**
      * Adds join to query
@@ -165,8 +270,7 @@ interface QueryInterface
     public function execute();
 
     /**
-     * Previews query
-     * Write operation is treated as update
+     * Returns current query string
      *
      * @return string
      */
