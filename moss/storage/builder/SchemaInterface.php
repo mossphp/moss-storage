@@ -3,7 +3,7 @@ namespace moss\storage\builder;
 
 interface SchemaInterface
 {
-    // Supported operations
+    // Schema operations
     const OPERATION_CHECK = 'check';
     const OPERATION_INFO = 'info';
     const OPERATION_CREATE = 'create';
@@ -76,35 +76,37 @@ interface SchemaInterface
 
     /**
      * Sets key/index to container
+
      *
-     * @param string $name
-     * @param array  $localFields
-     * @param string $foreignContainer
-     * @param array  $foreignFields
+*@param string $name
+     * @param array  $fields
+     * @param string $container
      *
-     * @return $this
+*@return $this
      */
-    public function foreign($name, array $localFields, $foreignContainer, array $foreignFields);
+    public function foreign($name, array $fields, $container);
 
     /**
      * Sets key/index to container
      *
      * @param string $name
-     * @param array  $localFields
+     * @param array  $fields
      *
      * @return $this
      */
-    public function unique($name, array $localFields);
+    public function unique($name, array $fields);
 
     /**
      * Sets key/index to container
      *
      * @param string $name
-     * @param array  $localFields
+     * @param array  $fields
+     * @param string $type
+     * @param null   $container
      *
      * @return $this
      */
-    public function index($name, array $localFields);
+    public function index($name, array $fields, $type = self::INDEX_INDEX, $container = null);
 
     /**
      * Builds query string

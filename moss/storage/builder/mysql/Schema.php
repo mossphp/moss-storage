@@ -242,23 +242,20 @@ class Schema implements SchemaInterface
      * Sets key/index to container
      *
      * @param string $name
-     * @param array  $localFields
-     * @param string $foreignContainer
-     * @param array  $foreignFields
+     * @param array  $fields
+     * @param string $container
      *
      * @return $this
      */
-    public function foreign($name, array $localFields, $foreignContainer, array $foreignFields)
+    public function foreign($name, array $fields, $container)
     {
-        $this->assertIndexFields($localFields);
-        $this->assertIndexFields($foreignFields);
+        $this->assertIndexFields($fields);
 
         $this->indexes[] = array(
             $name,
-            (array) $localFields,
+            (array) $fields,
             self::INDEX_FOREIGN,
-            $foreignContainer,
-            (array) $foreignFields
+            $container,
         );
 
         return $this;
@@ -268,20 +265,19 @@ class Schema implements SchemaInterface
      * Sets key/index to container
      *
      * @param string $name
-     * @param array  $localFields
+     * @param array  $fields
      *
      * @return $this
      */
-    public function unique($name, array $localFields)
+    public function unique($name, array $fields)
     {
-        $this->assertIndexFields($localFields);
+        $this->assertIndexFields($fields);
 
         $this->indexes[] = array(
             $name,
-            (array) $localFields,
+            (array) $fields,
             self::INDEX_UNIQUE,
-            null,
-            array()
+            null
         );
 
         return $this;
@@ -291,23 +287,32 @@ class Schema implements SchemaInterface
      * Sets key/index to container
      *
      * @param string $name
-     * @param array  $localFields
+     * @param array  $fields
+     * @param string $type
+     * @param null   $container
      *
      * @return $this
      */
-    public function index($name, array $localFields)
+    public function index($name, array $fields, $type = self::INDEX_INDEX, $container = null)
     {
-        $this->assertIndexFields($localFields);
+        $this->assertIndexType($type);
+        $this->assertIndexFields($fields);
 
         $this->indexes[] = array(
             $name,
-            (array) $localFields,
-            self::INDEX_INDEX,
-            null,
-            array()
+            (array) $fields,
+            $type,
+            $container,
         );
 
         return $this;
+    }
+
+    protected function assertIndexType($type)
+    {
+        if (!in_array($type, array(self::INDEX_PRIMARY, self::INDEX_INDEX, self::INDEX_UNIQUE, self::INDEX_FOREIGN))) {
+            throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->container));
+        }
     }
 
     protected function assertIndexFields($fields)
@@ -317,31 +322,30 @@ class Schema implements SchemaInterface
         }
     }
 
-    protected function buildIndex($name, array $localFields, $type = self::INDEX_INDEX, $foreignContainer = null, array $foreignFields = array())
+    protected function buildIndex($name, array $fields, $type = self::INDEX_INDEX, $container = null)
     {
-        array_walk($localFields, array($this, 'quote'));
-        $localFields = implode(', ', $localFields);
-
-        array_walk($foreignFields, array($this, 'quote'));
-        $foreignFields = implode(', ', $foreignFields);
-
         switch ($type) {
             case self::INDEX_PRIMARY:
-                return 'PRIMARY KEY (' . $localFields . ')';
+                return 'PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
                 break;
             case self::INDEX_FOREIGN:
-                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $localFields . ') REFERENCES ' . $foreignContainer . '(' . $foreignFields . ') ON UPDATE CASCADE ON DELETE RESTRICT';
+                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $container . '(' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
             case self::INDEX_UNIQUE:
-                return 'UNIQUE KEY ' . $this->quote($name) . ' (' . $localFields . ')';
+                return 'UNIQUE KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
                 break;
             case self::INDEX_INDEX:
-                return 'KEY ' . $this->quote($name) . ' (' . $localFields . ')';
+                return 'KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
                 break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
                 break;
         }
+    }
+
+    protected function buildIndexFields(array $fields) {
+        array_walk($fields, array($this, 'quote'));
+        return implode(', ', $fields);
     }
 
     /**
@@ -378,7 +382,7 @@ class Schema implements SchemaInterface
                 }
 
                 foreach ($this->indexes as $node) {
-                    $nodes[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3], $node[4]);
+                    $nodes[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
                 }
 
                 $stmt[] = implode(', ', $nodes);
@@ -396,7 +400,7 @@ class Schema implements SchemaInterface
                     $nodes[] = $str;
                 }
                 foreach ($this->indexes as $node) {
-                    $nodes[] = 'ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3], $node[4]);
+                    $nodes[] = 'ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
                 }
                 $stmt[] = implode(', ', $nodes);
                 break;
@@ -566,7 +570,13 @@ class Schema implements SchemaInterface
      */
     public function reset()
     {
-        // todo
+        $this->operation = null;
+        $this->container = null;
+
+        $this->columns = array();
+        $this->indexes = array();
+
+        return $this;
     }
 
     /**
@@ -579,7 +589,7 @@ class Schema implements SchemaInterface
         try {
             return (string) $this->build();
         } catch(\Exception $e) {
-            return get_class($e).' - '.$e->getMessage();
+            return get_class($e) . ' - ' . $e->getMessage();
         }
     }
 } 
