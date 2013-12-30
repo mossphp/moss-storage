@@ -95,10 +95,13 @@ class Query implements QueryInterface
 
         if ($this->operation == self::OPERATION_WRITE) {
             $query = new self($this->driver, $this->builder, $this->models);
-            $query->operation(self::OPERATION_READ, $entity);
+            $query->operation(self::OPERATION_COUNT, $entity);
+
+            $this->instance = & $entity;
+            $this->reflection = new \ReflectionObject($entity);
 
             foreach ($this->model->primaryFields() as $field) {
-                $query->where($field, $this->accessProperty($this->instance, $field));
+                $query->where($field->name(), $this->accessProperty($this->instance, $field->name()));
             }
 
             $this->operation = $query->execute() > 0 ? self::OPERATION_UPDATE : self::OPERATION_INSERT;
@@ -629,7 +632,7 @@ class Query implements QueryInterface
         $this->assertComparison($comparison);
         $this->assertLogical($logical);
 
-        list($field, $value) = $this->condition($field, $value, $comparison, $logical);
+        list($field, $value) = $this->condition($field, $value);
         $this->builder->where($field, $value, $comparison, $logical);
 
         return $this;
@@ -650,7 +653,7 @@ class Query implements QueryInterface
         $this->assertComparison($comparison);
         $this->assertLogical($logical);
 
-        list($field, $value) = $this->condition($field, $value, $comparison, $logical);
+        list($field, $value) = $this->condition($field, $value);
         $this->builder->having($field, $value, $comparison, $logical);
 
         return $this;
@@ -791,6 +794,7 @@ class Query implements QueryInterface
      * @param bool   $transparent
      *
      * @return $this
+     * @throws QueryException
      */
     public function relation($relation, $transparent = false)
     {
@@ -801,10 +805,10 @@ class Query implements QueryInterface
 
         switch ($definition->type()) {
             case RelationInterface::RELATION_ONE:
-                $relation = new One($query, $definition);
+                $relation = new One($query, $definition, $this->models);
                 break;
             case RelationInterface::RELATION_MANY:
-                $relation = new Many($query, $definition);
+                $relation = new Many($query, $definition, $this->models);
                 break;
             default:
                 throw new QueryException(sprintf('Invalid relation type "%s" in relation "%s" for "%s"', $definition->type(), $relation, $this->model->entity()));
@@ -989,6 +993,7 @@ class Query implements QueryInterface
         }
 
         $field = reset($primaryKeys);
+        $field = $field->name();
 
         if ($this->instance instanceof \ArrayAccess) {
             $this->instance[$field] = $identifier;
@@ -1063,6 +1068,8 @@ class Query implements QueryInterface
 
         $this->driver->reset();
         $this->builder->reset();
+
+        $this->relations = array();
 
         return $this;
     }
