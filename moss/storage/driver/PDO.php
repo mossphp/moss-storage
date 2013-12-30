@@ -352,10 +352,9 @@ class PDO implements DriverInterface
 
         $ref = new \ReflectionClass($className);
         while ($row = $this->fetchObject($className)) {
-
             foreach ($unbind as $field => $type) {
                 if (!$ref->hasProperty($field)) {
-                    $row->{$field} = $this->reCast($row->{$field}, $type);
+                    $row->$field = $this->reCast($row->$field, $type);
                     continue;
                 }
 
