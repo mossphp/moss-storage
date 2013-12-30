@@ -343,8 +343,10 @@ class Schema implements SchemaInterface
         }
     }
 
-    protected function buildIndexFields(array $fields) {
+    protected function buildIndexFields(array $fields)
+    {
         array_walk($fields, array($this, 'quote'));
+
         return implode(', ', $fields);
     }
 
@@ -396,7 +398,12 @@ class Schema implements SchemaInterface
                 $stmt[] = $this->quote($this->container);
                 $nodes = array();
                 foreach ($this->columns as $node) {
-                    $str = 'ADD ' . $this->buildColumn($node[0], $node[1], $node[2]); // todo - after
+                    $str = 'ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
+
+                    if ($node[3] !== null) {
+                        $str .= ' AFTER ' . $this->quote($node[3]);
+                    }
+
                     $nodes[] = $str;
                 }
                 foreach ($this->indexes as $node) {
@@ -409,7 +416,7 @@ class Schema implements SchemaInterface
                 $stmt[] = $this->quote($this->container);
                 $nodes = array();
                 foreach ($this->columns as $node) {
-                    $str = 'CHANGE ' . $this->quote($node[3]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]); // todo - after
+                    $str = 'CHANGE ' . $this->quote($node[3]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
                     $nodes[] = $str;
                 }
                 $stmt[] = implode(', ', $nodes);
@@ -469,7 +476,7 @@ class Schema implements SchemaInterface
 
     protected function parseColumns($statement)
     {
-        preg_match_all('/`(?P<name>[^`]+)` (?P<type>((tiny|small|medium|big)?int|integer|decimal|(var)?char|(tiny|medium|long)?text|(date)?time(stamp)?|year))(\((?P<length>[\d]+)(\,(?P<precision>[\d]+))?\))?(?P<attributes>[^,]+)?,?/i', $statement, $matches, \PREG_SET_ORDER);
+        preg_match_all('/`(?P<name>[^`]+)` (?P<type>((tiny|small|medium|big)?int|integer|decimal|(var)?char|(tiny|medium|long)?text|(date)?time(stamp)?|year))(\((?P<length>[\d]+)(\,(?P<precision>[\d]+))?\))?(?P<attributes>[^,)]+)?,?/i', $statement, $matches, \PREG_SET_ORDER);
 
         $columns = array();
         foreach ($matches as $match) {
