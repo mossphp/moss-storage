@@ -1,6 +1,8 @@
 <?php
 namespace moss\storage\query\relation;
 
+use moss\storage\query\QueryInterface;
+
 /**
  * One to one relation representation
  *
@@ -38,10 +40,11 @@ class One extends Relation
             $foreigns[$this->buildLocalKey($entity)][] = & $result[$i];
         }
 
-        $this->query->operation('read');
+        $this->query->reset()
+                    ->operation(QueryInterface::OPERATION_READ, $this->relation->entity());
 
         foreach ($conditions as $field => $values) {
-            $this->query->condition($field, $values);
+            $this->query->where($field, $values);
         }
 
         $collection = $this->query->execute();
@@ -59,16 +62,16 @@ class One extends Relation
             }
         }
 
-        if(!$this->transparent()) {
+        if (!$this->transparent()) {
             return $result;
         }
 
         foreach ($result as &$entity) {
-            if(!$rel = $this->accessProperty($entity, $this->relation->container())) {
+            if (!$rel = $this->accessProperty($entity, $this->relation->container())) {
                 continue;
             }
 
-            if($sub = $this->accessProperty($rel, $this->relation->container())) {
+            if ($sub = $this->accessProperty($rel, $this->relation->container())) {
                 $this->accessProperty($entity, $this->relation->container(), $sub);
             }
 
@@ -105,19 +108,21 @@ class One extends Relation
         }
 
         $this->query
-            ->operation('write', $entity)
+            ->reset()
+            ->operation(QueryInterface::OPERATION_WRITE, $entity)
             ->execute();
 
 
         // cleanup
-        $this->query->operation('read');
+        $this->query->reset()
+                    ->operation(QueryInterface::OPERATION_READ, $this->relation->entity());
 
         foreach ($this->relation->foreignValues() as $field => $value) {
-            $this->query->condition($field, $value);
+            $this->query->where($field, $value);
         }
 
         foreach ($this->relation->keys() as $local => $refer) {
-            $this->query->condition($refer, $this->accessProperty($entity, $local));
+            $this->query->where($refer, $this->accessProperty($entity, $local));
         }
 
         $existingEntities = $this->query->execute();
@@ -133,7 +138,8 @@ class One extends Relation
             }
 
             $this->query
-                ->operation('delete', $existingEntity)
+                ->reset()
+                ->operation(QueryInterface::OPERATION_DELETE, $existingEntity)
                 ->execute();
         }
 
@@ -159,7 +165,8 @@ class One extends Relation
         $this->assertInstance($entity);
 
         $this->query
-            ->operation('delete', $entity)
+            ->reset()
+            ->operation(QueryInterface::OPERATION_DELETE, $entity)
             ->execute();
 
         return $result;
@@ -171,7 +178,8 @@ class One extends Relation
     public function clear()
     {
         $this->query
-            ->operation('clear')
+            ->reset()
+            ->operation(QueryInterface::OPERATION_CLEAR, $this->relation->entity())
             ->execute();
     }
 }

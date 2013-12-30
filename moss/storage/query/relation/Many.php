@@ -21,7 +21,7 @@ class Many extends Relation
      */
     public function read(&$result)
     {
-        $foreigns = array();
+        $foreign = array();
         $conditions = array();
 
         foreach ($result as $i => $entity) {
@@ -41,24 +41,27 @@ class Many extends Relation
                 $conditions[$refer][] = $this->accessProperty($entity, $local);
             }
 
-            $foreigns[$this->buildLocalKey($entity)][] = & $result[$i];
+            $foreign[$this->buildLocalKey($entity)][] = & $result[$i];
         }
+
+        $this->query->reset()
+                    ->operation(QueryInterface::OPERATION_READ, $this->relation->entity());
 
         foreach ($conditions as $field => $values) {
-            $this->query->condition($field, $values);
+            $this->query->where($field, $values);
         }
 
-        $collection = $this->query->operation(QueryInterface::OPERATION_READ)
-                                  ->execute();
+        $collection = $this->query()
+                           ->execute();
 
         foreach ($collection as $relEntity) {
             $key = $this->buildForeignKey($relEntity);
 
-            if (!isset($foreigns[$key])) {
+            if (!isset($foreign[$key])) {
                 continue;
             }
 
-            foreach ($foreigns[$key] as &$entity) {
+            foreach ($foreign[$key] as &$entity) {
                 $value = $this->accessProperty($entity, $this->relation->container());
                 $value[] = $relEntity;
                 $this->accessProperty($entity, $this->relation->container(), $value);
@@ -133,14 +136,14 @@ class Many extends Relation
         }
 
         $deleteQuery = $this->query->reset()
-                                   ->operation(QueryInterface::OPERATION_READ);
+                                   ->operation(QueryInterface::OPERATION_READ, $this->relation->entity());
 
         foreach ($this->relation->foreignValues() as $field => $value) {
-            $deleteQuery->condition($field, $value);
+            $deleteQuery->where($field, $value);
         }
 
         foreach ($this->relation->keys() as $local => $refer) {
-            $deleteQuery->condition($refer, $this->accessProperty($result, $local));
+            $deleteQuery->where($refer, $this->accessProperty($result, $local));
         }
 
         $deleteCollection = $deleteQuery->execute();
@@ -184,7 +187,8 @@ class Many extends Relation
 
         foreach ($result->{$this->relation->container()} as $relEntity) {
             $this->query
-                ->operation('delete', $relEntity)
+                ->reset()
+                ->operation(QueryInterface::OPERATION_DELETE, $relEntity)
                 ->execute();
         }
 
@@ -197,7 +201,8 @@ class Many extends Relation
     public function clear()
     {
         $this->query
-            ->operation('clear')
+            ->reset()
+            ->operation(QueryInterface::OPERATION_CLEAR, $this->relation->entity())
             ->execute();
     }
 }

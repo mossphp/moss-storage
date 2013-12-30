@@ -2,7 +2,6 @@
 namespace moss\storage\query\relation;
 
 use moss\storage\query\QueryInterface;
-use moss\storage\model\definition\RelationInterface as RelationDefinitionInterface;
 
 /**
  * Relation interface
@@ -40,11 +39,13 @@ interface RelationInterface
     public function query();
 
     /**
-     * Returns relation definition
+     * Adds sub relation
      *
-     * @return RelationDefinitionInterface
+     * @param string $relation
+     *
+     * @return $this
      */
-    public function definition();
+    public function relation($relation);
 
     /**
      * Executes read relation

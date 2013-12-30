@@ -1,7 +1,9 @@
 <?php
 namespace moss\storage\query\relation;
 
+use moss\storage\model\ModelBag;
 use moss\storage\query\QueryInterface;
+use moss\storage\model\ModelInterface;
 use moss\storage\model\definition\RelationInterface as RelationDefinitionInterface;
 
 /**
@@ -16,6 +18,9 @@ abstract class Relation implements RelationInterface
     /** @var QueryInterface */
     protected $query;
 
+    /** @var ModelBag */
+    protected $models;
+
     /** @var RelationDefinitionInterface */
     protected $relation;
 
@@ -24,13 +29,15 @@ abstract class Relation implements RelationInterface
     /**
      * Constructor
      *
-     * @param QueryInterface        $query
+     * @param QueryInterface              $query
      * @param RelationDefinitionInterface $relation
+     * @param ModelBag                    $models
      */
-    public function __construct(QueryInterface $query, RelationDefinitionInterface $relation)
+    public function __construct(QueryInterface $query, RelationDefinitionInterface $relation, ModelBag $models)
     {
         $this->query = & $query;
         $this->relation = & $relation;
+        $this->models = & $models;
     }
 
     /**
@@ -71,26 +78,16 @@ abstract class Relation implements RelationInterface
     }
 
     /**
-     * Returns relation definition
-     *
-     * @return \moss\storage\model\definition\RelationInterface
-     */
-    public function definition()
-    {
-        return $this->relation;
-    }
-
-    /**
      * Adds sub relation
      *
-     * @param RelationInterface $relation
+     * @param string $relation
      *
      * @return $this
      */
-    public function relation(RelationInterface $relation)
+    public function relation($relation)
     {
         $this->query()
-             ->setRelation($relation);
+             ->relation($relation);
 
         return $this;
     }
@@ -105,9 +102,7 @@ abstract class Relation implements RelationInterface
      */
     protected function assertInstance($entity)
     {
-        $entityClass = $this->query
-            ->getModel()
-            ->entity();
+        $entityClass = $this->relation->entity();
 
         if (!$entity instanceof $entityClass) {
             throw new RelationException(sprintf('Relation container must be instance of %s, got %s', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
@@ -219,17 +214,18 @@ abstract class Relation implements RelationInterface
      */
     protected function identifyEntity($entity)
     {
-        $indexes = $this->query
-            ->getModel($entity)
-            ->primaryFields();
+        $indexes = $this->models->get($entity)
+                                ->primaryFields();
 
         if (count($indexes) == 1) {
-            return $this->accessProperty($entity, reset($indexes));
+            $field = reset($indexes);
+
+            return $this->accessProperty($entity, $field->name());
         }
 
         $id = array();
         foreach ($indexes as $field) {
-            $id[] = $this->accessProperty($entity, $field);
+            $id[] = $this->accessProperty($entity, $field->name());
         }
 
         return implode(':', $id);
