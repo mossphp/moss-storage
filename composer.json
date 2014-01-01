@@ -1,8 +1,8 @@
 {
 	"name": "moss/storage",
-	"version": "0.5",
+	"version": "0.6",
 	"description": "moss storage",
-	"keywords": ["orm"],
+	"keywords": ["orm", "storage", "data mapper", "database"],
 	"type": "orm",
 	"license": "MIT",
 	"authors": [
