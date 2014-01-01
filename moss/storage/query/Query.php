@@ -805,25 +805,51 @@ class Query implements QueryInterface
 
         switch ($definition->type()) {
             case RelationInterface::RELATION_ONE:
-                $relation = new One($query, $definition, $this->models);
+                $instance = new One($query, $definition, $this->models);
                 break;
             case RelationInterface::RELATION_MANY:
-                $relation = new Many($query, $definition, $this->models);
+                $instance = new Many($query, $definition, $this->models);
                 break;
             default:
                 throw new QueryException(sprintf('Invalid relation type "%s" in relation "%s" for "%s"', $definition->type(), $relation, $this->model->entity()));
         }
 
-        $relation->transparent($transparent);
+        $instance->transparent($transparent);
 
         if ($furtherRelations) {
-            $definition->relation($furtherRelations, $transparent);
+            $instance->relation($furtherRelations, $transparent);
         }
 
-        $this->relations[] = $relation;
+        $this->relations[$relation] = $instance;
 
         return $this;
     }
+
+    /**
+     * Returns query instance from requested relation
+     *
+     * @param string $relation
+     *
+     * @return QueryInterface
+     * @throws QueryException
+     */
+    public function relQuery($relation)
+    {
+        list($relation, $furtherRelations) = $this->splitRelationName($relation);
+
+        if (!isset($this->relations[$relation])) {
+            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $relation, $this->model->entity()));
+        }
+
+        $query = $this->relations[$relation]->query();
+
+        if ($furtherRelations) {
+            $query = $query->relQuery($furtherRelations);
+        }
+
+        return $query;
+    }
+
 
     protected function splitRelationName($relationName)
     {

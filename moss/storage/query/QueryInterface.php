@@ -262,6 +262,15 @@ interface QueryInterface
     public function relation($relation, $transparent = false);
 
     /**
+     * Returns query instance from requested relation
+     *
+     * @param string $relation
+     *
+     * @return QueryInterface
+     */
+    public function relQuery($relation);
+
+    /**
      * Executes query
      * After execution query is reset
      *
