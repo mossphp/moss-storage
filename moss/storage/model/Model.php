@@ -70,7 +70,9 @@ class Model implements ModelInterface
                 throw new ModelException(sprintf('Index must be an instance of IndexInterface, got "%s"', $this->getType($index)));
             }
 
-            foreach ($index->fields() as $field) {
+            foreach ($index->fields() as $key => $field) {
+                $field = $index->type() == self::INDEX_FOREIGN ? $key : $field;
+
                 if (!$this->hasField($field)) {
                     throw new ModelException(sprintf('Index field "%s" does not exist in entity model "%s"', $field, $this->entity));
                 }
