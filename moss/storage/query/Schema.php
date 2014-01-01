@@ -105,7 +105,7 @@ class Schema implements SchemaInterface
     protected function buildCreate(ModelInterface $model)
     {
         if ($this->checkIfSchemaExists($model)) {
-            throw new QueryException('Unable to create container, container "%s" already exists', $model->container());
+            throw new QueryException(sprintf('Unable to create container, container "%s" already exists', $model->container()));
         }
 
         $this->builder->reset()
@@ -136,7 +136,7 @@ class Schema implements SchemaInterface
     protected function buildAlter(ModelInterface $model)
     {
         if (!$this->checkIfSchemaExists($model)) {
-            throw new QueryException('Unable to alter container, container "%s" does not exists', $model->container());
+            throw new QueryException(sprintf('Unable to alter container, container "%s" does not exists', $model->container()));
         }
 
         $current = $this->getCurrentSchema($model);
@@ -325,10 +325,9 @@ class Schema implements SchemaInterface
     {
         $queries = array_merge($this->before, $this->queries, $this->after);
 
-        $result = null;
+        $result = array();
         switch ($this->operation) {
             case self::OPERATION_CHECK:
-                $result = array();
                 foreach ($queries as $container => $query) {
                     $result[$container] = $this->driver
                             ->prepare($query)
@@ -339,15 +338,16 @@ class Schema implements SchemaInterface
             case self::OPERATION_CREATE:
             case self::OPERATION_ALTER:
             case self::OPERATION_DROP:
-                foreach ($queries as $i => $query) {
+                foreach ($queries as $query) {
                     $this->driver
                         ->prepare($query)
                         ->execute();
+
+                    $result[$query] = true;
                 }
-                $result = true;
                 break;
             default:
-                $result = false;
+                $result = array();
         }
 
         $this->reset();
