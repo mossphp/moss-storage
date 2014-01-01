@@ -1,0 +1,22 @@
+{
+	"name": "moss/moss",
+	"version": "0.5",
+	"description": "moss storage",
+	"keywords": ["orm"],
+	"type": "orm",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Michal Wachowski",
+			"email": "wachowski.michal@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.3.4"
+	},
+	"autoload": {
+		"psr-0": {
+			"moss\\storage\\": ""
+		}
+	}
+}
