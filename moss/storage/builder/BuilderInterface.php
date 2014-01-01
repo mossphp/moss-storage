@@ -4,13 +4,13 @@ namespace moss\storage\builder;
 interface BuilderInterface
 {
     /**
-     * Sets container name
+     * Sets table name
      *
-     * @param string $container
+     * @param string $table
      *
      * @return $this
      */
-    public function container($container);
+    public function table($table);
 
     /**
      * Sets operation for builder

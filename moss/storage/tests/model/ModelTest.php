@@ -5,10 +5,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 {
 
 
-    public function testContainer()
+    public function testTable()
     {
         $model = new Model('foo', 'Foo', array($this->mockField('foo')));
-        $this->assertEquals('Foo', $model->container());
+        $this->assertEquals('Foo', $model->table());
     }
 
     public function testEntity()

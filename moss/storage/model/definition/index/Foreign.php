@@ -7,9 +7,9 @@ use moss\storage\model\ModelInterface;
 
 class Foreign extends Index implements ForeignInterface
 {
-    protected $container;
+    protected $table;
 
-    public function __construct($name, array $fields, $container)
+    public function __construct($name, array $fields, $table)
     {
         $this->name = $name;
         $this->type = ModelInterface::INDEX_FOREIGN;
@@ -20,7 +20,7 @@ class Foreign extends Index implements ForeignInterface
 
         $this->fields = $fields;
 
-        $this->container = $container;
+        $this->table = $table;
     }
 
     /**

@@ -3,7 +3,7 @@
 `Query` should be sufficient to handle all _CRUD_ operations.
 If something more sophisticated is needed, you can access driver directly and write queries by hand.
 
-Operations described below assume that entity classes, models and containers exist.
+Operations described below assume that entity classes, models and tables exist.
 
 ### Count
 

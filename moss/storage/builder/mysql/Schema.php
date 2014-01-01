@@ -33,7 +33,7 @@ class Schema implements SchemaInterface
 
     protected $operation;
 
-    protected $container;
+    protected $table;
     protected $engine;
     protected $charset;
 
@@ -42,16 +42,17 @@ class Schema implements SchemaInterface
 
     /**
      * Constructor
+
      *
-     * @param string $container
+*@param string $table
      * @param string $operation
      * @param string $engine
      * @param string $charset
      */
-    public function __construct($container = null, $operation = self::OPERATION_CREATE, $engine = 'InnoDB', $charset = 'utf8')
+    public function __construct($table = null, $operation = self::OPERATION_CREATE, $engine = 'InnoDB', $charset = 'utf8')
     {
-        if ($container !== null) {
-            $this->container($container);
+        if ($table !== null) {
+            $this->table($table);
             $this->operation($operation);
         }
 
@@ -65,20 +66,21 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Sets container name
+     * Sets table name
+
      *
-     * @param string $container
+*@param string $table
      *
-     * @return $this
+*@return $this
      * @throws BuilderException
      */
-    public function container($container)
+    public function table($table)
     {
-        if (empty($container)) {
-            throw new BuilderException('Missing container name');
+        if (empty($table)) {
+            throw new BuilderException('Missing table name');
         }
 
-        $this->container = $container;
+        $this->table = $table;
 
         return $this;
     }
@@ -112,7 +114,7 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Sets container column
+     * Sets table column
      *
      * @param string      $name
      * @param string      $type
@@ -139,7 +141,7 @@ class Schema implements SchemaInterface
     protected function assertColumnType($type)
     {
         if (!isset($this->fieldTypes[$type])) {
-            throw new BuilderException(sprintf('Invalid column type "%s" in "%s"', $type, $this->container));
+            throw new BuilderException(sprintf('Invalid column type "%s" in "%s"', $type, $this->table));
         }
     }
 
@@ -238,7 +240,7 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
      *
      * @param array $localFields
      *
@@ -252,15 +254,16 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
+
      *
-     * @param string $name
+*@param string $name
      * @param array  $fields
-     * @param string $container
+     * @param string $table
      *
-     * @return $this
+*@return $this
      */
-    public function foreign($name, array $fields, $container)
+    public function foreign($name, array $fields, $table)
     {
         $this->assertIndexFields($fields);
 
@@ -268,14 +271,14 @@ class Schema implements SchemaInterface
             $name,
             (array) $fields,
             self::INDEX_FOREIGN,
-            $container,
+            $table,
         );
 
         return $this;
     }
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
      *
      * @param string $name
      * @param array  $fields
@@ -297,16 +300,17 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
+
      *
-     * @param string $name
+*@param string $name
      * @param array  $fields
      * @param string $type
-     * @param null   $container
+     * @param null $table
      *
-     * @return $this
+*@return $this
      */
-    public function index($name, array $fields, $type = self::INDEX_INDEX, $container = null)
+    public function index($name, array $fields, $type = self::INDEX_INDEX, $table = null)
     {
         $this->assertIndexType($type);
         $this->assertIndexFields($fields);
@@ -315,7 +319,7 @@ class Schema implements SchemaInterface
             $name,
             (array) $fields,
             $type,
-            $container,
+            $table,
         );
 
         return $this;
@@ -324,25 +328,25 @@ class Schema implements SchemaInterface
     protected function assertIndexType($type)
     {
         if (!in_array($type, array(self::INDEX_PRIMARY, self::INDEX_INDEX, self::INDEX_UNIQUE, self::INDEX_FOREIGN))) {
-            throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->container));
+            throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->table));
         }
     }
 
     protected function assertIndexFields($fields)
     {
         if (empty($fields)) {
-            throw new BuilderException(sprintf('Missing fields for index in "%s"', $this->container));
+            throw new BuilderException(sprintf('Missing fields for index in "%s"', $this->table));
         }
     }
 
-    protected function buildIndex($name, array $fields, $type = self::INDEX_INDEX, $container = null)
+    protected function buildIndex($name, array $fields, $type = self::INDEX_INDEX, $table = null)
     {
         switch ($type) {
             case self::INDEX_PRIMARY:
                 return 'PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
                 break;
             case self::INDEX_FOREIGN:
-                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $container . '(' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
+                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $table . '(' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
             case self::INDEX_UNIQUE:
                 return 'UNIQUE KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
@@ -371,8 +375,8 @@ class Schema implements SchemaInterface
      */
     public function build()
     {
-        if (empty($this->container)) {
-            throw new BuilderException('Missing container name');
+        if (empty($this->table)) {
+            throw new BuilderException('Missing table name');
         }
 
         $stmt = array();
@@ -380,15 +384,15 @@ class Schema implements SchemaInterface
         switch ($this->operation) {
             case self::OPERATION_CHECK:
                 $stmt[] = 'SHOW TABLES LIKE';
-                $stmt[] = '\'' . $this->container . '\'';
+                $stmt[] = '\'' . $this->table . '\'';
                 break;
             case self::OPERATION_INFO:
                 $stmt[] = 'SHOW CREATE TABLE';
-                $stmt[] = $this->quote($this->container);
+                $stmt[] = $this->quote($this->table);
                 break;
             case self::OPERATION_CREATE:
                 $stmt[] = 'CREATE TABLE';
-                $stmt[] = $this->quote($this->container);
+                $stmt[] = $this->quote($this->table);
                 $stmt[] = '(';
 
                 $nodes = array();
@@ -408,7 +412,7 @@ class Schema implements SchemaInterface
                 break;
             case self::OPERATION_ADD:
                 $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->quote($this->container);
+                $stmt[] = $this->quote($this->table);
                 $nodes = array();
                 foreach ($this->columns as $node) {
                     $str = 'ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
@@ -426,7 +430,7 @@ class Schema implements SchemaInterface
                 break;
             case self::OPERATION_CHANGE:
                 $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->quote($this->container);
+                $stmt[] = $this->quote($this->table);
                 $nodes = array();
                 foreach ($this->columns as $node) {
                     $str = 'CHANGE ' . $this->quote($node[3]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
@@ -436,7 +440,7 @@ class Schema implements SchemaInterface
                 break;
             case self::OPERATION_REMOVE:
                 $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->quote($this->container);
+                $stmt[] = $this->quote($this->table);
                 $nodes = array();
                 foreach ($this->columns as $node) {
                     $nodes[] = 'DROP ' . $this->quote($node[0]);
@@ -457,7 +461,7 @@ class Schema implements SchemaInterface
                 break;
             case self::OPERATION_DROP:
                 $stmt[] = 'DROP TABLE IF EXISTS';
-                $stmt[] = $this->quote($this->container);
+                $stmt[] = $this->quote($this->table);
                 break;
         }
 
@@ -479,7 +483,7 @@ class Schema implements SchemaInterface
         $statement = str_replace(array("\n", "\r", "\t", '  '), array(null, null, ' ', '  '), $statement);
 
         $result = array(
-            'container' => preg_replace('/CREATE TABLE `([^`]+)`.*/i', '$1', $statement),
+            'table' => preg_replace('/CREATE TABLE `([^`]+)`.*/i', '$1', $statement),
             'fields' => $this->parseColumns($statement),
             'indexes' => $this->parseIndexes($statement)
         );
@@ -531,7 +535,7 @@ class Schema implements SchemaInterface
                     $node['type'] = self::FIELD_DATETIME;
                     break;
                 default:
-                    throw new BuilderException(sprintf('Invalid or unsupported field type "%s" in container "%s"', $type, $this->container));
+                    throw new BuilderException(sprintf('Invalid or unsupported field type "%s" in table "%s"', $type, $this->table));
             }
 
             foreach ($node['attributes'] as $i => $attr) {
@@ -548,7 +552,7 @@ class Schema implements SchemaInterface
 
     protected function parseIndexes($statement)
     {
-        preg_match_all('/(?P<fname>`[^`]+`)? ?(?P<type>PRIMARY KEY|FOREIGN KEY|UNIQUE KEY|KEY) (?P<name>`[^`]+`)? ?\((?P<fields>[^)]+)\)( REFERENCES `(?P<container>[^`]+)` ?\((?P<foreign>[^)]+)\))?/i', $statement, $matches, \PREG_SET_ORDER);
+        preg_match_all('/(?P<fname>`[^`]+`)? ?(?P<type>PRIMARY KEY|FOREIGN KEY|UNIQUE KEY|KEY) (?P<name>`[^`]+`)? ?\((?P<fields>[^)]+)\)( REFERENCES `(?P<table>[^`]+)` ?\((?P<foreign>[^)]+)\))?/i', $statement, $matches, \PREG_SET_ORDER);
 
         $indexes = array();
         foreach ($matches as $match) {
@@ -556,7 +560,7 @@ class Schema implements SchemaInterface
                 'name' => trim($match['fname'] ? $match['fname'] : $match['name'], '`'),
                 'type' => trim($match['type']),
                 'fields' => explode(',', str_replace(array('`', ' '), null, $match['fields'])),
-                'container' => isset($match['container']) ? trim($match['container'], '`') : null,
+                'table' => isset($match['table']) ? trim($match['table'], '`') : null,
                 'foreign' => isset($match['foreign']) ? explode(',', str_replace(array('`', ' '), null, $match['foreign'])) : array()
             );
 
@@ -576,7 +580,7 @@ class Schema implements SchemaInterface
             }
 
             if ($node['type'] != self::INDEX_FOREIGN) {
-                unset($node['container'], $node['foreign']);
+                unset($node['table'], $node['foreign']);
             }
 
             $indexes[] = $node;
@@ -593,7 +597,7 @@ class Schema implements SchemaInterface
     public function reset()
     {
         $this->operation = null;
-        $this->container = null;
+        $this->table = null;
 
         $this->columns = array();
         $this->indexes = array();

@@ -5,15 +5,15 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \moss\storage\builder\BuilderException
-     * @expectedExceptionMessage Missing container name
+     * @expectedExceptionMessage Missing table name
      */
-    public function testMissingContainer()
+    public function testMissingTable()
     {
         $schema = new Schema(null);
         $schema->build();
     }
 
-    public function testContainer()
+    public function testTable()
     {
         $schema = new Schema('table', Schema::OPERATION_ADD);
         $schema->column('foo');
@@ -209,21 +209,21 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider indexProvider
      */
-    public function testCreateIndex($type, $fields, $container, $expected)
+    public function testCreateIndex($type, $fields, $table, $expected)
     {
         $schema = new Schema('table', Schema::OPERATION_CREATE);
         $schema->column('foo', Schema::FIELD_INTEGER)
-               ->index('foo', $fields, $type, $container);
+               ->index('foo', $fields, $type, $table);
         $this->assertEquals('CREATE TABLE `table` ( `foo` INT(10) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
 
     /**
      * @dataProvider indexProvider
      */
-    public function testAddIndex($type, $fields, $container, $expected)
+    public function testAddIndex($type, $fields, $table, $expected)
     {
         $schema = new Schema('table', Schema::OPERATION_ADD);
-        $schema->index('foo', $fields, $type, $container);
+        $schema->index('foo', $fields, $type, $table);
         $this->assertEquals('ALTER TABLE `table` ADD ' . $expected . '', $schema->build());
     }
 
@@ -261,10 +261,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider dropIndexProvider
      */
-    public function testRemoveIndex($type, $fields, $container, $expected)
+    public function testRemoveIndex($type, $fields, $table, $expected)
     {
         $schema = new Schema('table', Schema::OPERATION_REMOVE);
-        $schema->index('foo', $fields, $type, $container);
+        $schema->index('foo', $fields, $type, $table);
         $this->assertEquals('ALTER TABLE `table` DROP ' . $expected, $schema->build());
     }
 

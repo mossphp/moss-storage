@@ -7,7 +7,7 @@ use moss\storage\model\ModelInterface;
 
 class Field implements FieldInterface
 {
-    protected $container;
+    protected $table;
     protected $name;
     protected $type;
     protected $mapping;
@@ -34,13 +34,13 @@ class Field implements FieldInterface
         $this->attributes = $attributes;
     }
 
-    public function container($container = null)
+    public function table($table = null)
     {
-        if ($container !== null) {
-            $this->container = $container;
+        if ($table !== null) {
+            $this->table = $table;
         }
 
-        return $this->container;
+        return $this->table;
     }
 
     /**
@@ -64,7 +64,7 @@ class Field implements FieldInterface
     }
 
     /**
-     * Returns field container mapping or null when no mapping
+     * Returns field table mapping or null when no mapping
      *
      * @return null|string
      */

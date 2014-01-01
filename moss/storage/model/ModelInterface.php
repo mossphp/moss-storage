@@ -34,11 +34,11 @@ interface ModelInterface
     const ATTRIBUTE_PRECISION = 'precision';
 
     /**
-     * Returns container
+     * Returns table
      *
      * @return string
      */
-    public function container();
+    public function table();
 
     /**
      * Returns entity class name

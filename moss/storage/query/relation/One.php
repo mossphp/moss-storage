@@ -57,7 +57,7 @@ class One extends Relation
             }
 
             foreach ($foreigns[$key] as &$entity) {
-                $this->accessProperty($entity, $this->relation->container(), $relEntity);
+                $this->accessProperty($entity, $this->relation->table(), $relEntity);
                 unset($entity);
             }
         }
@@ -67,12 +67,12 @@ class One extends Relation
         }
 
         foreach ($result as &$entity) {
-            if (!$rel = $this->accessProperty($entity, $this->relation->container())) {
+            if (!$rel = $this->accessProperty($entity, $this->relation->table())) {
                 continue;
             }
 
-            if ($sub = $this->accessProperty($rel, $this->relation->container())) {
-                $this->accessProperty($entity, $this->relation->container(), $sub);
+            if ($sub = $this->accessProperty($rel, $this->relation->table())) {
+                $this->accessProperty($entity, $this->relation->table(), $sub);
             }
 
             unset($entity);
@@ -91,11 +91,11 @@ class One extends Relation
      */
     public function write($result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        if (!isset($result->{$this->relation->table()})) {
             return $result;
         }
 
-        $entity = & $result->{$this->relation->container()};
+        $entity = & $result->{$this->relation->table()};
 
         $this->assertInstance($entity);
 
@@ -156,11 +156,11 @@ class One extends Relation
      */
     public function delete($result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        if (!isset($result->{$this->relation->table()})) {
             return $result;
         }
 
-        $entity = & $result->{$this->relation->container()};
+        $entity = & $result->{$this->relation->table()};
 
         $this->assertInstance($entity);
 

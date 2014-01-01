@@ -9,12 +9,12 @@ class Relation implements RelationInterface
 {
     private $entity;
     private $type;
-    private $container;
+    private $table;
     private $keys = array();
     private $local = array();
     private $foreign = array();
 
-    public function __construct($entity, $type, array $keys, $container = null)
+    public function __construct($entity, $type, array $keys, $table = null)
     {
         if (!in_array($type, array(ModelInterface::RELATION_ONE, ModelInterface::RELATION_MANY))) {
             throw new DefinitionException(sprintf('Invalid relation type %s in relation for %s', $type, $entity));
@@ -22,7 +22,7 @@ class Relation implements RelationInterface
 
         $this->entity = '\\'.ltrim($entity, '\\');
         $this->type = $type;
-        $this->container = $container ? $container : substr($this->entity, strrpos($this->entity, '\\') + 1);
+        $this->table = $table ? $table : substr($this->entity, strrpos($this->entity, '\\') + 1);
 
         if (empty($keys)) {
             throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
@@ -49,7 +49,7 @@ class Relation implements RelationInterface
      */
     public function name()
     {
-        return $this->container();
+        return $this->table();
     }
 
     /**
@@ -73,13 +73,13 @@ class Relation implements RelationInterface
     }
 
     /**
-     * Returns container name
+     * Returns table name
      *
      * @return string
      */
-    public function container()
+    public function table()
     {
-        return $this->container;
+        return $this->table;
     }
 
     /**

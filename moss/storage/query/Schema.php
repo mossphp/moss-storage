@@ -96,21 +96,21 @@ class Schema implements SchemaInterface
 
     protected function buildCheck(ModelInterface $model)
     {
-        $this->queries[$model->container()] = $this->builder->reset()
+        $this->queries[$model->table()] = $this->builder->reset()
                                                             ->operation(BuilderInterface::OPERATION_CHECK)
-                                                            ->container($model->container())
+                                                            ->table($model->table())
                                                             ->build();
     }
 
     protected function buildCreate(ModelInterface $model)
     {
         if ($this->checkIfSchemaExists($model)) {
-            throw new QueryException(sprintf('Unable to create container, container "%s" already exists', $model->container()));
+            throw new QueryException(sprintf('Unable to create table, table "%s" already exists', $model->table()));
         }
 
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_CREATE)
-                      ->container($model->container());
+                      ->table($model->table());
 
         foreach ($model->fields() as $node) {
             $this->builder->column($node->name(), $node->type(), $node->attributes());
@@ -123,20 +123,20 @@ class Schema implements SchemaInterface
                 continue;
             }
 
-            $this->builder->index($node->name(), $node->fields(), $node->type(), $node->container());
+            $this->builder->index($node->name(), $node->fields(), $node->type(), $node->table());
         }
 
         $this->queries[] = $this->builder->build();
 
         foreach ($foreign as $node) {
-            $this->after[] = $this->buildIndexAdd($model, $node->name(), $node->fields(), $node->type(), $node->container());
+            $this->after[] = $this->buildIndexAdd($model, $node->name(), $node->fields(), $node->type(), $node->table());
         }
     }
 
     protected function buildAlter(ModelInterface $model)
     {
         if (!$this->checkIfSchemaExists($model)) {
-            throw new QueryException(sprintf('Unable to alter container, container "%s" does not exists', $model->container()));
+            throw new QueryException(sprintf('Unable to alter table, table "%s" does not exists', $model->table()));
         }
 
         $current = $this->getCurrentSchema($model);
@@ -194,11 +194,11 @@ class Schema implements SchemaInterface
         // applying indexes
         foreach ($model->indexes() as $index) {
             if ($index->type() == BuilderInterface::INDEX_FOREIGN) {
-                $this->after[] = $this->buildIndexAdd($model, $index->name(), $index->fields(), $index->type(), $index->container());
+                $this->after[] = $this->buildIndexAdd($model, $index->name(), $index->fields(), $index->type(), $index->table());
                 continue;
             }
 
-            $this->queries[] = $this->buildIndexAdd($model, $index->name(), $index->fields(), $index->type(), $index->container());
+            $this->queries[] = $this->buildIndexAdd($model, $index->name(), $index->fields(), $index->type(), $index->table());
         }
 
         // applying auto increment
@@ -211,7 +211,7 @@ class Schema implements SchemaInterface
     {
         $query = $this->builder->reset()
                                ->operation(BuilderInterface::OPERATION_CHECK)
-                               ->container($model->container())
+                               ->table($model->table())
                                ->build();
 
         $count = $this->driver->prepare($query)
@@ -225,7 +225,7 @@ class Schema implements SchemaInterface
     {
         $query = $this->builder->reset()
                                ->operation(BuilderInterface::OPERATION_INFO)
-                               ->container($model->container())
+                               ->table($model->table())
                                ->build();
 
         $result = $this->driver->prepare($query)
@@ -264,25 +264,25 @@ class Schema implements SchemaInterface
 
         $this->queries[] = $this->builder->reset()
                                          ->operation(BuilderInterface::OPERATION_DROP)
-                                         ->container($model->container())
+                                         ->table($model->table())
                                          ->build();
     }
 
-    protected function buildIndexAdd(ModelInterface $model, $name, $fields, $type, $container = null)
+    protected function buildIndexAdd(ModelInterface $model, $name, $fields, $type, $table = null)
     {
         return $this->builder->reset()
-                             ->container($model->container())
+                             ->table($model->table())
                              ->operation(BuilderInterface::OPERATION_ADD)
-                             ->index($name, $fields, $type, $container)
+                             ->index($name, $fields, $type, $table)
                              ->build();
     }
 
-    protected function buildIndexRemove(ModelInterface $model, $name, $fields, $type, $container = null)
+    protected function buildIndexRemove(ModelInterface $model, $name, $fields, $type, $table = null)
     {
         return $this->builder->reset()
-                             ->container($model->container())
+                             ->table($model->table())
                              ->operation(BuilderInterface::OPERATION_REMOVE)
-                             ->index($name, $fields, $type, $container)
+                             ->index($name, $fields, $type, $table)
                              ->build();
 
     }
@@ -290,7 +290,7 @@ class Schema implements SchemaInterface
     protected function buildColumnAdd(ModelInterface $model, $name, $type, $attributes, $prev = null)
     {
         return $this->builder->reset()
-                             ->container($model->container())
+                             ->table($model->table())
                              ->operation(BuilderInterface::OPERATION_ADD)
                              ->column($name, $type, $attributes, $prev)
                              ->build();
@@ -300,7 +300,7 @@ class Schema implements SchemaInterface
     protected function buildColumnChange(ModelInterface $model, $name, $type, $attributes, $prev = null)
     {
         return $this->builder->reset()
-                             ->container($model->container())
+                             ->table($model->table())
                              ->operation(BuilderInterface::OPERATION_CHANGE)
                              ->column($name, $type, $attributes, $prev)
                              ->build();
@@ -309,7 +309,7 @@ class Schema implements SchemaInterface
     protected function buildColumnRemove(ModelInterface $model, $name, $type, $attributes)
     {
         return $this->builder->reset()
-                             ->container($model->container())
+                             ->table($model->table())
                              ->operation(BuilderInterface::OPERATION_REMOVE)
                              ->column($name, $type, $attributes)
                              ->build();
@@ -328,8 +328,8 @@ class Schema implements SchemaInterface
         $result = array();
         switch ($this->operation) {
             case self::OPERATION_CHECK:
-                foreach ($queries as $container => $query) {
-                    $result[$container] = $this->driver
+                foreach ($queries as $table => $query) {
+                    $result[$table] = $this->driver
                             ->prepare($query)
                             ->execute()
                             ->affectedRows() == 1;

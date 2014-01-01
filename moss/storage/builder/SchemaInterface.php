@@ -36,7 +36,7 @@ interface SchemaInterface extends BuilderInterface
     const INDEX_UNIQUE = 'unique';
 
     /**
-     * Sets container column
+     * Sets table column
      *
      * @param string      $name
      * @param string      $type
@@ -48,7 +48,7 @@ interface SchemaInterface extends BuilderInterface
     public function column($name, $type = self::FIELD_STRING, $attributes = array(), $after = null);
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
      *
      * @param array $localFields
      *
@@ -57,18 +57,18 @@ interface SchemaInterface extends BuilderInterface
     public function primary(array $localFields);
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
      *
      * @param string $name
      * @param array  $fields
-     * @param string $container
+     * @param string $table
      *
      * @return $this
      */
-    public function foreign($name, array $fields, $container);
+    public function foreign($name, array $fields, $table);
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
      *
      * @param string $name
      * @param array  $fields
@@ -78,16 +78,16 @@ interface SchemaInterface extends BuilderInterface
     public function unique($name, array $fields);
 
     /**
-     * Sets key/index to container
+     * Sets key/index to table
      *
      * @param string $name
      * @param array  $fields
      * @param string $type
-     * @param null   $container
+     * @param null   $table
      *
      * @return $this
      */
-    public function index($name, array $fields, $type = self::INDEX_INDEX, $container = null);
+    public function index($name, array $fields, $type = self::INDEX_INDEX, $table = null);
 
     /**
      * Parsers create table statement into array

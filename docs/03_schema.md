@@ -1,10 +1,10 @@
 # Schema
 
-`Schema` responsibility is to create, alter and drop entity containers.
+`Schema` responsibility is to create, alter and drop entity tables.
 
 ### Check
 
-Checks if data container for entity exists (does not check if is up-to-date)
+Checks if table for entity exists (does not check if is up-to-date)
 
 	$bool = $storage
 		->check('entity')
@@ -12,7 +12,7 @@ Checks if data container for entity exists (does not check if is up-to-date)
 
 ### Create
 
-Creates data container for entity based on its model
+Creates table for entity based on its model
 
 	/* CREATE TABLE ... */
 	$storage
@@ -21,7 +21,7 @@ Creates data container for entity based on its model
 
 ### Alter
 
-Updates existing data container to match current model
+Updates existing table to match current model
 
 	/* ALTER TABLE ... */
 	$storage
@@ -30,7 +30,7 @@ Updates existing data container to match current model
 
 ### Drop
 
-Drops entity container
+Drops entity table
 
 	/* DROP TABLE IF EXISTS ... */
 	$storage

@@ -38,16 +38,16 @@ class RelationTest extends \PHPUnit_Framework_TestCase
         new Relation('\Foo', 'yada', array('foo' => 'bar'));
     }
 
-    public function testDefaultContainer()
+    public function testDefaultTable()
     {
         $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
-        $this->assertEquals('Foo', $relation->container());
+        $this->assertEquals('Foo', $relation->table());
     }
 
-    public function testForcedContainer()
+    public function testForcedTable()
     {
         $relation = new Relation('\Foo', 'one', array('foo' => 'bar'), 'Foobar');
-        $this->assertEquals('Foobar', $relation->container());
+        $this->assertEquals('Foobar', $relation->table());
     }
 
     public function testKeys()

@@ -7,7 +7,7 @@ use moss\storage\model\ModelInterface;
 
 class Index implements IndexInterface
 {
-    protected $container;
+    protected $table;
     protected $name;
     protected $type;
     protected $fields = array();
@@ -29,19 +29,20 @@ class Index implements IndexInterface
     }
 
     /**
-     * Returns name of container
+     * Returns name of table
+
      *
-     * @param string $container
+*@param string $table
      *
-     * @return string
+*@return string
      */
-    public function container($container = null)
+    public function table($table = null)
     {
-        if ($container !== null) {
-            $this->container = $container;
+        if ($table !== null) {
+            $this->table = $table;
         }
 
-        return $this->container;
+        return $this->table;
     }
 
     /**

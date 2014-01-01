@@ -11,11 +11,11 @@ interface FieldInterface
 {
 
     /**
-     * Returns container that field belongs to
+     * Returns table that field belongs to
      *
      * @return string
      */
-    public function container();
+    public function table();
 
     /**
      * Returns relation name in entity
@@ -32,7 +32,7 @@ interface FieldInterface
     public function type();
 
     /**
-     * Returns field container mapping or null when no mapping
+     * Returns field table mapping or null when no mapping
      *
      * @return null|string
      */

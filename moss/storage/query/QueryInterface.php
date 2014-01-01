@@ -171,7 +171,7 @@ interface QueryInterface
     public function value($field);
 
     /**
-     * Adds inner join with set container
+     * Adds inner join with set table
      *
      * @param string $entity
      *
@@ -180,7 +180,7 @@ interface QueryInterface
     public function innerJoin($entity);
 
     /**
-     * Adds left join with set container
+     * Adds left join with set table
      *
      * @param string $entity
      *
@@ -189,7 +189,7 @@ interface QueryInterface
     public function leftJoin($entity);
 
     /**
-     * Adds right join with set container
+     * Adds right join with set table
      *
      * @param string $entity
      *

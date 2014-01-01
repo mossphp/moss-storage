@@ -32,11 +32,11 @@ interface RelationInterface
     public function entity();
 
     /**
-     * Returns container name
+     * Returns table name
      *
      * @return string
      */
-    public function container();
+    public function table();
 
     /**
      * Returns associative array containing local key - foreign key pairs

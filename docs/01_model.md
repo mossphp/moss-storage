@@ -1,11 +1,11 @@
 # Model
 
-`Model` represents entity structure, how properties are mapped to container, what indexes exist and how modeled entity relate to other.
+`Model` represents entity structure, how properties are mapped to table, what indexes exist and how modeled entity relate to other.
 
 Each `Model` consists of:
 
  * namespaced entity class name
- * container/table name
+ * table name
  * any number of field definitions
  * any number of index definitions
  * any number of relation definitions
@@ -32,7 +32,7 @@ When creating query you can call entity by namespaced class name or its alias.
 
 ## Fields
 
-Object mapping means that entity properties are represented as container/table fields.
+Object mapping means that entity properties are represented as table fields.
 Therefore `Model` must contain field definitions:
 
 	$Field = new Field($field, $type, $attributes, $mapping);
@@ -59,7 +59,7 @@ Supported attributes:
 Parameter `$mapping` is provided for situations where field name is different than property name.
 For instance property `companyAddress` can be represented as `company_address` field.
 
-For example - define decimal field, with 4 digits, two of which on the fractional, in result represented as `fooBar` in container `foo_bar`:
+For example - define decimal field, with 4 digits, two of which on the fractional, in result represented as `fooBar` in table `foo_bar`:
 
 	$Field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
 
@@ -87,14 +87,14 @@ Relations describe what other entities can be contained inside entity.
 
 Both relations are defined in same way:
 
-	$Relation = new Relation($entity, $type, $keys, $localValue, $referencedValue, $container);
+	$Relation = new Relation($entity, $type, $keys, $localValue, $referencedValue, $table);
 
  * `$entity` - namespaced entity class pointed by relation its alias
  * `$type` - relation type, `one` or `many`
  * `$keys` - array containing local fields as keys and referenced fields as corresponding values
  * `$localValue` - array with field value pairs
  * `$referencedValue` - same as above, but for referenced table
- * `$container` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
+ * `$table` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
 
 For example, one `BlogEntry` can contain `Author` entity and many `Comment` entities.
 To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`:

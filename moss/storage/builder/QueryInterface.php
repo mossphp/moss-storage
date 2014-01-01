@@ -173,45 +173,45 @@ interface QueryInterface extends BuilderInterface
     public function value($col, $value);
 
     /**
-     * Adds inner join with set container
+     * Adds inner join with set table
      *
-     * @param string $container
+     * @param string $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function innerJoin($container, array $joins);
+    public function innerJoin($table, array $joins);
 
     /**
-     * Adds left join with set container
+     * Adds left join with set table
      *
-     * @param string $container
+     * @param string $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function leftJoin($container, array $joins);
+    public function leftJoin($table, array $joins);
 
     /**
-     * Adds right join with set container
+     * Adds right join with set table
      *
-     * @param string $container
+     * @param string $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function rightJoin($container, array $joins);
+    public function rightJoin($table, array $joins);
 
     /**
      * Adds join to query
      *
      * @param string $type
-     * @param array  $container
+     * @param array  $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function join($type, $container, array $joins);
+    public function join($type, $table, array $joins);
 
     /**
      * Adds where condition to builder

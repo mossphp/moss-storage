@@ -5,9 +5,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @expectedException \moss\storage\builder\BuilderException
-     * @expectedExceptionMessage Missing container name
+     * @expectedExceptionMessage Missing table name
      */
-    public function testMissingContainer()
+    public function testMissingTable()
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
@@ -16,11 +16,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
               ->build();
     }
 
-    public function testContainer()
+    public function testTable()
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->container('foobar', 'fb')
+              ->table('foobar', 'fb')
               ->operation(Query::OPERATION_SELECT)
               ->fields(array('foo', 'bar'))
               ->build();
@@ -46,7 +46,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->container('table')
+              ->table('table')
               ->operation($operation)
               ->fields(array('foo', 'bar'))
               ->value('foo', ':bind1')
@@ -64,7 +64,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->container('table')
+              ->table('table')
               ->operation('foo')
               ->fields(array('foo', 'bar'))
               ->build();
@@ -364,12 +364,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider joinProvider
      */
-    public function testSelectWithJoin($join, $container, $joins, $expected)
+    public function testSelectWithJoin($join, $table, $joins, $expected)
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
-        $query->join($join, $container, $joins);
+        $query->join($join, $table, $joins);
         $this->assertEquals($expected, $query->build());
     }
 

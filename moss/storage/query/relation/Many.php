@@ -29,8 +29,8 @@ class Many extends Relation
                 continue;
             }
 
-            if (!$this->accessProperty($entity, $this->relation->container())) {
-                $this->accessProperty($entity, $this->relation->container(), array());
+            if (!$this->accessProperty($entity, $this->relation->table())) {
+                $this->accessProperty($entity, $this->relation->table(), array());
             }
 
             foreach ($this->relation->foreignValues() as $refer => $value) {
@@ -62,9 +62,9 @@ class Many extends Relation
             }
 
             foreach ($foreign[$key] as &$entity) {
-                $value = $this->accessProperty($entity, $this->relation->container());
+                $value = $this->accessProperty($entity, $this->relation->table());
                 $value[] = $relEntity;
-                $this->accessProperty($entity, $this->relation->container(), $value);
+                $this->accessProperty($entity, $this->relation->table(), $value);
                 unset($entity);
             }
         }
@@ -74,12 +74,12 @@ class Many extends Relation
         }
 
         foreach ($result as &$entity) {
-            $value = $this->accessProperty($entity, $this->relation->container());
+            $value = $this->accessProperty($entity, $this->relation->table());
 
             $collection = array();
 
             foreach ($value as $rel) {
-                $sub = $this->accessProperty($rel, $this->relation->container());
+                $sub = $this->accessProperty($rel, $this->relation->table());
 
                 if (is_array($sub) || $sub instanceof \ArrayAccess) {
                     $collection = array_merge($collection, $sub);
@@ -89,7 +89,7 @@ class Many extends Relation
                 $collection[] = $rel;
             }
 
-            $this->accessProperty($entity, $this->relation->container(), $collection);
+            $this->accessProperty($entity, $this->relation->table(), $collection);
             unset($entity);
         }
 
@@ -106,17 +106,17 @@ class Many extends Relation
      */
     public function write($result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        if (!isset($result->{$this->relation->table()})) {
             return $result;
         }
 
-        $container = & $result->{$this->relation->container()};
+        $table = & $result->{$this->relation->table()};
 
-        if (!$container instanceof \ArrayAccess && !is_array($container)) {
-            throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', is_object($container) ? get_class($container) : gettype($container)));
+        if (!$table instanceof \ArrayAccess && !is_array($table)) {
+            throw new RelationException(sprintf('Relation table must be array or instance of ArrayAccess, got %s', is_object($table) ? get_class($table) : gettype($table)));
         }
 
-        foreach ($result->{$this->relation->container()} as $relEntity) {
+        foreach ($result->{$this->relation->table()} as $relEntity) {
             foreach ($this->relation->foreignValues() as $field => $value) {
                 $this->accessProperty($relEntity, $field, $value);
             }
@@ -131,7 +131,7 @@ class Many extends Relation
         }
 
         $relIdentifiers = array();
-        foreach ($result->{$this->relation->container()} as $relEntity) {
+        foreach ($result->{$this->relation->table()} as $relEntity) {
             $relIdentifiers[] = $this->identifyEntity($relEntity);
         }
 
@@ -175,17 +175,17 @@ class Many extends Relation
      */
     public function delete($result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        if (!isset($result->{$this->relation->table()})) {
             return $result;
         }
 
-        $container = & $result->{$this->relation->container()};
+        $table = & $result->{$this->relation->table()};
 
-        if (!$container instanceof \ArrayAccess && !is_array($container)) {
-            throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', is_object($container) ? get_class($container) : gettype($container)));
+        if (!$table instanceof \ArrayAccess && !is_array($table)) {
+            throw new RelationException(sprintf('Relation table must be array or instance of ArrayAccess, got %s', is_object($table) ? get_class($table) : gettype($table)));
         }
 
-        foreach ($result->{$this->relation->container()} as $relEntity) {
+        foreach ($result->{$this->relation->table()} as $relEntity) {
             $this->query
                 ->reset()
                 ->operation(QueryInterface::OPERATION_DELETE, $relEntity)

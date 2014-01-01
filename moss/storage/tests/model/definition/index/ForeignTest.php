@@ -77,8 +77,8 @@ class ForeignTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($index->isUnique());
     }
 
-    public function testForeignContainer() {
+    public function testForeignTable() {
         $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
-        $this->assertEquals('table', $index->container());
+        $this->assertEquals('table', $index->table());
     }
 }

@@ -98,7 +98,7 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Returns true if entity container exists
+     * Returns true if entity table exists
      *
      * @param string|object $entityClass
      *
@@ -110,7 +110,7 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Returns query creating entity container
+     * Returns query creating entity table
      *
      * @param string|object $entityClass
      *
@@ -122,7 +122,7 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Returns query altering entity container
+     * Returns query altering entity table
      *
      * @param string|object $entityClass
      *
@@ -134,7 +134,7 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Returns query removing entity container
+     * Returns query removing entity table
      *
      * @param string|object $entityClass
      *

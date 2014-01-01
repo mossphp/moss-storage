@@ -40,7 +40,7 @@ interface StorageInterface
     public function models();
 
     /**
-     * Returns true if entity container exists
+     * Returns true if entity table exists
      *
      * @param string|object $entityClass
      *
@@ -49,7 +49,7 @@ interface StorageInterface
     public function check($entityClass = null);
 
     /**
-     * Returns query creating entity container
+     * Returns query creating entity table
      *
      * @param string|object $entityClass
      *
@@ -58,7 +58,7 @@ interface StorageInterface
     public function create($entityClass = null);
 
     /**
-     * Returns query altering entity container
+     * Returns query altering entity table
      *
      * @param string|object $entityClass
      *
@@ -67,7 +67,7 @@ interface StorageInterface
     public function alter($entityClass = null);
 
     /**
-     * Returns query removing entity container
+     * Returns query removing entity table
      *
      * @param string|object $entityClass
      *
@@ -139,7 +139,7 @@ interface StorageInterface
     public function delete($entity);
 
     /**
-     * Clears entity container
+     * Clears entity table
      *
      * @param string $entityClass
      *

@@ -105,7 +105,7 @@ abstract class Relation implements RelationInterface
         $entityClass = $this->relation->entity();
 
         if (!$entity instanceof $entityClass) {
-            throw new RelationException(sprintf('Relation container must be instance of %s, got %s', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
+            throw new RelationException(sprintf('Relation table must be instance of %s, got %s', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
         }
 
         return true;

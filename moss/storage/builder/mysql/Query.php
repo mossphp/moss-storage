@@ -47,7 +47,7 @@ class Query implements QueryInterface
 
     protected $operation;
 
-    protected $container;
+    protected $table;
     protected $joins = array();
 
     protected $fields = array();
@@ -68,19 +68,19 @@ class Query implements QueryInterface
     /**
      * Constructor
      *
-     * @param string $container
+     * @param string $table
      * @param string $alias
      * @param string $operation
      */
-    public function __construct($container = null, $alias = null, $operation = self::OPERATION_SELECT)
+    public function __construct($table = null, $alias = null, $operation = self::OPERATION_SELECT)
     {
-        if ($container !== null) {
-            $this->container($container, $alias);
+        if ($table !== null) {
+            $this->table($table, $alias);
             $this->operation($operation);
         }
     }
 
-    protected function quote($string, $container = null)
+    protected function quote($string, $table = null)
     {
         $array = explode(self::SEPARATOR, $string, 2);
 
@@ -88,12 +88,12 @@ class Query implements QueryInterface
             return self::QUOTE . $string . self::QUOTE;
         }
 
-        if (count($array) !== 2 && $container === null) {
+        if (count($array) !== 2 && $table === null) {
             return self::QUOTE . $string . self::QUOTE;
         }
 
         if (!isset($array[1])) {
-            array_unshift($array, $container);
+            array_unshift($array, $table);
         }
 
         if (strpos($array[0], self::QUOTE) !== 0) {
@@ -104,22 +104,22 @@ class Query implements QueryInterface
     }
 
     /**
-     * Sets container name
+     * Sets table name
      *
-     * @param string $container
+     * @param string $table
      * @param string $alias
      *
      * @return $this
      * @throws BuilderException
      */
-    public function container($container, $alias = null)
+    public function table($table, $alias = null)
     {
-        if (empty($container)) {
-            throw new BuilderException('Missing container name');
+        if (empty($table)) {
+            throw new BuilderException('Missing table name');
         }
 
-        $this->container = array(
-            $this->quote($container),
+        $this->table = array(
+            $this->quote($table),
             $alias ? $this->quote($alias) : null
         );
 
@@ -128,7 +128,7 @@ class Query implements QueryInterface
 
     protected function mapping()
     {
-        return $this->container[1] ? $this->container[1] : $this->container[0];
+        return $this->table[1] ? $this->table[1] : $this->table[0];
     }
 
     /**
@@ -157,28 +157,28 @@ class Query implements QueryInterface
         return $this;
     }
 
-    protected function buildContainer()
+    protected function buildTable()
     {
         $result = array();
-        $result[] = $this->container[0];
+        $result[] = $this->table[0];
 
         if ($this->operation !== self::OPERATION_SELECT) {
             return implode(' ', $result);
         }
 
-        if ($this->container[1]) {
+        if ($this->table[1]) {
             $result[] = 'AS';
-            $result[] = $this->container[1];
+            $result[] = $this->table[1];
         }
 
         foreach ($this->joins as $node) {
-            list($type, $container, $joins) = $node;
+            list($type, $table, $joins) = $node;
 
             $result[] = $this->joinTypes[$type];
-            $result[] = $container[0];
-            if ($container[1]) {
+            $result[] = $table[0];
+            if ($table[1]) {
                 $result[] = 'AS';
-                $result[] = $container[1];
+                $result[] = $table[1];
             }
             $result[] = 'ON';
 
@@ -469,55 +469,55 @@ class Query implements QueryInterface
     }
 
     /**
-     * Adds inner join with set container
+     * Adds inner join with set table
      *
-     * @param string $container
+     * @param string $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function innerJoin($container, array $joins)
+    public function innerJoin($table, array $joins)
     {
-        return $this->join(self::JOIN_INNER, $container, $joins);
+        return $this->join(self::JOIN_INNER, $table, $joins);
     }
 
     /**
-     * Adds left join with set container
+     * Adds left join with set table
      *
-     * @param string $container
+     * @param string $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function leftJoin($container, array $joins)
+    public function leftJoin($table, array $joins)
     {
-        return $this->join(self::JOIN_LEFT, $container, $joins);
+        return $this->join(self::JOIN_LEFT, $table, $joins);
     }
 
     /**
-     * Adds right join with set container
+     * Adds right join with set table
      *
-     * @param string $container
+     * @param string $table
      * @param array  $joins
      *
      * @return $this
      */
-    public function rightJoin($container, array $joins)
+    public function rightJoin($table, array $joins)
     {
-        return $this->join(self::JOIN_RIGHT, $container, $joins);
+        return $this->join(self::JOIN_RIGHT, $table, $joins);
     }
 
     /**
      * Adds join to query
      *
      * @param string $type
-     * @param array  $container
+     * @param array  $table
      * @param array  $joins
      *
      * @return $this
      * @throws BuilderException
      */
-    public function join($type, $container, array $joins)
+    public function join($type, $table, array $joins)
     {
         if (!isset($this->joinTypes[$type])) {
             throw new BuilderException(sprintf('Query builder does not supports join type "%s"', $type));
@@ -527,26 +527,26 @@ class Query implements QueryInterface
             throw new BuilderException(sprintf('Empty join array for join type "%s"', $type));
         }
 
-        if (is_array($container) && !is_numeric(key($container))) {
-            $container = array(key($container), reset($container));
-        } elseif (is_array($container) && count($container) == 2) {
-            $container = array(reset($container), end($container));
+        if (is_array($table) && !is_numeric(key($table))) {
+            $table = array(key($table), reset($table));
+        } elseif (is_array($table) && count($table) == 2) {
+            $table = array(reset($table), end($table));
         } else {
-            $container = array($container, null);
+            $table = array($table, null);
         }
 
-        $container = array(
-            $this->quote($container[0]),
-            $container[1] ? $this->quote($container[1]) : null
+        $table = array(
+            $this->quote($table[0]),
+            $table[1] ? $this->quote($table[1]) : null
         );
 
         $join = array(
             $type,
-            $container,
+            $table,
             array()
         );
 
-        $mapping = isset($container[1]) ? $container[1] : $container[0];
+        $mapping = isset($table[1]) ? $table[1] : $table[0];
         foreach ($joins as $local => $foreign) {
             $join[2][] = array(
                 $this->quote($local, $this->mapping()),
@@ -809,8 +809,8 @@ class Query implements QueryInterface
      */
     public function build()
     {
-        if (empty($this->container)) {
-            throw new BuilderException('Missing container name');
+        if (empty($this->table)) {
+            throw new BuilderException('Missing table name');
         }
 
         $stmt = array();
@@ -820,7 +820,7 @@ class Query implements QueryInterface
                 $stmt[] = 'SELECT';
                 $stmt[] = $this->buildFields();
                 $stmt[] = 'FROM';
-                $stmt[] = $this->buildContainer();
+                $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildGroup();
                 $stmt[] = $this->buildHaving();
@@ -829,25 +829,25 @@ class Query implements QueryInterface
                 break;
             case self::OPERATION_INSERT:
                 $stmt[] = 'INSERT INTO';
-                $stmt[] = $this->buildContainer();
+                $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildInsertValues();
                 break;
             case self::OPERATION_UPDATE:
                 $stmt[] = 'UPDATE';
-                $stmt[] = $this->buildContainer();
+                $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildUpdateValues();
                 $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildLimit();
                 break;
             case self::OPERATION_DELETE:
                 $stmt[] = 'DELETE FROM';
-                $stmt[] = $this->buildContainer();
+                $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildLimit();
                 break;
             case self::OPERATION_CLEAR:
                 $stmt[] = 'TRUNCATE TABLE';
-                $stmt[] = $this->buildContainer();
+                $stmt[] = $this->buildTable();
                 break;
         }
 
@@ -865,7 +865,7 @@ class Query implements QueryInterface
     {
         $this->operation = null;
 
-        $this->container = null;
+        $this->table = null;
         $this->joins = array();
 
         $this->fields = array();

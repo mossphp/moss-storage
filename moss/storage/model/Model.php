@@ -15,7 +15,7 @@ use moss\storage\model\definition\ForeignInterface;
 class Model implements ModelInterface
 {
 
-    protected $container;
+    protected $table;
     protected $entity;
 
     /** @var array|FieldInterface[] */
@@ -31,16 +31,16 @@ class Model implements ModelInterface
      * Constructor
      *
      * @param string                    $entityClass
-     * @param string                    $container
+     * @param string                    $table
      * @param array|FieldInterface[]    $fields
      * @param array|IndexInterface[]    $indexes
      * @param array|RelationInterface[] $relations
      *
      * @throws ModelException
      */
-    public function __construct($entityClass, $container, array $fields, array $indexes = array(), array $relations = array())
+    public function __construct($entityClass, $table, array $fields, array $indexes = array(), array $relations = array())
     {
-        $this->container = $container;
+        $this->table = $table;
         $this->entity = ltrim($entityClass, '\\');
 
         $this->assignFields($fields);
@@ -56,7 +56,7 @@ class Model implements ModelInterface
             }
 
             if (!$field instanceof ForeignInterface) {
-                $field->container($this->container);
+                $field->table($this->table);
             }
 
             $this->fields[$field->name()] = $field;
@@ -79,7 +79,7 @@ class Model implements ModelInterface
             }
 
             if (!$index instanceof ForeignInterface) {
-                $index->container($this->container);
+                $index->table($this->table);
             }
 
             $this->indexes[$index->name()] = $index;
@@ -119,13 +119,13 @@ class Model implements ModelInterface
     }
 
     /**
-     * Returns container
+     * Returns table
      *
      * @return string
      */
-    public function container()
+    public function table()
     {
-        return $this->container;
+        return $this->table;
     }
 
     /**

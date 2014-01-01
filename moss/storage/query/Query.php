@@ -181,7 +181,7 @@ class Query implements QueryInterface
     {
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_SELECT)
-                      ->container($this->model->container());
+                      ->table($this->model->table());
 
         foreach ($this->model->primaryFields() as $field) {
             $this->assignField($field);
@@ -192,7 +192,7 @@ class Query implements QueryInterface
     {
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_SELECT)
-                      ->container($this->model->container());
+                      ->table($this->model->table());
 
         $this->fields();
 
@@ -207,7 +207,7 @@ class Query implements QueryInterface
     {
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_INSERT)
-                      ->container($this->model->container());
+                      ->table($this->model->table());
 
         $this->values();
     }
@@ -216,7 +216,7 @@ class Query implements QueryInterface
     {
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_UPDATE)
-                      ->container($this->model->container());
+                      ->table($this->model->table());
 
         $this->values();
 
@@ -237,7 +237,7 @@ class Query implements QueryInterface
     {
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_DELETE)
-                      ->container($this->model->container());
+                      ->table($this->model->table());
 
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->accessProperty($this->instance, $field->name());
@@ -256,7 +256,7 @@ class Query implements QueryInterface
     {
         $this->builder->reset()
                       ->operation(BuilderInterface::OPERATION_CLEAR)
-                      ->container($this->model->container());
+                      ->table($this->model->table());
     }
 
     protected function resolveField($field)
@@ -328,7 +328,7 @@ class Query implements QueryInterface
     protected function assignField(FieldInterface $field)
     {
         $this->builder->field(
-                      $field->container() . BuilderInterface::SEPARATOR . $field->name(),
+                      $field->table() . BuilderInterface::SEPARATOR . $field->name(),
                       $field->name() == $field->mapping() ? null : $field->mapping()
         );
 
@@ -443,7 +443,7 @@ class Query implements QueryInterface
 
         $this->builder->aggregate(
                       $method,
-                      $field->container() . BuilderInterface::SEPARATOR . $field->mapping(),
+                      $field->table() . BuilderInterface::SEPARATOR . $field->mapping(),
                       $alias
         );
 
@@ -476,7 +476,7 @@ class Query implements QueryInterface
     {
         $field = $this->resolveField($field);
 
-        $this->builder->group($field->container() . BuilderInterface::SEPARATOR . $field->mapping());
+        $this->builder->group($field->table() . BuilderInterface::SEPARATOR . $field->mapping());
 
         return $this;
     }
@@ -525,7 +525,7 @@ class Query implements QueryInterface
 
     protected function assignValue(FieldInterface $field)
     {
-        if ($field->container() != $this->model->container()) {
+        if ($field->table() != $this->model->table()) {
             return;
         }
 
@@ -542,7 +542,7 @@ class Query implements QueryInterface
     }
 
     /**
-     * Adds inner join with set container
+     * Adds inner join with set table
      *
      * @param string $entity
      *
@@ -556,7 +556,7 @@ class Query implements QueryInterface
     }
 
     /**
-     * Adds left join with set container
+     * Adds left join with set table
      *
      * @param string $entity
      *
@@ -570,7 +570,7 @@ class Query implements QueryInterface
     }
 
     /**
-     * Adds right join with set container
+     * Adds right join with set table
      *
      * @param string $entity
      *
@@ -602,7 +602,7 @@ class Query implements QueryInterface
         $relation = $this->model->relation($entity);
         $this->builder->join(
                       $type,
-                      $relation->container(),
+                      $relation->table(),
                       $relation->keys()
         );
 
@@ -611,7 +611,7 @@ class Query implements QueryInterface
         }
 
         foreach ($relation->foreignValues() as $field => $value) {
-            $this->where($relation->container() . BuilderInterface::SEPARATOR . $field, $value);
+            $this->where($relation->table() . BuilderInterface::SEPARATOR . $field, $value);
         }
 
         return $this;
@@ -695,7 +695,7 @@ class Query implements QueryInterface
         if (!is_array($field) && is_array($value)) {
             for ($i = 0, $l = count($value); $i < $l; $i++) {
                 $f = $this->resolveField($field);
-                $fields[] = $f->container() . BuilderInterface::SEPARATOR . $f->mapping();
+                $fields[] = $f->table() . BuilderInterface::SEPARATOR . $f->mapping();
                 $values[] = !array_key_exists($i, $value) || $value[$i] === null ? null : $this->bindValues($f, $value[$i]);
             }
         } else {
@@ -705,7 +705,7 @@ class Query implements QueryInterface
                 }
 
                 $f = $this->resolveField($f);
-                $fields[] = $f->container() . BuilderInterface::SEPARATOR . $f->mapping();
+                $fields[] = $f->table() . BuilderInterface::SEPARATOR . $f->mapping();
                 $values[] = $value === null ? null : $this->bindValues($f, is_array($value) ? $value[$i] : $value);
             }
         }
