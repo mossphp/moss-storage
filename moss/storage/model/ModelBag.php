@@ -112,7 +112,7 @@ class ModelBag
      *
      * @param array $array overwrites values
      *
-     * @return array
+     * @return array|ModelInterface[]
      */
     public function all($array = array())
     {
