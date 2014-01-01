@@ -29,7 +29,7 @@ class Storage implements StorageInterface
     );
 
     /** @var ModelBag */
-    protected $models = array();
+    public $models = array();
 
     /**
      * Constructor
@@ -104,7 +104,7 @@ class Storage implements StorageInterface
      *
      * @return Schema
      */
-    public function check($entityClass)
+    public function check($entityClass = null)
     {
         return $this->schema(Schema::OPERATION_CHECK, $entityClass);
     }
@@ -116,7 +116,7 @@ class Storage implements StorageInterface
      *
      * @return Schema
      */
-    public function create($entityClass)
+    public function create($entityClass = null)
     {
         return $this->schema(Schema::OPERATION_CREATE, $entityClass);
     }
@@ -128,7 +128,7 @@ class Storage implements StorageInterface
      *
      * @return Schema
      */
-    public function alter($entityClass)
+    public function alter($entityClass = null)
     {
         return $this->schema(Schema::OPERATION_ALTER, $entityClass);
     }
@@ -140,7 +140,7 @@ class Storage implements StorageInterface
      *
      * @return Schema
      */
-    public function drop($entityClass)
+    public function drop($entityClass = null)
     {
         return $this->schema(Schema::OPERATION_DROP, $entityClass);
     }
@@ -148,7 +148,7 @@ class Storage implements StorageInterface
     protected function schema($operation, $entity)
     {
         $schema = new Schema($this->driver, $this->builders['schema'], $this->models);
-        $schema->operation($operation, $this->models->getEntityClass($entity));
+        $schema->operation($operation, $entity);
         return $schema;
     }
 

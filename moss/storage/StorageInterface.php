@@ -2,6 +2,7 @@
 namespace moss\storage;
 
 use moss\storage\model\ModelInterface;
+use moss\storage\model\ModelBag;
 use moss\storage\driver\DriverInterface;
 use moss\storage\query\SchemaInterface;
 use moss\storage\query\QueryInterface;
@@ -34,7 +35,7 @@ interface StorageInterface
     /**
      * Returns all registered models
      *
-     * @return array|ModelInterface
+     * @return ModelBag
      */
     public function models();
 
@@ -45,7 +46,7 @@ interface StorageInterface
      *
      * @return SchemaInterface
      */
-    public function check($entityClass);
+    public function check($entityClass = null);
 
     /**
      * Returns query creating entity container
@@ -54,7 +55,7 @@ interface StorageInterface
      *
      * @return SchemaInterface
      */
-    public function create($entityClass);
+    public function create($entityClass = null);
 
     /**
      * Returns query altering entity container
@@ -63,7 +64,7 @@ interface StorageInterface
      *
      * @return SchemaInterface
      */
-    public function alter($entityClass);
+    public function alter($entityClass = null);
 
     /**
      * Returns query removing entity container
@@ -72,7 +73,7 @@ interface StorageInterface
      *
      * @return SchemaInterface
      */
-    public function drop($entityClass);
+    public function drop($entityClass = null);
 
     /**
      * Returns count query for passed entity class
