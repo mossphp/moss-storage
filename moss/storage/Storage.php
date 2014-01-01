@@ -80,7 +80,7 @@ class Storage implements StorageInterface
      *
      * @return Storage
      */
-    public function registerModel($alias, ModelInterface $model)
+    public function register($alias, ModelInterface $model)
     {
         $this->models->set($model, $alias);
 
@@ -88,54 +88,13 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Returns entity class name
-     *
-     * @param string|object $entity
-     *
-     * @return string
-     */
-    protected function getEntityClass($entity)
-    {
-        if (is_object($entity)) {
-            $entity = get_class($entity);
-        }
-
-        return ltrim($entity, '\\');
-    }
-
-    /**
-     * Returns true if model exists
-     *
-     * @param string|object $entityClass
-     *
-     * @return bool
-     */
-    public function hasModel($entityClass)
-    {
-        return $this->models->has($entityClass);
-    }
-
-    /**
-     * Returns model instance
-     *
-     * @param string|object $entityClass
-     *
-     * @return model\ModelInterface
-     * @throws StorageException
-     */
-    public function getModel($entityClass)
-    {
-        return $this->models->get($entityClass);
-    }
-
-    /**
      * Returns all registered models
      *
-     * @return array|ModelInterface[]
+     * @return ModelBag
      */
-    public function getModels()
+    public function models()
     {
-        return $this->models->all();
+        return $this->models;
     }
 
     /**

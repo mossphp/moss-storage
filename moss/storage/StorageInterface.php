@@ -29,32 +29,14 @@ interface StorageInterface
      *
      * @return StorageInterface
      */
-    public function registerModel($alias, ModelInterface $model);
-
-    /**
-     * Returns true if model exists
-     *
-     * @param string|object $entityClass
-     *
-     * @return bool
-     */
-    public function hasModel($entityClass);
-
-    /**
-     * Returns model instance
-     *
-     * @param string|object $entityClass
-     *
-     * @return ModelInterface
-     */
-    public function getModel($entityClass);
+    public function register($alias, ModelInterface $model);
 
     /**
      * Returns all registered models
      *
      * @return array|ModelInterface
      */
-    public function getModels();
+    public function models();
 
     /**
      * Returns true if entity container exists
