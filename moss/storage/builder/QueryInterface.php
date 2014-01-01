@@ -2,7 +2,7 @@
 namespace moss\storage\builder;
 
 
-interface QueryInterface
+interface QueryInterface extends BuilderInterface
 {
     const SEPARATOR = '.';
 
@@ -43,25 +43,6 @@ interface QueryInterface
     // Sorting methods
     const ORDER_ASC = 'asc';
     const ORDER_DESC = 'desc';
-
-    /**
-     * Sets container name
-     *
-     * @param string $container
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function container($container, $alias = null);
-
-    /**
-     * Sets operation for builder
-     *
-     * @param string $operation
-     *
-     * @return $this
-     */
-    public function operation($operation);
 
     /**
      * Adds fields to query
@@ -275,25 +256,4 @@ interface QueryInterface
      * @return $this
      */
     public function limit($limit, $offset = null);
-
-    /**
-     * Builds query string
-     *
-     * @return string
-     */
-    public function build();
-
-    /**
-     * Resets builder
-     *
-     * @return $this
-     */
-    public function reset();
-
-    /**
-     * Casts query to string (builds it)
-     *
-     * @return string
-     */
-    public function __toString();
 } 

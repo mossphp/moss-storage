@@ -1,7 +1,7 @@
 <?php
 namespace moss\storage\builder;
 
-interface SchemaInterface
+interface SchemaInterface extends BuilderInterface
 {
     // Schema operations
     const OPERATION_CHECK = 'check';
@@ -36,24 +36,6 @@ interface SchemaInterface
     const INDEX_UNIQUE = 'unique';
 
     /**
-     * Sets container name
-     *
-     * @param string $container
-     *
-     * @return $this
-     */
-    public function container($container);
-
-    /**
-     * Sets operation for builder
-     *
-     * @param string $operation
-     *
-     * @return $this
-     */
-    public function operation($operation);
-
-    /**
      * Sets container column
      *
      * @param string      $name
@@ -76,13 +58,12 @@ interface SchemaInterface
 
     /**
      * Sets key/index to container
-
      *
-*@param string $name
+     * @param string $name
      * @param array  $fields
      * @param string $container
      *
-*@return $this
+     * @return $this
      */
     public function foreign($name, array $fields, $container);
 
@@ -109,13 +90,6 @@ interface SchemaInterface
     public function index($name, array $fields, $type = self::INDEX_INDEX, $container = null);
 
     /**
-     * Builds query string
-     *
-     * @return string
-     */
-    public function build();
-
-    /**
      * Parsers create table statement into array
      *
      * @param string $statement
@@ -123,18 +97,4 @@ interface SchemaInterface
      * @return array
      */
     public function parse($statement);
-
-    /**
-     * Resets builder
-     *
-     * @return $this
-     */
-    public function reset();
-
-    /**
-     * Casts query to string (builds it)
-     *
-     * @return string
-     */
-    public function __toString();
 } 
