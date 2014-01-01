@@ -1,5 +1,5 @@
 {
-	"name": "moss/moss",
+	"name": "moss/storage",
 	"version": "0.5",
 	"description": "moss storage",
 	"keywords": ["orm"],
