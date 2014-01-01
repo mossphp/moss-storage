@@ -18,6 +18,19 @@ class Schema implements SchemaInterface
         self::FIELD_SERIAL => array('text:serial') // text with "serial" in comment
     );
 
+    private $defaults = array(
+        'name' => null,
+        'type' => self::FIELD_STRING,
+        'attributes' => 'null',
+        self::ATTRIBUTE_LENGTH => null,
+        self::ATTRIBUTE_PRECISION => null,
+        self::ATTRIBUTE_NULL => false,
+        self::ATTRIBUTE_UNSIGNED => false,
+        self::ATTRIBUTE_AUTO => false,
+        self::ATTRIBUTE_DEFAULT => null,
+        self::ATTRIBUTE_COMMENT => null
+    );
+
     protected $operation;
 
     protected $container;
@@ -480,6 +493,8 @@ class Schema implements SchemaInterface
 
         $columns = array();
         foreach ($matches as $match) {
+            $match = array_merge($this->defaults, $match);
+
             $node = array(
                 'name' => $match['name'],
                 'type' => $match['type'],
