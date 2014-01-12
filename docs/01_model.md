@@ -35,7 +35,7 @@ When creating query you can call entity by namespaced class name or its alias.
 Object mapping means that entity properties are represented as table fields.
 Therefore `Model` must contain field definitions:
 
-	$Field = new Field($field, $type, $attributes, $mapping);
+	$field = new Field($field, $type, $attributes, $mapping);
 
 Where `$field` is property name, `$type` parameter defines the type of field, it can be:
 
@@ -61,21 +61,37 @@ For instance property `companyAddress` can be represented as `company_address` f
 
 For example - define decimal field, with 4 digits, two of which on the fractional, in result represented as `fooBar` in table `foo_bar`:
 
-	$Field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
+	$field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
 
 ## Indexes & Keys
 
+Model may contain index or key definitions
+
 ### Primary key
-// todo
+
+As primary keys name is often reserved, there is no need to type its name, just define columns used in key
+
+	$primary = new Primary(array('id'));
 
 ### Foreign key
-// todo
+
+Foreign key definition must include ist name - unique within entire database, array containing fields from local and foreign table - as key-value pairs and foreign table name.
+
+	$foreign = new Foreign('fk_other_id', array('other_id' => 'id'), 'other');
+
+Above definition says that foreign key `fk_other_id` will constrain field `other_id` to values from `other.id`.
 
 ### Unique
-// todo
+
+To define unique index just type its name and array with columns
+
+	$unique = new Unique('uk_id', array('id'));
 
 ### Index
-// todo
+
+Index definition consists from its name and column names
+
+	$index = new Index('i_id', array('id'));
 
 ## Relations
 
@@ -87,7 +103,7 @@ Relations describe what other entities can be contained inside entity.
 
 Both relations are defined in same way:
 
-	$Relation = new Relation($entity, $type, $keys, $localValue, $referencedValue, $table);
+	$relation = new Relation($entity, $type, $keys, $localValue, $referencedValue, $table);
 
  * `$entity` - namespaced entity class pointed by relation its alias
  * `$type` - relation type, `one` or `many`
@@ -99,8 +115,8 @@ Both relations are defined in same way:
 For example, one `BlogEntry` can contain `Author` entity and many `Comment` entities.
 To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`:
 
-	$AuthorRelation = new Relation('\Author', 'one', array('author_id' => 'id'));
-	$CommentRelation = new Relation('\Comment', 'many', array('id' => 'entry_id'), array(), array('visible' => 1), 'Comments');
+	$authorRelation = new Relation('\Author', 'one', array('author_id' => 'id'));
+	$commentRelation = new Relation('\Comment', 'many', array('id' => 'entry_id'), array(), array('visible' => 1), 'Comments');
 
 `Author` will be available in `Author` property.
 All `Comment` entities with `visibility` property equal to `1` will be placed in `Comments` property.

@@ -11,7 +11,7 @@ Your business logic stays uninfluenced by database (repository).
 Write entities as you want, extend what you need, independently from any databases, weird ORM base classes.
 
 Each entity that will be stored in repository, in its own table, must be described by `Model`.
-`Model` describes how entities properties relate/are mapped to table cells.
+`Model` defines how entities properties relate/are mapped to table cells.
 In addition, `Model` stores information about table field types (integer, string or maybe datetime or even serial) and their attributes.
 
 Beside `Model`, `Storage` comes with two important components:
