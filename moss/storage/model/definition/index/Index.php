@@ -12,14 +12,10 @@ class Index implements IndexInterface
     protected $type;
     protected $fields = array();
 
-    public function __construct($name, array $fields, $type = ModelInterface::INDEX_INDEX)
+    public function __construct($name, array $fields)
     {
-        if (!in_array($type, array(ModelInterface::INDEX_INDEX, ModelInterface::INDEX_UNIQUE))) {
-            throw new DefinitionException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
-        }
-
         $this->name = $name;
-        $this->type = $type;
+        $this->type = ModelInterface::INDEX_INDEX;
 
         if (empty($fields)) {
             throw new DefinitionException(sprintf('No fields in index "%s" definition', $this->name));
@@ -30,11 +26,10 @@ class Index implements IndexInterface
 
     /**
      * Returns name of table
-
      *
-*@param string $table
+     * @param string $table
      *
-*@return string
+     * @return string
      */
     public function table($table = null)
     {
@@ -95,7 +90,7 @@ class Index implements IndexInterface
      */
     public function isPrimary()
     {
-        return $this->type == 'primary';
+        return $this->type == ModelInterface::INDEX_PRIMARY;
     }
 
     /**
@@ -105,6 +100,6 @@ class Index implements IndexInterface
      */
     public function isUnique()
     {
-        return $this->type == 'unique' || $this->type == 'primary';
+        return $this->type == ModelInterface::INDEX_UNIQUE || $this->type == ModelInterface::INDEX_PRIMARY;
     }
 }
