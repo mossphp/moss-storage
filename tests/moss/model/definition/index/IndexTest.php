@@ -13,29 +13,10 @@ class IndexTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $index->name());
     }
 
-    /**
-     * @dataProvider typeProvider
-     */
-    public function testType($type)
+    public function testType()
     {
-        $index = new Index('foo', array('foo', 'bar'), $type);
-        $this->assertEquals($type, $index->type());
-    }
-
-    public function typeProvider() {
-        return array(
-            array(ModelInterface::INDEX_INDEX),
-            array(ModelInterface::INDEX_UNIQUE)
-        );
-    }
-
-    /**
-     * @expectedException \moss\storage\model\definition\DefinitionException
-     * @expectedExceptionMessage Invalid type
-     */
-    public function testInvalidType()
-    {
-        new Index('foo', array('foo', 'bar'), 'yadayada');
+        $index = new Index('foo', array('foo', 'bar'));
+        $this->assertEquals(ModelInterface::INDEX_INDEX, $index->type());
     }
 
     /**
@@ -79,19 +60,13 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
     public function testIsPrimary()
     {
-        $index = new Index('foo', array('foo', 'bar'), 'index');
+        $index = new Index('foo', array('foo', 'bar'));
         $this->assertFalse($index->isPrimary());
-    }
-
-    public function testIsNotUnique()
-    {
-        $index = new Index('foo', array('foo', 'bar'), 'index');
-        $this->assertFalse($index->isUnique());
     }
 
     public function testIsUnique()
     {
-        $index = new Index('foo', array('foo', 'bar'), 'unique');
-        $this->assertTrue($index->isUnique());
+        $index = new Index('foo', array('foo', 'bar'));
+        $this->assertFalse($index->isUnique());
     }
 }

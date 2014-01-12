@@ -64,7 +64,7 @@ class PrimaryTest extends \PHPUnit_Framework_TestCase
 
     public function testIsUnique()
     {
-        $index = new Index('foo', array('foo', 'bar'), 'unique');
+        $index = new Primary(array('foo', 'bar'));
         $this->assertTrue($index->isUnique());
     }
 }

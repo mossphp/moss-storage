@@ -297,4 +297,53 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
         );
     }
+
+    /**
+     * @dataProvider parseProvider
+     */
+    public function testParse($stmt, $expected)
+    {
+        $schema = new Schema();
+        $result = $schema->parse($stmt);
+        $this->assertEquals($expected, $result);
+    }
+
+    public function parseProvider()
+    {
+        return array(
+            array(
+                'CREATE TABLE `rm_entity` (
+`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+`int` int(10) NOT NULL,
+`string` char(10) NOT NULL,
+`decimal` decimal(10,2) unsigned NOT NULL,
+`boolean` tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\',
+`datetime` datetime NOT NULL,
+`serial` text COMMENT \'serial\',
+PRIMARY KEY (`id`),
+UNIQUE KEY `int` (`int`),
+KEY `string` (`string`),
+CONSTRAINT `fk` FOREIGN KEY (`id`) REFERENCES `rm_rel` (`src_id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
+                array(
+                    'table' => 'rm_entity',
+                    'fields' => array(
+                        array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
+                        array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
+                        array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
+                        array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
+                        array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
+                        array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
+                        array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    ),
+                    'indexes' => array(
+                        array('name' => 'primary', 'type' => 'primary', 'fields' => array('id'),),
+                        array('name' => 'int', 'type' => 'unique', 'fields' => array('int'),),
+                        array('name' => 'string', 'type' => 'index', 'fields' => array('string'),),
+                        array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
+                    )
+                )
+            )
+        );
+    }
 }
