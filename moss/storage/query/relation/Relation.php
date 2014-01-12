@@ -3,7 +3,6 @@ namespace moss\storage\query\relation;
 
 use moss\storage\model\ModelBag;
 use moss\storage\query\QueryInterface;
-use moss\storage\model\ModelInterface;
 use moss\storage\model\definition\RelationInterface as RelationDefinitionInterface;
 
 /**

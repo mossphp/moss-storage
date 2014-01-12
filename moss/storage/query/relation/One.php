@@ -21,7 +21,7 @@ class One extends Relation
      */
     public function read(&$result)
     {
-        $foreigns = array();
+        $foreign = array();
 
         $conditions = array();
         foreach ($this->relation->foreignValues() as $refer => $value) {
@@ -37,7 +37,7 @@ class One extends Relation
                 $conditions[$refer][] = $this->accessProperty($entity, $local);
             }
 
-            $foreigns[$this->buildLocalKey($entity)][] = & $result[$i];
+            $foreign[$this->buildLocalKey($entity)][] = & $result[$i];
         }
 
         $this->query->reset()
@@ -52,11 +52,11 @@ class One extends Relation
         foreach ($collection as $relEntity) {
             $key = $this->buildForeignKey($relEntity);
 
-            if (!isset($foreigns[$key])) {
+            if (!isset($foreign[$key])) {
                 continue;
             }
 
-            foreach ($foreigns[$key] as &$entity) {
+            foreach ($foreign[$key] as &$entity) {
                 $this->accessProperty($entity, $this->relation->table(), $relEntity);
                 unset($entity);
             }
