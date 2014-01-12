@@ -42,9 +42,8 @@ class Schema implements SchemaInterface
 
     /**
      * Constructor
-
      *
-*@param string $table
+     * @param string $table
      * @param string $operation
      * @param string $engine
      * @param string $charset
@@ -67,11 +66,10 @@ class Schema implements SchemaInterface
 
     /**
      * Sets table name
-
      *
-*@param string $table
+     * @param string $table
      *
-*@return $this
+     * @return $this
      * @throws BuilderException
      */
     public function table($table)
@@ -132,7 +130,7 @@ class Schema implements SchemaInterface
             $name,
             $type,
             $this->prepareAttributes($attributes),
-            $after ? $after : $name
+            $after
         );
 
         return $this;
@@ -255,13 +253,12 @@ class Schema implements SchemaInterface
 
     /**
      * Sets key/index to table
-
      *
-*@param string $name
+     * @param string $name
      * @param array  $fields
      * @param string $table
      *
-*@return $this
+     * @return $this
      */
     public function foreign($name, array $fields, $table)
     {
@@ -301,14 +298,13 @@ class Schema implements SchemaInterface
 
     /**
      * Sets key/index to table
-
      *
-*@param string $name
+     * @param string $name
      * @param array  $fields
      * @param string $type
-     * @param null $table
+     * @param null   $table
      *
-*@return $this
+     * @return $this
      */
     public function index($name, array $fields, $type = self::INDEX_INDEX, $table = null)
     {
@@ -433,7 +429,7 @@ class Schema implements SchemaInterface
                 $stmt[] = $this->quote($this->table);
                 $nodes = array();
                 foreach ($this->columns as $node) {
-                    $str = 'CHANGE ' . $this->quote($node[3]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
+                    $str = 'CHANGE ' . $this->quote($node[3] ? $node[3] : $node[0]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
                     $nodes[] = $str;
                 }
                 $stmt[] = implode(', ', $nodes);
@@ -579,7 +575,11 @@ class Schema implements SchemaInterface
                     $node['type'] = self::INDEX_INDEX;
             }
 
-            if ($node['type'] != self::INDEX_FOREIGN) {
+            if($node['type'] === self::INDEX_FOREIGN) {
+                $node['fields'] = array_combine($node['fields'], $node['foreign']);
+                unset($node['foreign']);
+            }
+            else {
                 unset($node['table'], $node['foreign']);
             }
 
