@@ -501,7 +501,7 @@ class Schema implements SchemaInterface
                 'attributes' => array(
                     self::ATTRIBUTE_LENGTH => (int) $match['length'],
                     self::ATTRIBUTE_PRECISION => (int) $match['precision'],
-                    self::ATTRIBUTE_NULL => stripos($match['attributes'], 'not null') === false,
+                    self::ATTRIBUTE_NULL => stripos($match['attributes'], 'not null') === false || stripos($match['attributes'], 'default null') !== false,
                     self::ATTRIBUTE_UNSIGNED => stripos($match['attributes'], 'unsigned') !== false,
                     self::ATTRIBUTE_AUTO => stripos($match['attributes'], 'auto_increment') !== false,
                     self::ATTRIBUTE_DEFAULT => stripos($match['attributes'], 'default') !== false ? preg_replace('/.*DEFAULT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null,
