@@ -343,7 +343,7 @@ class Schema implements SchemaInterface
                         ->prepare($query)
                         ->execute();
 
-                    $result[$query] = true;
+                    $result[] = $query;
                 }
                 break;
             default:
