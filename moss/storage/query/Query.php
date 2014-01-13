@@ -172,7 +172,7 @@ class Query implements QueryInterface
         $key = ':' . implode('_', array($operation, count($this->binds), $field->name()));
         $type = $field->type();
 
-        $this->binds[$key] = $this->driver->cast($value, $type);
+        $this->binds[$key] = $this->driver->store($value, $type);
 
         return $key;
     }

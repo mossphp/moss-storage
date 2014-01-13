@@ -20,7 +20,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $driver = $this->getMock('\moss\storage\driver\DriverInterface');
         $driver->expects($this->any())
-               ->method('cast')
+               ->method('store')
                ->will($this->returnArgument(0));
 
         $builder = new Builder();
