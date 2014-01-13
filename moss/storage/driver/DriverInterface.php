@@ -29,24 +29,24 @@ interface DriverInterface
     public function prepare($queryString, $comment = null);
 
     /**
-     * Binds value, casts to internal type
+     * Converts set type to storable value
      *
      * @param mixed  $value
      * @param string $type
      *
      * @return null|string
      */
-    public function cast($value, $type);
+    public function store($value, $type);
 
     /**
-     * Unbinds value, casts from internal type
+     * Converts from storable to set type
      *
      * @param mixed  $value
      * @param string $type
      *
      * @return mixed
      */
-    public function reCast($value, $type);
+    public function restore($value, $type);
 
     /**
      * Executes prepared query with set parameters

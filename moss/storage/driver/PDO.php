@@ -96,16 +96,16 @@ class PDO implements DriverInterface
     }
 
     /**
-     * Binds value, casts to internal type
+     * Converts set type to storable value
      *
      * @param mixed  $value
      * @param string $type
      *
      * @return null|string
      */
-    public function cast($value, $type)
+    public function store($value, $type)
     {
-        if (is_scalar($value) && $value !== false && !strlen($value)) {
+        if (is_scalar($value) && $value !== false && strlen($value) === 0) {
             return null;
         }
 
@@ -132,14 +132,14 @@ class PDO implements DriverInterface
     }
 
     /**
-     * Unbinds value, casts from internal type
+     * Converts from storable to set type
      *
      * @param mixed  $value
      * @param string $type
      *
      * @return mixed
      */
-    public function reCast($value, $type)
+    public function restore($value, $type)
     {
         if (is_scalar($value) && $value !== false && !strlen($value)) {
             return null;
@@ -252,7 +252,7 @@ class PDO implements DriverInterface
             $prop->setAccessible(true);
 
             $value = $prop->getValue($row);
-            $value = $this->reCast($value, $type);
+            $value = $this->restore($value, $type);
             $prop->setValue($row, $value);
         }
 
@@ -282,7 +282,7 @@ class PDO implements DriverInterface
         }
 
         foreach ($reCast as $field => $type) {
-            $row[$field] = $this->reCast($row[$field], $type);
+            $row[$field] = $this->restore($row[$field], $type);
         }
 
         return $row;
@@ -312,7 +312,7 @@ class PDO implements DriverInterface
         }
 
         if ($reCast) {
-            $value = $this->reCast($value, $reCast);
+            $value = $this->restore($value, $reCast);
         }
 
         return $value;
@@ -354,7 +354,7 @@ class PDO implements DriverInterface
         while ($row = $this->fetchObject($className)) {
             foreach ($unbind as $field => $type) {
                 if (!$ref->hasProperty($field)) {
-                    $row->$field = $this->reCast($row->$field, $type);
+                    $row->$field = $this->restore($row->$field, $type);
                     continue;
                 }
 
@@ -362,7 +362,7 @@ class PDO implements DriverInterface
                 $prop->setAccessible(true);
 
                 $value = $prop->getValue($row);
-                $value = $this->reCast($value, $type);
+                $value = $this->restore($value, $type);
                 $prop->setValue($row, $value);
             }
 
