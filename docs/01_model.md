@@ -12,21 +12,25 @@ Each `Model` consists of:
 
 To create model type:
 
-	$fields = array(...); // array containing field definitions
-	$indexes = array(...); // array containing index definitions
-	$relations = array(...); // another array with relation definitions
-	$SomeModel = new \moss\storage\model\Model(
-		'someTable',
-		'\some\Entity',
-		$fields,
-		$indexes,
-		$relations
-	)
+```php
+$fields = array(...); // array containing field definitions
+$indexes = array(...); // array containing index definitions
+$relations = array(...); // another array with relation definitions
+$SomeModel = new \moss\storage\model\Model(
+	'someTable',
+	'\some\Entity',
+	$fields,
+	$indexes,
+	$relations
+)
+```
 
 Each entity class must have separate model which must be registered in `Storage` under some alias:
 
-	$storage = new Storage($Adapter);
-	$storage->register('alias', $SomeModel);
+```php
+$storage = new Storage($Adapter);
+$storage->register('alias', $SomeModel);
+```
 
 When creating query you can call entity by namespaced class name or its alias.
 
@@ -35,7 +39,9 @@ When creating query you can call entity by namespaced class name or its alias.
 Object mapping means that entity properties are represented as table fields.
 Therefore `Model` must contain field definitions:
 
-	$field = new Field($field, $type, $attributes, $mapping);
+```php
+$field = new Field($field, $type, $attributes, $mapping);
+```
 
 Where `$field` is property name, `$type` parameter defines the type of field, it can be:
 
@@ -61,7 +67,9 @@ For instance property `companyAddress` can be represented as `company_address` f
 
 For example - define decimal field, with 4 digits, two of which on the fractional, in result represented as `fooBar` in table `foo_bar`:
 
-	$field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
+```php
+$field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
+```
 
 ## Indexes & Keys
 
@@ -71,13 +79,17 @@ Model may contain index or key definitions
 
 As primary keys name is often reserved, there is no need to type its name, just define columns used in key
 
-	$primary = new Primary(array('id'));
+```php
+$primary = new Primary(array('id'));
+```
 
 ### Foreign key
 
 Foreign key definition must include ist name - unique within entire database, array containing fields from local and foreign table - as key-value pairs and foreign table name.
 
-	$foreign = new Foreign('fk_other_id', array('other_id' => 'id'), 'other');
+```php
+$foreign = new Foreign('fk_other_id', array('other_id' => 'id'), 'other');
+```
 
 Above definition says that foreign key `fk_other_id` will constrain field `other_id` to values from `other.id`.
 
@@ -85,13 +97,17 @@ Above definition says that foreign key `fk_other_id` will constrain field `other
 
 To define unique index just type its name and array with columns
 
-	$unique = new Unique('uk_id', array('id'));
+```php
+$unique = new Unique('uk_id', array('id'));
+```
 
 ### Index
 
 Index definition consists from its name and column names
 
-	$index = new Index('i_id', array('id'));
+```php
+$index = new Index('i_id', array('id'));
+```
 
 ## Relations
 
@@ -103,23 +119,33 @@ Relations describe what other entities can be contained inside entity.
 
 Both relations are defined in same way:
 
-	$relation = new Relation($entity, $type, $keys, $localValue, $referencedValue, $table);
+```php
+$relation = new Relation($entity, $type, $keys, $table);
+```
 
  * `$entity` - namespaced entity class pointed by relation its alias
  * `$type` - relation type, `one` or `many`
  * `$keys` - array containing local fields as keys and referenced fields as corresponding values
- * `$localValue` - array with field value pairs
- * `$referencedValue` - same as above, but for referenced table
  * `$table` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
 
 For example, one `BlogEntry` can contain `Author` entity and many `Comment` entities.
 To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`:
 
-	$authorRelation = new Relation('\Author', 'one', array('author_id' => 'id'));
-	$commentRelation = new Relation('\Comment', 'many', array('id' => 'entry_id'), array(), array('visible' => 1), 'Comments');
+```php
+$authorRelation = new Relation('\Author', 'one', array('author_id' => 'id'));
+```
 
 `Author` will be available in `Author` property.
-All `Comment` entities with `visibility` property equal to `1` will be placed in `Comments` property.
+
+```php
+$commentRelation = new Relation('\Comment', 'many', array('id' => 'entry_id'), 'Comments');
+$commentRelation->localValues(array('commentable' => 1));
+$commentRelation->foreignValues(array('visibility' => 1));
+```
+
+Comment relation uses `::localValues()` and `::foreignValues()` methods to limit read `Comments`.
+Method `::localValues` limits that only _commentable_ `Articles` will have comments.
+The `::foreignValues()` adds additional limitation, only _visible_ comments will be read.
 
 **Important**
 Relations are unidirectional, therefore if `Author` should point to `BlogEntry`, new relation in `Author` model must be defined.

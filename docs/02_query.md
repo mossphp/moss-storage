@@ -5,72 +5,106 @@ If something more sophisticated is needed, you can access driver directly and wr
 
 Operations described below assume that entity classes, models and tables exist.
 
-### Count
+## Execute and queryString
+
+When `::execute()` method is called, build query is sent to database and executed.
+But in any moment you can call `::queryString()` method to retrieve array with build query string and all bind values.
+
+## Count
 
 Returns number of entities that will be read by query (reads only primary keys).
 
-	/* SELECT ... FROM ... */
-	$count = $storage->count('entity')
-		->execute();
+```sql
+SELECT ... FROM ...
+```
+```php
+$count = $storage->count('entity')
+	->execute();
+```
 
-### Read & read one
+## Read & read one
 
 Reads entities matching conditions, returns array of read entities
 
-	/* SELECT ... FROM ... */
-	$result = $storage->read('entity')
-		->execute();
+```sql
+SELECT ... FROM ...
+```
+```php
+$result = $storage->read('entity')
+	->execute();
+```
 
 Reads only first matching entity, will throw exception if none found.
 
-	/* SELECT ... FROM ... LIMIT 1 */
-	$entity = $storage->readOne('entity')
-		->execute();
+```sql
+SELECT ... FROM ... LIMIT 1
+```
+```php
+$entity = $storage->readOne('entity')
+	->execute();
+```
 
-### Insert
+## Insert
 
 Inserts entity into storage, will update passed entity primary keys
 
-	/* INSERT INTO ... VALUES ... */
-	$entity = new entity();
-	$bool = $storage->insert($entity)
-		->execute();
+```sql
+INSERT INTO ... VALUES ...
+```
+```php
+$entity = new Entity();
+$bool = $storage->insert($entity)
+	->execute();
+```
 
-### Update
+## Update
 
 Updates existing entity
 
-	/* UPDATE ... SET ... */
-	$entity = new entity();
-	$entity = $storage->update($entity)
-		->execute();
+```sql
+UPDATE ... SET ...
+```
+```php
+$entity = new Entity();
+$entity = $storage->update($entity)
+	->execute();
+```
 
-### Write
+## Write
 
 Writes entity, if entity with same primary keys exists will be updated, otherwise inserts new.
 Returns entity with updated primary fields
 
-	$entity = new entity();
-	$entity = $storage->write($entity)
-		->execute();
+```php
+$entity = new Entity();
+$entity = $storage->write($entity)
+	->execute();
+```
 
-### Delete
+## Delete
 
 Removes entity from storage, also removes values from entity primary fields
 
-	/* DELETE FROM ... WHERE */
-	$entity = new entity();
+```sql
+DELETE FROM ... WHERE
+```
+```php
+	$entity = new Entity();
 	$entity = $storage->delete($entity)
 		->execute();
 
-### Clear
+## Clear
 
 Removes all entities from storage (just like truncate table)
 
-	/* TRUNCATE TABLE ... */
-	$entity = new entity();
-	$bool = $storage->clear('entity)
-		->execute();
+```sql
+TRUNCATE TABLE ...
+```
+```php
+$entity = new Entity();
+$bool = $storage->clear('entity)
+	->execute();
+```
 
 ## Operation modifiers
 
@@ -81,15 +115,23 @@ Storage provides modifiers for operations, such as `where`, `having`, `limit`, `
 The `where` and `having` clauses allow to add as many conditions as needed to count/read operations.
 Both work in same way, accept same kind of attributes.
 
-	/* SELECT ... FROM ... WHERE [condition] */
-	$result = $storage->read('entity')
-		->where($field, $value, $comparison, $logical)
-		->execute();
+```sql
+SELECT ... FROM ... WHERE [condition]
+```
+```php
+$result = $storage->read('entity')
+	->where($field, $value, $comparison, $logical)
+	->execute();
+```
 
-	/* SELECT ... FROM ... HAVING [condition] */
-	$result = $storage->read('entity')
-		->having($field, $value, $comparison, $logical)
-		->execute();
+```sql
+SELECT ... FROM ... HAVING [condition]
+```
+```php
+$result = $storage->read('entity')
+	->having($field, $value, $comparison, $logical)
+	->execute();
+```
 
 Where
 
@@ -110,80 +152,122 @@ Where
 
 Examples:
 
-	/* ... WHERE (`foo` = 'bar') */
-    $result = $storage->read('entity')
-        ->where('foo', 'bar')
-        ->execute();
+```sql
+... WHERE (`foo` = 'bar')
+```
+```php
+$result = $storage->read('entity')
+    ->where('foo', 'bar')
+    ->execute();
+```
 
-    /* ... WHERE (`foo` = 'bar' OR `foo` = 'yada') */
-    $result = $storage->read('entity')
-	    ->where('foo', array('bar', 'yada'))
-	    ->execute();
+```sql
+... WHERE (`foo` = 'bar' OR `foo` = 'yada')
+```
+```php
+$result = $storage->read('entity')
+    ->where('foo', array('bar', 'yada'))
+    ->execute();
+```
 
-    /* ... WHERE (`foo` = 'bar') OR (`foo` = 'yada') */
-    $result = $storage->read('entity')
-	    ->where('foo', 'bar', '=', 'or')
-	    ->where('bar', 'yada')
-	    ->execute();
+```sql
+... WHERE (`foo` = 'bar') OR (`foo` = 'yada')
+```
+```php
+$result = $storage->read('entity')
+    ->where('foo', 'bar', '=', 'or')
+    ->where('bar', 'yada')
+    ->execute();
+```
 
-    /* ... WHERE (`foo` = 'bar' OR `bar` = 'yada') */
-    $result = $storage->read('entity')
-	    ->where(array('foo', 'bar'), 'yada')
-	    ->execute();
+```sql
+... WHERE (`foo` = 'bar' OR `bar` = 'yada')
+```
+```php
+$result = $storage->read('entity')
+    ->where(array('foo', 'bar'), 'yada')
+    ->execute();
+```
 
-    /* ... WHERE (`foo` = 'bar') OR (`bar` = 'yada') */
-    $result = $storage->read('entity')
-	    ->where('foo', 'yada', '=', 'or')
-	    ->where('bar', 'yada')
-	    ->execute();
+```sql
+... WHERE (`foo` = 'bar') OR (`bar` = 'yada')
+```
+```php
+$result = $storage->read('entity')
+    ->where('foo', 'yada', '=', 'or')
+    ->where('bar', 'yada')
+    ->execute();
+```
 
-    /* ... WHERE (`foo` = 'foofoo' OR `bar` = 'barbar') */
-    $result = $storage->read('entity')
-	    ->where(array('foo', 'bar'), array('foofoo', 'barbar'))
-	    ->execute();
+```sql
+... WHERE (`foo` = 'foofoo' OR `bar` = 'barbar')
+```
+```php
+$result = $storage->read('entity')
+    ->where(array('foo', 'bar'), array('foofoo', 'barbar'))
+    ->execute();
+```
 
-    /* ... WHERE (`foo` = 'foofoo') OR (`bar` = 'barbar') */
-    $result = $storage->read('entity')
-        ->where('foo', 'foofoo', '=', 'or')
-	    ->where('bar', 'barbar')
-	    ->execute();
+```sql
+... WHERE (`foo` = 'foofoo') OR (`bar` = 'barbar')
+```
+```php
+$result = $storage->read('entity')
+    ->where('foo', 'foofoo', '=', 'or')
+    ->where('bar', 'barbar')
+    ->execute();
+```
 
 ### Order
 
 To set order for operation type:
 
-	/* ... ORDER BY field ASC, otherfield DESC */
-	$result = $storage->read('entity')
-		->order('field', 'asc')
-		->order('otherfield', 'desc')
-		->execute();
+```sql
+... ORDER BY field ASC, otherfield DESC
+```
+```php
+$result = $storage->read('entity')
+	->order('field', 'asc')
+	->order('otherfield', 'desc')
+	->execute();
+```
 
 ### Limit
 
 Limiting operation result
 
-	/* ... LIMIT 30,60 */
-    $result = $storage->read('entity')
-        ->limit(30,60)
-        ->execute();
+```sql
+... LIMIT 30,60
+```
+```php
+$result = $storage->read('entity')
+    ->limit(30,60)
+    ->execute();
+```
 
 ### Fields
 
 Allows to restrain read fields.
 
-	/* SELECT `id`, `title`, `slug` FROM ... */
-	$result = $storage->read('entity')
-		->fields(array('id', 'title', 'slug'))
-		->execute();
+```sql
+SELECT `id`, `title`, `slug` FROM ...
+```
+```php
+$result = $storage->read('entity')
+	->fields(array('id', 'title', 'slug'))
+	->execute();
+```
 
 ### Aggregate
 
 When needed, data can be aggregated and read with rest of entity.
 
-	$result = $storage->read('entity')
-		->aggregate($method, $field)
-		->group($field)
-		->execute();
+```php
+$result = $storage->read('entity')
+	->aggregate($method, $field)
+	->group($field)
+	->execute();
+```
 
 Where:
 
@@ -198,36 +282,12 @@ Where:
 
 Or use alias for above methods
 
-	$result = $storage->read('entity')
-		->count($field)
-		->group($field)
-		->execute();
-
-### Join
-
-It is possible to join data from other entities into one query.
-
-	$result = $storage->read('entity')
-		->count('other.id', `others`)
-		->join('left', 'other')
-		->group('id')
-		->execute();
-
-Or use alias:
-
-	$result = $storage->read('entity')
-		->count('other.id', `others`)
-		->leftJoin('other')
-		->group('id')
-		->execute();
-
-Above query will read from `entity`, each collection element will have a number of relating `other` elements.
-
-Currently supported are 3 join methods:
-
- * `inner` - inner join
- * `left` - left outer join
- * `right` - right outer join
+```php
+$result = $storage->read('entity')
+	->count($field)
+	->group($field)
+	->execute();
+```
 
 ## Relations
 
@@ -261,3 +321,39 @@ To set additional conditions, sorting order to relation, access its query:
 	$result = $query->execute();
 
 The above query will read all mentioned before, but without comments flagged as spam.
+
+### Join
+
+When relation definition exists, it is possible to join data from relating entity.
+
+```sql
+SELECT ... FROM ... LEFT OUTER JOIN ...
+```
+```php
+$result = $storage->read('entity')
+	->join('left', 'other')
+	->execute();
+```
+
+Available join methods
+
+ * `inner` (alias `innerJoin`) - inner join
+ * `left` (alias `leftJoin`) - left outer join
+ * `right` (alias `rightJoin`) - right outer join
+
+After joining other entity data into query, all its fields can be read and even aggregated:
+With `leftJoin` alis:
+
+```sql
+SELECT COUNT(`others`.`id`) AS `others`, ... FROM ... LEFT OUTER JOIN ... GROUP BY `entity`.`id`
+```
+```php
+$result = $storage->read('entity')
+	->count('other.id', `others`)
+	->leftJoin('other')
+	->group('id')
+	->execute();
+```
+
+Above query will read from `entity`, each collection element will have a number of relating `other` elements.
+Data from other entities will be available as public properties in read instances, unless such properties exist and are defined as private/public.
