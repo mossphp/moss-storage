@@ -12,9 +12,13 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 {
     /** @var Schema */
     protected $schema;
+    protected $queryString;
 
     public function setUp()
     {
+        $this->queryString = null;
+
+        $self = & $this;
         $driver = $this->getMock('\moss\storage\driver\DriverInterface');
         $driver->expects($this->any())
                ->method('prepare')
@@ -22,6 +26,12 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         $driver->expects($this->any())
                ->method('execute')
                ->will($this->returnValue($driver));
+        $driver->expects($this->any())
+               ->method('fetchField')
+               ->will($this->returnCallback(function () use ($self) { return $this->queryString; }));
+        $driver->expects($this->any())
+               ->method('affectedRows')
+               ->will($this->returnCallback(function () use ($self) { return empty($this->queryString) ? 0 : 1; }));
 
         $builder = new Builder();
 
@@ -106,9 +116,39 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testAlter()
+    /**
+     * @dataProvider alterProvider
+     */
+    public function testAlter($current, $expected)
     {
-        $this->markTestIncomplete();
+        $this->queryString = $current;
+        $this->schema->reset()
+                     ->operation(Schema::OPERATION_ALTER);
+        $this->assertEquals($expected, $this->schema->queryString());
+    }
+
+    public function alterProvider()
+    {
+        return array(
+            array(
+                'CREATE TABLE `table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array()
+            ),
+            array(
+                'CREATE TABLE `table` ( `id` CHAR(10) NOT NULL, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array(
+                    'ALTER TABLE `table` DROP PRIMARY KEY',
+                    'ALTER TABLE `table` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL',
+                    'ALTER TABLE `table` ADD PRIMARY KEY (`id`)',
+                )
+            ),
+            array(
+                'CREATE TABLE `table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array(
+                    'ALTER TABLE `table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
+                )
+            ),
+        );
     }
 }
  
