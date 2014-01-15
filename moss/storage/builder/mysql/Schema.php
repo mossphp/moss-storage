@@ -59,9 +59,9 @@ class Schema implements SchemaInterface
         $this->charset = $charset; // todo assert charset
     }
 
-    protected function quote(&$string)
+    protected function quote($string)
     {
-        return $string = self::QUOTE . $string . self::QUOTE;
+        return self::QUOTE . $string . self::QUOTE;
     }
 
     /**
@@ -358,7 +358,13 @@ class Schema implements SchemaInterface
 
     protected function buildIndexFields(array $fields)
     {
-        array_walk($fields, array($this, 'quote'));
+        $self = & $this;
+
+        array_walk(
+            $fields, function (&$field) use ($self) {
+                $field = $this->quote($field);
+            }
+        );
 
         return implode(', ', $fields);
     }
@@ -575,11 +581,10 @@ class Schema implements SchemaInterface
                     $node['type'] = self::INDEX_INDEX;
             }
 
-            if($node['type'] === self::INDEX_FOREIGN) {
+            if ($node['type'] === self::INDEX_FOREIGN) {
                 $node['fields'] = array_combine($node['fields'], $node['foreign']);
                 unset($node['foreign']);
-            }
-            else {
+            } else {
                 unset($node['table'], $node['foreign']);
             }
 
