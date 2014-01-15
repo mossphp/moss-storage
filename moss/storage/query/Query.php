@@ -801,7 +801,9 @@ class Query implements QueryInterface
         list($relation, $furtherRelations) = $this->splitRelationName($relation);
 
         $definition = $this->model->relation($relation);
+
         $query = new self($this->driver, $this->builder, $this->models);
+        $query->operation(self::OPERATION_READ, $this->model->entity());
 
         switch ($definition->type()) {
             case RelationInterface::RELATION_ONE:
