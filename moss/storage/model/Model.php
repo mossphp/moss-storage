@@ -245,6 +245,30 @@ class Model implements ModelInterface
     }
 
     /**
+     * Returns array containing all indexes in which field appears
+     *
+     * @param string $field
+     *
+     * @return bool
+     * @throws ModelException
+     */
+    public function inIndex($field)
+    {
+        if (!$this->hasField($field)) {
+            throw new ModelException(sprintf('Unknown field "%s" in model "%s"', $field, $this->entity));
+        }
+
+        $result = array();
+        foreach ($this->indexes as $index) {
+            if ($index->hasField($field)) {
+                $result[] = $index;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns array containing names of indexes
      *
      * @return array|FieldInterface[]

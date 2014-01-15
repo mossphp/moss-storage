@@ -101,6 +101,16 @@ interface ModelInterface
     public function isIndex($field);
 
     /**
+     * Returns array containing all indexes in which field appears
+     *
+     * @param string $field
+     *
+     * @return bool
+     * @throws ModelException
+     */
+    public function inIndex($field);
+
+    /**
      * Returns array containing names of indexes
      *
      * @return array|FieldInterface[]
