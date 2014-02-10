@@ -36,7 +36,7 @@ interface RelationInterface
      *
      * @return string
      */
-    public function table();
+    public function container();
 
     /**
      * Returns associative array containing local key - foreign key pairs

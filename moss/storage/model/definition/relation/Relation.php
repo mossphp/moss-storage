@@ -9,7 +9,7 @@ class Relation implements RelationInterface
 {
     private $entity;
     private $type;
-    private $table;
+    private $container;
     private $keys = array();
     private $local = array();
     private $foreign = array();
@@ -22,7 +22,7 @@ class Relation implements RelationInterface
 
         $this->entity = '\\'.ltrim($entity, '\\');
         $this->type = $type;
-        $this->table = $table ? $table : substr($this->entity, strrpos($this->entity, '\\') + 1);
+        $this->container = $table ? $table : substr($this->entity, strrpos($this->entity, '\\') + 1);
 
         if (empty($keys)) {
             throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
@@ -49,7 +49,7 @@ class Relation implements RelationInterface
      */
     public function name()
     {
-        return $this->table();
+        return $this->container();
     }
 
     /**
@@ -77,9 +77,9 @@ class Relation implements RelationInterface
      *
      * @return string
      */
-    public function table()
+    public function container()
     {
-        return $this->table;
+        return $this->container;
     }
 
     /**
