@@ -342,7 +342,7 @@ class Schema implements SchemaInterface
                 return 'PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
                 break;
             case self::INDEX_FOREIGN:
-                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $table . '(' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
+                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
             case self::INDEX_UNIQUE:
                 return 'UNIQUE KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
@@ -482,12 +482,14 @@ class Schema implements SchemaInterface
      */
     public function parse($statement)
     {
-        $statement = str_replace(array("\n", "\r", "\t", '  '), array(null, null, ' ', '  '), $statement);
+        $statement = str_replace(array("\n", "\r", "\t", '  '), ' ', $statement);
+
+        $content = preg_replace('/CREATE TABLE `?[^` (]+`? +\((.+)\).*/i', '$1', $statement);
 
         $result = array(
-            'table' => preg_replace('/CREATE TABLE `([^`]+)`.*/i', '$1', $statement),
-            'fields' => $this->parseColumns($statement),
-            'indexes' => $this->parseIndexes($statement)
+            'table' => preg_replace('/CREATE TABLE `?([^` (]+)`? +\(.*/i', '$1', $statement),
+            'fields' => $this->parseColumns($content),
+            'indexes' => $this->parseIndexes($content)
         );
 
         return $result;
@@ -495,7 +497,7 @@ class Schema implements SchemaInterface
 
     protected function parseColumns($statement)
     {
-        preg_match_all('/`(?P<name>[^`]+)` (?P<type>((tiny|small|medium|big)?int|integer|decimal|(var)?char|(tiny|medium|long)?text|(date)?time(stamp)?|year))(\((?P<length>[\d]+)(\,(?P<precision>[\d]+))?\))?(?P<attributes>[^,)]+)?,?/i', $statement, $matches, \PREG_SET_ORDER);
+        preg_match_all('/`?(?P<name>[^` ]+)`? (?P<type>((tiny|small|medium|big)?int|integer|decimal|(var)?char|(tiny|medium|long)?text|(date)?time(stamp)?|year))(\((?P<length>[\d]+)(\,(?P<precision>[\d]+))?\))?(?P<attributes>[^,)]+)?,?/i', $statement, $matches, \PREG_SET_ORDER);
 
         $columns = array();
         foreach ($matches as $match) {
@@ -554,7 +556,7 @@ class Schema implements SchemaInterface
 
     protected function parseIndexes($statement)
     {
-        preg_match_all('/(?P<fname>`[^`]+`)? ?(?P<type>PRIMARY KEY|FOREIGN KEY|UNIQUE KEY|KEY) (?P<name>`[^`]+`)? ?\((?P<fields>[^)]+)\)( REFERENCES `(?P<table>[^`]+)` ?\((?P<foreign>[^)]+)\))?/i', $statement, $matches, \PREG_SET_ORDER);
+        preg_match_all('/(?P<fname>`?[^` ,]+`?)? ?(?P<type>PRIMARY KEY|FOREIGN KEY|UNIQUE KEY|KEY) (?P<name>`?[^` (,]+`?)? ?\((?P<fields>[^)]+)\)( REFERENCES `?(?P<table>[^` (]+)`? ?\((?P<foreign>[^)]+)\))?/i', $statement, $matches, \PREG_SET_ORDER);
 
         $indexes = array();
         foreach ($matches as $match) {
@@ -623,4 +625,4 @@ class Schema implements SchemaInterface
             return get_class($e) . ' - ' . $e->getMessage();
         }
     }
-} 
+}
