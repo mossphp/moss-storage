@@ -113,7 +113,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $sub->fields(array('bar'));
 
         $query = new Query('foo', 'f', Query::OPERATION_SELECT);
-        $query->fields(array('foo'))->sub($sub, 'b');
+        $query->fields(array('foo'))
+              ->sub($sub, 'b');
 
         $this->assertEquals('SELECT `f`.`foo`, ( SELECT `b`.`bar` FROM `bar` AS `b` ) AS `b` FROM `foo` AS `f`', $query->build());
     }
@@ -278,7 +279,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testSelectWithGroup() {
+    public function testSelectWithGroup()
+    {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
               ->group('bar');
@@ -432,6 +434,18 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->value('foo', ':bind1');
         $query->value('bar', ':bind2');
+        $this->assertEquals('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', $query->build());
+    }
+
+    public function testInsertValuesArray()
+    {
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
+        $query->values(
+              array(
+                  'foo' => ':bind1',
+                  'bar' => ':bind2'
+              )
+        );
         $this->assertEquals('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', $query->build());
     }
 
