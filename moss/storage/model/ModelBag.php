@@ -9,11 +9,14 @@ namespace moss\storage\model;
  */
 class ModelBag
 {
-    /** @var array|ModelInterface[] */
-    protected $alias = array();
-
-    /** @var array|ModelInterface[] */
+    /** @var array|ModelInterface */
     protected $collection = array();
+
+    /** @var array|ModelInterface */
+    protected $byAlias = array();
+
+    /** @var array|ModelInterface */
+    protected $byEntity = array();
 
     /**
      * Construct
@@ -53,12 +56,12 @@ class ModelBag
     {
         $alias = $this->getEntityClass($alias);
 
-        if (isset($this->alias[$alias])) {
-            return $this->alias[$alias];
+        if (isset($this->byAlias[$alias])) {
+            return $this->byAlias[$alias];
         }
 
-        if (isset($this->collection[$alias])) {
-            return $this->collection[$alias];
+        if (isset($this->byEntity[$alias])) {
+            return $this->byEntity[$alias];
         }
 
         throw new ModelException(sprintf('Model for entity "%s" does not exists', $alias));
@@ -74,12 +77,15 @@ class ModelBag
      */
     public function set(ModelInterface $model, $alias = null)
     {
-        if ($alias === null) {
-            $alias = $model->entity();
-        }
+        $hash = spl_object_hash($model);
 
-        $this->collection[$model->entity()] = & $model;
-        $this->alias[$alias] = & $this->collection[$model->entity()];
+        $this->collection[$hash] = & $model;
+
+        $alias = $alias ? $alias : preg_replace('/_?[^\w\d]+/i', '_', $model->table());
+        $this->byAlias[$alias] = &$this->collection[$hash];
+
+        $entity = $model->entity() ? ltrim($model->entity(), '\\') : 'ClasslessEntity'.count($this->collection);
+        $this->byEntity[$entity] = & $this->collection[$hash];
 
         return $this;
     }
@@ -95,11 +101,7 @@ class ModelBag
     {
         $alias = $this->getEntityClass($alias);
 
-        if (isset($this->alias[$alias])) {
-            return true;
-        }
-
-        if (isset($this->collection[$alias])) {
+        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
             return true;
         }
 
@@ -122,7 +124,7 @@ class ModelBag
             }
         }
 
-        return $this->alias;
+        return $this->collection;
     }
 
     /**
