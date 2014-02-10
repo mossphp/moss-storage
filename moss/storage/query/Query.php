@@ -30,11 +30,25 @@ class Query implements QueryInterface
     /** @var ModelInterface */
     protected $model;
 
-    /** @var \ReflectionObject */
-    private $reflection;
     private $instance;
 
     private $operation;
+
+    private $joins = array();
+
+    private $fields = array();
+    private $aggregates = array();
+    private $group = array();
+
+    private $values = array();
+
+    private $where = array();
+    private $having = array();
+
+    private $order = array();
+
+    private $limit = null;
+    private $offset = null;
 
     private $binds = array();
     private $casts = array();
@@ -79,6 +93,11 @@ class Query implements QueryInterface
         return $this->model;
     }
 
+    private function getType($var)
+    {
+        return is_object($var) ? get_class($var) : gettype($var);
+    }
+
     /**
      * Sets query operation
      *
@@ -90,53 +109,66 @@ class Query implements QueryInterface
      */
     public function operation($operation, $entity)
     {
+        $this->reset();
         $this->operation = $operation;
         $this->model = $this->models->get($entity);
 
         if ($this->operation == self::OPERATION_WRITE) {
-            $query = new self($this->driver, $this->builder, $this->models);
-            $query->operation(self::OPERATION_COUNT, $entity);
-
-            $this->instance = & $entity;
-            $this->reflection = new \ReflectionObject($entity);
-
-            foreach ($this->model->primaryFields() as $field) {
-                $query->where($field->name(), $this->accessProperty($this->instance, $field->name()));
-            }
-
-            $this->operation = $query->execute() > 0 ? self::OPERATION_UPDATE : self::OPERATION_INSERT;
+            $this->operation = $this->checkIfEntityExists($entity) ? self::OPERATION_UPDATE : self::OPERATION_INSERT;
         }
 
         switch ($this->operation) {
             case self::OPERATION_COUNT:
-                $this->buildCount();
+                foreach ($this->model->primaryFields() as $field) {
+                    $this->assignField($field);
+                }
                 break;
             case self::OPERATION_READ:
-                $this->buildRead();
+                $this->fields();
                 break;
             case self::OPERATION_READ_ONE:
-                $this->buildRead(1);
+                $this->fields();
+                $this->limit(1);
                 break;
             case self::OPERATION_INSERT:
                 $this->assertEntity($entity);
                 $this->instance = & $entity;
-                $this->reflection = new \ReflectionObject($entity);
-                $this->buildInsert();
+                $this->values();
                 break;
             case self::OPERATION_UPDATE:
                 $this->assertEntity($entity);
                 $this->instance = & $entity;
-                $this->reflection = new \ReflectionObject($entity);
-                $this->buildUpdate();
+                $this->values();
+
+                foreach ($this->model->primaryFields() as $field) {
+                    $value = $this->accessProperty($this->instance, $field->name());
+                    $value = $this->bind('condition', $field, $value);
+
+                    $this->where[] = array(
+                        $field->mapping(),
+                        $value,
+                        BuilderInterface::COMPARISON_EQUAL,
+                        BuilderInterface::LOGICAL_AND
+                    );
+                }
                 break;
             case self::OPERATION_DELETE:
                 $this->assertEntity($entity);
                 $this->instance = & $entity;
-                $this->reflection = new \ReflectionObject($entity);
-                $this->buildDelete();
+
+                foreach ($this->model->primaryFields() as $field) {
+                    $value = $this->accessProperty($this->instance, $field->name());
+                    $value = $this->bind('condition', $field, $value);
+
+                    $this->where[] = array(
+                        $field->mapping(),
+                        $value,
+                        BuilderInterface::COMPARISON_EQUAL,
+                        BuilderInterface::LOGICAL_AND
+                    );
+                }
                 break;
             case self::OPERATION_CLEAR:
-                $this->buildClear();
                 break;
             default:
                 throw new QueryException(sprintf('Unknown operation "%s" in query "%s"', $this->operation, $this->model->entity()));
@@ -153,9 +185,27 @@ class Query implements QueryInterface
 
         $entityClass = $this->model->entity();
         if (!$entity instanceof $entityClass) {
-            $type = is_object($entity) ? get_class($entity) : gettype($entity);
-            throw new QueryException(sprintf('Invalid entity instance for operation "%s", expected "%s", got "%s" in query "%s"', $this->operation, $entityClass, $type, $this->model->entity()));
+            throw new QueryException(sprintf('Invalid entity instance for operation "%s", expected "%s", got "%s" in query "%s"', $this->operation, $entityClass, $this->getType($entity), $this->model->entity()));
         }
+    }
+
+    protected function checkIfEntityExists($entity)
+    {
+        $this->assertEntity($entity);
+
+        $query = new self($this->driver, $this->builder, $this->models);
+        $query->operation(self::OPERATION_COUNT, $entity);
+
+        foreach ($this->model->primaryFields() as $field) {
+            $value = $this->accessProperty($entity, $field->name());
+            if (empty($value)) {
+                return false;
+            }
+
+            $query->where($field->name(), $value);
+        }
+
+        return $query->execute() > 0;
     }
 
     /**
@@ -175,88 +225,6 @@ class Query implements QueryInterface
         $this->binds[$key] = $this->driver->store($value, $type);
 
         return $key;
-    }
-
-    protected function buildCount()
-    {
-        $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_SELECT)
-                      ->table($this->model->table());
-
-        foreach ($this->model->primaryFields() as $field) {
-            $this->assignField($field);
-        }
-    }
-
-    protected function buildRead($limit = 0)
-    {
-        $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_SELECT)
-                      ->table($this->model->table());
-
-        $this->fields();
-
-        if (!$limit) {
-            return;
-        }
-
-        $this->builder->limit($limit);
-    }
-
-    protected function buildInsert()
-    {
-        $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_INSERT)
-                      ->table($this->model->table());
-
-        $this->values();
-    }
-
-    protected function buildUpdate()
-    {
-        $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_UPDATE)
-                      ->table($this->model->table());
-
-        $this->values();
-
-        foreach ($this->model->primaryFields() as $field) {
-            $value = $this->accessProperty($this->instance, $field->name());
-            $value = $this->bind('condition', $field, $value);
-
-            $this->builder->where(
-                          $field->mapping(),
-                          $value,
-                          BuilderInterface::COMPARISON_EQUAL,
-                          BuilderInterface::LOGICAL_AND
-            );
-        }
-    }
-
-    protected function buildDelete()
-    {
-        $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_DELETE)
-                      ->table($this->model->table());
-
-        foreach ($this->model->primaryFields() as $field) {
-            $value = $this->accessProperty($this->instance, $field->name());
-            $value = $this->bind('condition', $field, $value);
-
-            $this->builder->where(
-                          $field->mapping(),
-                          $value,
-                          BuilderInterface::COMPARISON_EQUAL,
-                          BuilderInterface::LOGICAL_AND
-            );
-        }
-    }
-
-    protected function buildClear()
-    {
-        $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_CLEAR)
-                      ->table($this->model->table());
     }
 
     protected function resolveField($field)
@@ -293,7 +261,7 @@ class Query implements QueryInterface
      */
     public function fields($fields = array())
     {
-        $this->builder->fields(array());
+        $this->fields = array();
         $this->casts = array();
 
         if (empty($fields)) {
@@ -327,9 +295,9 @@ class Query implements QueryInterface
 
     protected function assignField(FieldInterface $field)
     {
-        $this->builder->field(
-                      $field->table() . BuilderInterface::SEPARATOR . $field->name(),
-                      $field->name() == $field->mapping() ? null : $field->mapping()
+        $this->fields[] = array(
+            $field->table() . BuilderInterface::SEPARATOR . $field->name(),
+            $field->name() == $field->mapping() ? null : $field->mapping()
         );
 
         $this->casts[$field->mapping()] = $field->type();
@@ -441,10 +409,10 @@ class Query implements QueryInterface
 
         $field = $this->resolveField($field);
 
-        $this->builder->aggregate(
-                      $method,
-                      $field->table() . BuilderInterface::SEPARATOR . $field->mapping(),
-                      $alias
+        $this->aggregates[] = array(
+            $method,
+            $field->table() . BuilderInterface::SEPARATOR . $field->mapping(),
+            $alias
         );
 
         return $this;
@@ -460,6 +428,7 @@ class Query implements QueryInterface
             BuilderInterface::AGGREGATE_MIN,
             BuilderInterface::AGGREGATE_SUM,
         );
+
         if (!in_array($method, $aggregateMethods)) {
             throw new QueryException(sprintf('Invalid aggregation method "%s" in query', $method, $this->model->entity()));
         }
@@ -476,7 +445,7 @@ class Query implements QueryInterface
     {
         $field = $this->resolveField($field);
 
-        $this->builder->group($field->table() . BuilderInterface::SEPARATOR . $field->mapping());
+        $this->group[] = $field->table() . BuilderInterface::SEPARATOR . $field->mapping();
 
         return $this;
     }
@@ -490,7 +459,7 @@ class Query implements QueryInterface
      */
     public function values($fields = array())
     {
-        $this->builder->values(array());
+        $this->values = array();
         $this->binds = array();
 
         if (empty($fields)) {
@@ -535,9 +504,9 @@ class Query implements QueryInterface
             return;
         }
 
-        $this->builder->value(
-                      $field->mapping(),
-                      $this->bind('value', $field, $value)
+        $this->values[] = array(
+            $field->mapping(),
+            $this->bind('value', $field, $value)
         );
     }
 
@@ -600,10 +569,10 @@ class Query implements QueryInterface
         }
 
         $relation = $this->model->relation($entity);
-        $this->builder->join(
-                      $type,
-                      $relation->table(),
-                      $relation->keys()
+        $this->joins[] = array(
+            $type,
+            $relation->container(),
+            $relation->keys()
         );
 
         foreach ($relation->localValues() as $field => $value) {
@@ -611,7 +580,7 @@ class Query implements QueryInterface
         }
 
         foreach ($relation->foreignValues() as $field => $value) {
-            $this->where($relation->table() . BuilderInterface::SEPARATOR . $field, $value);
+            $this->where($relation->container() . BuilderInterface::SEPARATOR . $field, $value);
         }
 
         return $this;
@@ -633,7 +602,7 @@ class Query implements QueryInterface
         $this->assertLogical($logical);
 
         list($field, $value) = $this->condition($field, $value);
-        $this->builder->where($field, $value, $comparison, $logical);
+        $this->where[] = array($field, $value, $comparison, $logical);
 
         return $this;
     }
@@ -654,7 +623,7 @@ class Query implements QueryInterface
         $this->assertLogical($logical);
 
         list($field, $value) = $this->condition($field, $value);
-        $this->builder->having($field, $value, $comparison, $logical);
+        $this->having[] = array($field, $value, $comparison, $logical);
 
         return $this;
     }
@@ -701,7 +670,7 @@ class Query implements QueryInterface
         } else {
             foreach ((array) $field as $i => $f) {
                 if (!is_scalar($f)) {
-                    throw new QueryException(sprintf('Expected field name, got "%s" in query "%s"', is_object($f) ? get_class($f) : gettype($f), $this->model->entity()));
+                    throw new QueryException(sprintf('Expected field name, got "%s" in query "%s"', $this->getType($f), $this->model->entity()));
                 }
 
                 $f = $this->resolveField($f);
@@ -745,7 +714,7 @@ class Query implements QueryInterface
         $field = $this->resolveField($field);
 
         if (!is_array($order) && !in_array($order, array(BuilderInterface::ORDER_ASC, BuilderInterface::ORDER_DESC))) {
-            throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
+            throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', $this->getType($order), $this->model->entity()));
         }
 
         if (is_array($order)) {
@@ -754,9 +723,9 @@ class Query implements QueryInterface
             }
         }
 
-        $this->builder->order(
-                      $field->mapping(),
-                      $order
+        $this->order[] = array(
+            $field->mapping(),
+            $order
         );
 
         return $this;
@@ -779,10 +748,8 @@ class Query implements QueryInterface
      */
     public function limit($limit, $offset = null)
     {
-        $this->builder->limit(
-                      (int) $limit,
-                      $offset ? (int) $offset : null
-        );
+        $this->limit = (int) $limit;
+        $this->offset = $offset ? (int) $offset : null;
 
         return $this;
     }
@@ -904,12 +871,23 @@ class Query implements QueryInterface
 
     protected function executeCount()
     {
-        $query = $this->builder->build();
-
         return $this->driver
-            ->prepare($query)
+            ->prepare($this->buildCount())
             ->execute($this->binds)
             ->affectedRows();
+    }
+
+    protected function buildCount()
+    {
+        $this->builder->reset()
+                      ->operation(BuilderInterface::OPERATION_SELECT)
+                      ->table($this->model->table());
+
+        foreach ($this->fields as $field) {
+            $this->builder->field($field[0], $field[1]);
+        }
+
+        return $this->builder->build();
     }
 
     protected function executeReadOne()
@@ -925,10 +903,8 @@ class Query implements QueryInterface
 
     protected function executeRead()
     {
-        $query = $this->builder->build();
-
         $this->driver
-            ->prepare($query)
+            ->prepare($this->buildRead())
             ->execute($this->binds);
 
         $result = $this->driver->fetchAll($this->model->entity(), $this->casts);
@@ -940,16 +916,55 @@ class Query implements QueryInterface
         return $result;
     }
 
+    protected function buildRead()
+    {
+        $this->builder->reset()
+                      ->operation(BuilderInterface::OPERATION_SELECT)
+                      ->table($this->model->table());
+
+        foreach ($this->joins as $node) {
+            $this->builder->join($node[0], $node[1], $node[2]);
+        }
+
+        foreach ($this->fields as $node) {
+            $this->builder->field($node[0], $node[1]);
+        }
+
+        foreach ($this->aggregates as $node) {
+            $this->builder->aggregate($node[0], $node[1], $node[2]);
+        }
+
+        foreach ($this->group as $node) {
+            $this->builder->group($node);
+        }
+
+        foreach ($this->where as $node) {
+            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
+        }
+
+        foreach ($this->having as $node) {
+            $this->builder->having($node[0], $node[1], $node[2], $node[3]);
+        }
+
+        foreach ($this->order as $node) {
+            $this->builder->order($node[0], $node[1]);
+        }
+
+        if ($this->limit) {
+            $this->builder->limit($this->limit, $this->offset);
+        }
+
+        return $this->builder->build();
+    }
+
     protected function executeInsert()
     {
-        $query = $this->builder->build();
-
         $result = $this->driver
-            ->prepare($query)
+            ->prepare($this->buildInsert())
             ->execute($this->binds)
             ->lastInsertId();
 
-        $this->identifyEntity($result);
+        $this->identifyEntity($this->instance, $result);
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);
@@ -958,12 +973,23 @@ class Query implements QueryInterface
         return $this->instance;
     }
 
+    protected function buildInsert()
+    {
+        $this->builder->reset()
+                      ->operation(BuilderInterface::OPERATION_INSERT)
+                      ->table($this->model->table());
+
+        foreach ($this->values as $node) {
+            $this->builder->value($node[0], $node[1]);
+        }
+
+        return $this->builder->build();
+    }
+
     protected function executeUpdate()
     {
-        $query = $this->builder->build();
-
         $this->driver
-            ->prepare($query)
+            ->prepare($this->buildUpdate())
             ->execute($this->binds);
 
         foreach ($this->relations as $relation) {
@@ -973,47 +999,90 @@ class Query implements QueryInterface
         return $this->instance;
     }
 
+    protected function buildUpdate()
+    {
+        $this->builder->reset()
+                      ->operation(BuilderInterface::OPERATION_UPDATE)
+                      ->table($this->model->table());
+
+        foreach ($this->values as $node) {
+            $this->builder->value($node[0], $node[1]);
+        }
+
+        foreach ($this->where as $node) {
+            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
+        }
+
+        if ($this->limit) {
+            $this->builder->limit($this->limit, $this->offset);
+        }
+
+        return $this->builder->build();
+    }
+
     protected function executeDelete()
     {
-        $query = $this->builder->build();
-
         foreach ($this->relations as $relation) {
             $relation->delete($this->instance);
         }
 
         $this->driver
-            ->prepare($query)
+            ->prepare($this->buildDelete())
             ->execute($this->binds);
 
-        $this->identifyEntity(null);
+        $this->identifyEntity($this->instance, null);
 
         return $this->instance;
     }
 
+    protected function buildDelete()
+    {
+        $this->builder->reset()
+                      ->operation(BuilderInterface::OPERATION_DELETE)
+                      ->table($this->model->table());
+
+        foreach ($this->where as $node) {
+            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
+        }
+
+        if ($this->limit) {
+            $this->builder->limit($this->limit, $this->offset);
+        }
+
+        return $this->builder->build();
+    }
+
     protected function executeClear()
     {
-        $query = $this->builder->build();
-
         foreach ($this->relations as $relation) {
             $relation->clear();
         }
 
         $this->driver
-            ->prepare($query)
+            ->prepare($this->buildClear())
             ->execute();
 
         return true;
+    }
+
+    protected function buildClear()
+    {
+        return $this->builder->reset()
+                             ->operation(BuilderInterface::OPERATION_CLEAR)
+                             ->table($this->model->table())
+                             ->build();
     }
 
     /**
      * Assigns passed identifier to primary key
      * Possible only when entity has one primary key
      *
-     * @param int|string $identifier
+     * @param array|object $entity
+     * @param int|string   $identifier
      *
      * @return void
      */
-    protected function identifyEntity($identifier)
+    protected function identifyEntity($entity, $identifier)
     {
         $primaryKeys = $this->model->primaryFields();
         if (count($primaryKeys) !== 1) {
@@ -1023,42 +1092,44 @@ class Query implements QueryInterface
         $field = reset($primaryKeys);
         $field = $field->name();
 
-        if ($this->instance instanceof \ArrayAccess) {
-            $this->instance[$field] = $identifier;
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
+            $entity[$field] = $identifier;
 
             return;
         }
 
-        if (!$this->reflection->hasProperty($field)) {
-            $this->instance->$field = $identifier;
+        $ref = new \ReflectionObject($entity);
+        if (!$ref->hasProperty($field)) {
+            $entity->$field = $identifier;
 
             return;
         }
 
-        $prop = $this->reflection->getProperty($field);
+        $prop = $ref->getProperty($field);
         $prop->setAccessible(true);
-        $prop->setValue($this->instance, $identifier);
+        $prop->setValue($entity, $identifier);
     }
 
     /**
      * Returns property value
      *
-     * @param object $entity
-     * @param string $field
+     * @param array|object $entity
+     * @param string       $field
      *
      * @return mixed
      */
     protected function accessProperty($entity, $field)
     {
-        if ($entity instanceof \ArrayAccess) {
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
             return isset($entity[$field]) ? $entity[$field] : null;
         }
 
-        if (!$this->reflection->hasProperty($field)) {
+        $ref = new \ReflectionObject($entity);
+        if (!$ref->hasProperty($field)) {
             return null;
         }
 
-        $prop = $this->reflection->getProperty($field);
+        $prop = $ref->getProperty($field);
         $prop->setAccessible(true);
 
         return $prop->getValue($entity);
@@ -1071,8 +1142,32 @@ class Query implements QueryInterface
      */
     public function queryString()
     {
+        switch ($this->operation) {
+            case self::OPERATION_COUNT:
+                $queryString = $this->buildCount();
+                break;
+            case self::OPERATION_READ_ONE:
+            case self::OPERATION_READ:
+                $queryString = $this->buildRead();
+                break;
+            case self::OPERATION_INSERT:
+                $queryString = $this->buildInsert();
+                break;
+            case self::OPERATION_UPDATE:
+                $queryString = $this->buildUpdate();
+                break;
+            case self::OPERATION_DELETE:
+                $queryString = $this->buildDelete();
+                break;
+            case self::OPERATION_CLEAR:
+                $queryString = $this->buildClear();
+                break;
+            default:
+                $queryString = null;
+        }
+
         return array(
-            $this->builder->build(),
+            $queryString,
             $this->binds
         );
     }
@@ -1086,10 +1181,25 @@ class Query implements QueryInterface
     {
         $this->model = null;
 
-        $this->reflection = null;
         $this->instance = null;
 
         $this->operation = null;
+
+        $this->joins = array();
+
+        $this->fields = array();
+        $this->aggregates = array();
+        $this->group = array();
+
+        $this->values = array();
+
+        $this->where = array();
+        $this->having = array();
+
+        $this->order = array();
+
+        $this->limit = null;
+        $this->offset = null;
 
         $this->binds = array();
         $this->casts = array();
