@@ -41,13 +41,13 @@ class RelationTest extends \PHPUnit_Framework_TestCase
     public function testDefaultTable()
     {
         $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
-        $this->assertEquals('Foo', $relation->table());
+        $this->assertEquals('Foo', $relation->container());
     }
 
     public function testForcedTable()
     {
         $relation = new Relation('\Foo', 'one', array('foo' => 'bar'), 'Foobar');
-        $this->assertEquals('Foobar', $relation->table());
+        $this->assertEquals('Foobar', $relation->container());
     }
 
     public function testKeys()
