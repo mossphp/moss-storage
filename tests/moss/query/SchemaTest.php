@@ -14,70 +14,15 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     protected $schema;
     protected $queryString;
 
-    public function setUp()
-    {
-        $this->queryString = null;
-
-        $self = & $this;
-        $driver = $this->getMock('\moss\storage\driver\DriverInterface');
-        $driver->expects($this->any())
-               ->method('prepare')
-               ->will($this->returnValue($driver));
-        $driver->expects($this->any())
-               ->method('execute')
-               ->will($this->returnValue($driver));
-        $driver->expects($this->any())
-               ->method('fetchField')
-               ->will($this->returnCallback(function () use ($self) { return $this->queryString; }));
-        $driver->expects($this->any())
-               ->method('affectedRows')
-               ->will($this->returnCallback(function () use ($self) { return empty($this->queryString) ? 0 : 1; }));
-
-        $builder = new Builder();
-
-        $table = new Model(
-            '\stdClass',
-            'table',
-            array(
-                 new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                 new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
-            ),
-            array(
-                 new Primary(array('id')),
-            ),
-            array(
-                 new Relation('\stdClass', 'one', array('id' => 'id'), 'other')
-            )
-        );
-
-        $other = new Model(
-            '\altClass',
-            'other',
-            array(
-                 new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                 new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
-            ),
-            array(
-                 new Primary(array('id')),
-            )
-        );
-
-
-        $modelbag = new ModelBag();
-        $modelbag->set($table, 'table');
-        $modelbag->set($other, 'other');
-
-        $this->schema = new Schema($driver, $builder, $modelbag);
-    }
-
     /**
      * @dataProvider tableProvider
      */
     public function testCheck($table)
     {
-        $this->schema->reset()
-                     ->operation(Schema::OPERATION_CHECK, $table);
-        $this->assertEquals(array($table => 'SHOW TABLES LIKE \'' . $table . '\''), $this->schema->queryString());
+        $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $schema->reset()
+               ->operation(Schema::OPERATION_CHECK, $table);
+        $this->assertEquals(array($table => 'SHOW TABLES LIKE \'' . $table . '\''), $schema->queryString());
     }
 
     /**
@@ -85,9 +30,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testDrop($table)
     {
-        $this->schema->reset()
-                     ->operation(Schema::OPERATION_DROP, $table);
-        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $table . '`'), $this->schema->queryString());
+        $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $schema->reset()
+               ->operation(Schema::OPERATION_DROP, $table);
+        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $table . '`'), $schema->queryString());
     }
 
     public function tableProvider()
@@ -103,9 +49,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreate($table, $expected)
     {
-        $this->schema->reset()
-                     ->operation(Schema::OPERATION_CREATE, $table);
-        $this->assertEquals(array(0 => $expected), $this->schema->queryString());
+        $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $schema->reset()
+               ->operation(Schema::OPERATION_CREATE, $table);
+        $this->assertEquals(array(0 => $expected), $schema->queryString());
     }
 
     public function createProvider()
@@ -121,10 +68,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testAlter($current, $expected)
     {
-        $this->queryString = $current;
-        $this->schema->reset()
-                     ->operation(Schema::OPERATION_ALTER);
-        $this->assertEquals($expected, $this->schema->queryString());
+        $schema = new Schema($this->mockDriver($current), $this->mockBuilder(), $this->mockModelBag());
+        $schema->reset()
+               ->operation(Schema::OPERATION_ALTER);
+        $this->assertEquals($expected, $schema->queryString());
     }
 
     public function alterProvider()
@@ -149,6 +96,72 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 )
             ),
         );
+    }
+
+    protected function mockDriver($queryString = null)
+    {
+        $driver = $this->getMock('\moss\storage\driver\DriverInterface');
+        $driver->expects($this->any())
+               ->method('prepare')
+               ->will($this->returnSelf());
+
+        $driver->expects($this->any())
+               ->method('execute')
+               ->will($this->returnSelf());
+
+        $driver->expects($this->any())
+               ->method('fetchField')
+               ->will($this->returnValue($queryString));
+
+        $driver->expects($this->any())
+               ->method('affectedRows')
+               ->will($this->returnValue(empty($this->queryString) ? 0 : 1));
+
+        return $driver;
+    }
+
+    protected function mockBuilder()
+    {
+        $builder = new Builder();
+
+        return $builder;
+    }
+
+
+    protected function mockModelBag()
+    {
+        $table = new Model(
+            '\stdClass',
+            'table',
+            array(
+                new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
+                new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
+            ),
+            array(
+                new Primary(array('id')),
+            ),
+            array(
+                new Relation('\stdClass', Model::RELATION_ONE, array('id' => 'id'), 'other')
+            )
+        );
+
+        $other = new Model(
+            '\altClass',
+            'other',
+            array(
+                new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
+                new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
+            ),
+            array(
+                new Primary(array('id')),
+            )
+        );
+
+        $bag = new ModelBag();
+        $bag->set($table, 'table');
+        $bag->set($other, 'other');
+
+        return $bag;
     }
 }
  

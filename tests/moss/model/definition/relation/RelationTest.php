@@ -6,54 +6,140 @@ use moss\storage\model\ModelInterface;
 class RelationTest extends \PHPUnit_Framework_TestCase
 {
 
-    public function testDefaultName()
+    /**
+     * @dataProvider defaultNameProvider
+     */
+    public function testDefaultName($name, $expected)
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
-        $this->assertEquals('Foo', $relation->name());
+        $relation = new Relation($name, ModelInterface::RELATION_ONE, array('foo' => 'bar'));
+        $this->assertEquals($expected, $relation->name());
+    }
+
+    public function defaultNameProvider()
+    {
+        return array(
+            array('Foo', 'Foo'),
+            array('\Foo', 'Foo'),
+            array('\\Foo', 'Foo'),
+            array('\\\\Foo', 'Foo'),
+            array('\\Foo\\Bar', 'Bar'),
+        );
     }
 
     public function testForcedName()
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'), 'Foobar', array(), array());
+        $relation = new Relation('\Foo', ModelInterface::RELATION_ONE, array('foo' => 'bar'), 'Foobar');
         $this->assertEquals('Foobar', $relation->name());
     }
 
     public function testEntity()
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
-        $this->assertEquals('\Foo', $relation->entity());
-    }
-
-    public function testType()
-    {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
-        $this->assertEquals(ModelInterface::RELATION_ONE, $relation->type());
+        $relation = new Relation('\Foo', ModelInterface::RELATION_ONE, array('foo' => 'bar'));
+        $this->assertEquals('Foo', $relation->entity());
     }
 
     /**
-     * @expectedException \moss\storage\model\definition\DefinitionException
+     * @dataProvider typeProvider
      */
-    public function testUnsupportedType()
+    public function testType($type, $keys)
     {
-        new Relation('\Foo', 'yada', array('foo' => 'bar'));
+        $relation = new Relation('\Foo', $type, $keys, 'foo', '\Bar');
+        $this->assertEquals($type, $relation->type());
+    }
+
+    public function typeProvider()
+    {
+        return array(
+            array(
+                ModelInterface::RELATION_ONE,
+                array('foo' => 'bar'),
+            ),
+            array(
+                ModelInterface::RELATION_MANY,
+                array('foo' => 'bar'),
+            ),
+            array(
+                ModelInterface::RELATION_ONE_TROUGH,
+                array(array('foo' => 'bar'), array('bar' => 'foo')),
+            ),
+            array(
+                ModelInterface::RELATION_MANY_TROUGH,
+                array(array('foo' => 'bar'), array('bar' => 'foo')),
+            ),
+        );
+    }
+
+    /**
+     * @dataProvider keyProvider
+     */
+    public function testKeys($type, $keys, $expectedKeys, $expectedLocal, $expectedForeign)
+    {
+        $relation = new Relation('\Foo', $type, $keys, 'foo', '\Bar');
+        $this->assertEquals($expectedKeys, $relation->keys());
+    }
+
+    /**
+     * @dataProvider keyProvider
+     */
+    public function testLocalKeys($type, $keys, $expectedKeys, $expectedLocal, $expectedForeign)
+    {
+        $relation = new Relation('\Foo', $type, $keys, 'foo', '\Bar');
+        $this->assertEquals($expectedLocal, $relation->localKeys());
+    }
+
+    /**
+     * @dataProvider keyProvider
+     */
+    public function testForeignKeys($type, $keys, $expectedKeys, $expectedLocal, $expectedForeign)
+    {
+        $relation = new Relation('\Foo', $type, $keys, 'foo', '\Bar');
+        $this->assertEquals($expectedForeign, $relation->foreignKeys());
+    }
+
+    public function keyProvider()
+    {
+        return array(
+            array(
+                ModelInterface::RELATION_ONE,
+                array('foo' => 'bar'),
+                array('foo' => 'bar'),
+                array('foo'),
+                array('bar')
+            ),
+            array(
+                ModelInterface::RELATION_MANY,
+                array('foo' => 'bar'),
+                array('foo' => 'bar'),
+                array('foo'),
+                array('bar')
+            ),
+            array(
+                ModelInterface::RELATION_ONE_TROUGH,
+                array(array('foo' => 'bar'), array('bar' => 'foo')),
+                array('foo' => 'foo'),
+                array('foo' => 'bar'),
+                array('bar' => 'foo'),
+            ),
+            array(
+                ModelInterface::RELATION_MANY_TROUGH,
+                array(array('foo' => 'bar'), array('bar' => 'foo')),
+                array('foo' => 'foo'),
+                array('foo' => 'bar'),
+                array('bar' => 'foo'),
+            ),
+        );
     }
 
     public function testDefaultTable()
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
+        $relation = new Relation('\Foo', ModelInterface::RELATION_ONE, array('foo' => 'bar'));
         $this->assertEquals('Foo', $relation->container());
     }
 
     public function testForcedTable()
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'), 'Foobar');
+        $relation = new Relation('\Foo', ModelInterface::RELATION_ONE, array('foo' => 'bar'), 'Foobar');
         $this->assertEquals('Foobar', $relation->container());
-    }
-
-    public function testKeys()
-    {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'));
-        $this->assertEquals(array('foo' => 'bar'), $relation->keys());
     }
 
     /**
@@ -61,22 +147,42 @@ class RelationTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutKeys()
     {
-        $relation = new Relation('\Foo', 'one', array());
-        $this->assertEquals(array('foo' => 'bar'), $relation->keys());
+        new Relation('\Foo', ModelInterface::RELATION_ONE, array());
+    }
+
+    /**
+     * @expectedException \moss\storage\model\definition\DefinitionException
+     * @dataProvider invalidKeysProvider
+     */
+    public function testWithInvalidKeys($keys)
+    {
+        new Relation('\Foo', ModelInterface::RELATION_ONE, $keys);
+    }
+
+    public function invalidKeysProvider()
+    {
+        return array(
+            array(array('' => 1)),
+            array(array('foo' => 1)),
+            array(array(1 => null)),
+            array(array(1 => 'foo')),
+            array(array(1 => new \stdClass())),
+            array(array(1 => array(1, 2))),
+        );
     }
 
     public function testLocalValues()
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'), 'Foobar');
+        $relation = new Relation('\Foo', ModelInterface::RELATION_ONE, array('foo' => 'bar'), 'Foobar');
         $relation->localValues(array('yada' => 'yada'));
         $this->assertEquals(array('yada' => 'yada'), $relation->localValues());
     }
 
     public function testReferencedValues()
     {
-        $relation = new Relation('\Foo', 'one', array('foo' => 'bar'), 'Foobar');
+        $relation = new Relation('\Foo', ModelInterface::RELATION_ONE, array('foo' => 'bar'), 'Foobar');
         $relation->foreignValues(array('yada' => 'yada'));
-        
+
         $this->assertEquals(array('yada' => 'yada'), $relation->foreignValues());
     }
 }
