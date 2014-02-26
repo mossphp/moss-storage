@@ -105,7 +105,7 @@ interface StorageInterface
     /**
      * Returns insert query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param object $entity
      *
      * @return QueryInterface
      */
@@ -114,7 +114,7 @@ interface StorageInterface
     /**
      * Returns write query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param object $entity
      *
      * @return QueryInterface
      */
@@ -123,7 +123,7 @@ interface StorageInterface
     /**
      * Returns update query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param object $entity
      *
      * @return QueryInterface
      */
@@ -132,7 +132,7 @@ interface StorageInterface
     /**
      * Returns delete query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param object $entity
      *
      * @return QueryInterface
      */

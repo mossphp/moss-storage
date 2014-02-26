@@ -197,7 +197,7 @@ class Storage implements StorageInterface
      */
     public function insert($entity)
     {
-        return $this->query(Query::OPERATION_INSERT, $entity);
+        return $this->query(Query::OPERATION_INSERT, get_class($entity), $entity);
     }
 
     /**
@@ -209,7 +209,7 @@ class Storage implements StorageInterface
      */
     public function write($entity)
     {
-        return $this->query(Query::OPERATION_WRITE, $entity);
+        return $this->query(Query::OPERATION_WRITE, get_class($entity), $entity);
     }
 
     /**
@@ -221,7 +221,7 @@ class Storage implements StorageInterface
      */
     public function update($entity)
     {
-        return $this->query(Query::OPERATION_UPDATE, $entity);
+        return $this->query(Query::OPERATION_UPDATE, get_class($entity), $entity);
     }
 
     /**
@@ -233,7 +233,7 @@ class Storage implements StorageInterface
      */
     public function delete($entity)
     {
-        return $this->query(Query::OPERATION_DELETE, $entity);
+        return $this->query(Query::OPERATION_DELETE, get_class($entity), $entity);
     }
 
     /**
@@ -248,10 +248,10 @@ class Storage implements StorageInterface
         return $this->query(Query::OPERATION_CLEAR, $entityClass);
     }
 
-    protected function query($operation, $entity)
+    protected function query($operation, $entity, $instance = null)
     {
         $query = new Query($this->driver, $this->builders['query'], $this->models);
-        $query->operation($operation, $entity);
+        $query->operation($operation, $entity, $instance);
         return $query;
     }
 
