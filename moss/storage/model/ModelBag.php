@@ -29,22 +29,6 @@ class ModelBag
     }
 
     /**
-     * Returns entity class name
-     *
-     * @param string|object $entity
-     *
-     * @return string
-     */
-    public function getEntityClass($entity)
-    {
-        if (is_object($entity)) {
-            $entity = get_class($entity);
-        }
-
-        return ltrim($entity, '\\');
-    }
-
-    /**
      * Retrieves offset value
      *
      * @param string $alias
@@ -54,7 +38,7 @@ class ModelBag
      */
     public function get($alias)
     {
-        $alias = $this->getEntityClass($alias);
+        $alias = ltrim($alias, '\\');
 
         if (isset($this->byAlias[$alias])) {
             return $this->byAlias[$alias];
@@ -81,10 +65,12 @@ class ModelBag
 
         $this->collection[$hash] = & $model;
 
-        $alias = $alias ? $alias : preg_replace('/_?[^\w\d]+/i', '_', $model->table());
-        $this->byAlias[$alias] = &$this->collection[$hash];
+        $key = preg_replace('/_?[^\w\d]+/i', '_', $model->table());
 
-        $entity = $model->entity() ? ltrim($model->entity(), '\\') : 'ClasslessEntity'.count($this->collection);
+        $alias = $alias ? $alias : $key;
+        $this->byAlias[$alias] = & $this->collection[$hash];
+
+        $entity = $model->entity() ? ltrim($model->entity(), '\\') : $key;
         $this->byEntity[$entity] = & $this->collection[$hash];
 
         return $this;
@@ -99,8 +85,6 @@ class ModelBag
      */
     public function has($alias)
     {
-        $alias = $this->getEntityClass($alias);
-
         if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
             return true;
         }
@@ -125,71 +109,5 @@ class ModelBag
         }
 
         return $this->collection;
-    }
-
-    /**
-     * Count elements of an object
-     *
-     * @return int
-     */
-    public function count()
-    {
-        return count($this->collection);
-    }
-
-    /**
-     * Return the current element
-     *
-     * @return mixed
-     */
-    public function current()
-    {
-        return current($this->collection);
-    }
-
-    /**
-     * Return the key of the current element
-     *
-     * @return mixed
-     */
-    public function key()
-    {
-        return key($this->collection);
-    }
-
-    /**
-     * Move forward to next element
-     *
-     * @return void
-     */
-    public function next()
-    {
-        next($this->collection);
-    }
-
-    /**
-     * Rewind the Iterator to the first element
-     *
-     * @return void
-     */
-    public function rewind()
-    {
-        reset($this->collection);
-    }
-
-    /**
-     * Checks if current position is valid
-     *
-     * @return bool
-     */
-    public function valid()
-    {
-        $key = key($this->collection);
-
-        if ($key === false || $key === null) {
-            return false;
-        }
-
-        return isset($this->collection[$key]);
     }
 }
