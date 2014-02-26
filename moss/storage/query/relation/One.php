@@ -11,7 +11,6 @@ use moss\storage\query\QueryInterface;
  */
 class One extends Relation
 {
-
     /**
      * Executes read for one-to-one relation
      *
@@ -21,9 +20,8 @@ class One extends Relation
      */
     public function read(&$result)
     {
-        $foreign = array();
-
         $conditions = array();
+
         foreach ($this->relation->foreignValues() as $refer => $value) {
             $conditions[$refer][] = $value;
         }
@@ -33,49 +31,37 @@ class One extends Relation
                 continue;
             }
 
+            if (!$this->accessProperty($entity, $this->relation->container())) {
+                $this->accessProperty($entity, $this->relation->container(), null);
+            }
+
             foreach ($this->relation->keys() as $local => $refer) {
                 $conditions[$refer][] = $this->accessProperty($entity, $local);
             }
-
-            $foreign[$this->buildLocalKey($entity)][] = & $result[$i];
         }
 
-        $this->query->reset()
-                    ->operation(QueryInterface::OPERATION_READ, $this->relation->entity());
+        $collection = $this->fetch($this->relation->entity(), $conditions);
 
-        foreach ($conditions as $field => $values) {
-            $this->query->where($field, $values);
+// --- MEDIATOR START
+
+        $relations = array();
+        foreach ($result as $i => $entity) {
+            $relations[$this->buildLocalKey($entity, $this->relation->keys())][] = & $result[$i];
         }
 
-        $collection = $this->query->execute();
+// --- MEDIATOR END
 
         foreach ($collection as $relEntity) {
-            $key = $this->buildForeignKey($relEntity);
+            $key = $this->buildForeignKey($relEntity, $this->relation->keys());
 
-            if (!isset($foreign[$key])) {
+            if (!isset($relations[$key])) {
                 continue;
             }
 
-            foreach ($foreign[$key] as &$entity) {
+            foreach ($relations[$key] as &$entity) {
                 $this->accessProperty($entity, $this->relation->container(), $relEntity);
                 unset($entity);
             }
-        }
-
-        if (!$this->transparent()) {
-            return $result;
-        }
-
-        foreach ($result as &$entity) {
-            if (!$rel = $this->accessProperty($entity, $this->relation->container())) {
-                continue;
-            }
-
-            if ($sub = $this->accessProperty($rel, $this->relation->container())) {
-                $this->accessProperty($entity, $this->relation->container(), $sub);
-            }
-
-            unset($entity);
         }
 
         return $result;
@@ -89,7 +75,7 @@ class One extends Relation
      * @return array|\ArrayAccess
      * @throws RelationException
      */
-    public function write($result)
+    public function write(&$result)
     {
         if (!isset($result->{$this->relation->container()})) {
             return $result;
@@ -103,45 +89,25 @@ class One extends Relation
             $this->accessProperty($entity, $field, $value);
         }
 
-        foreach ($this->relation->keys() as $local => $refer) {
-            $this->accessProperty($entity, $refer, $this->accessProperty($result, $local));
+        foreach ($this->relation->keys() as $local => $foreign) {
+            $this->accessProperty($entity, $foreign, $this->accessProperty($result, $local));
         }
 
-        $this->query
-            ->reset()
-            ->operation(QueryInterface::OPERATION_WRITE, $entity)
+        $query = clone $this->query;
+        $query
+            ->operation(QueryInterface::OPERATION_WRITE, $this->relation->entity(), $entity)
             ->execute();
 
-
-        // cleanup
-        $this->query->reset()
-                    ->operation(QueryInterface::OPERATION_READ, $this->relation->entity());
-
+        $conditions = array();
         foreach ($this->relation->foreignValues() as $field => $value) {
-            $this->query->where($field, $value);
+            $conditions[$field][] = $value;
         }
 
-        foreach ($this->relation->keys() as $local => $refer) {
-            $this->query->where($refer, $this->accessProperty($entity, $local));
+        foreach ($this->relation->keys() as $foreign) {
+            $conditions[$foreign][] = $this->accessProperty($entity, $foreign);
         }
 
-        $existingEntities = $this->query->execute();
-
-        if (empty($existingEntities)) {
-            return $result;
-        }
-
-        $identifier = $this->identifyEntity($entity);
-        foreach ($existingEntities as $existingEntity) {
-            if ($identifier == $this->identifyEntity($existingEntity)) {
-                continue;
-            }
-
-            $this->query
-                ->reset()
-                ->operation(QueryInterface::OPERATION_DELETE, $existingEntity)
-                ->execute();
-        }
+        $this->cleanup($this->relation->entity(), array($entity), $conditions);
 
         return $result;
     }
@@ -154,7 +120,7 @@ class One extends Relation
      * @return array|\ArrayAccess
      * @throws RelationException
      */
-    public function delete($result)
+    public function delete(&$result)
     {
         if (!isset($result->{$this->relation->container()})) {
             return $result;
@@ -164,9 +130,8 @@ class One extends Relation
 
         $this->assertInstance($entity);
 
-        $this->query
-            ->reset()
-            ->operation(QueryInterface::OPERATION_DELETE, $entity)
+        $query = clone $this->query;
+        $query->operation(QueryInterface::OPERATION_DELETE, $this->relation->entity(), $entity)
             ->execute();
 
         return $result;
@@ -177,9 +142,8 @@ class One extends Relation
      */
     public function clear()
     {
-        $this->query
-            ->reset()
-            ->operation(QueryInterface::OPERATION_CLEAR, $this->relation->entity())
+        $query = clone $this->query;
+        $query->operation(QueryInterface::OPERATION_CLEAR, $this->relation->entity())
             ->execute();
     }
 }

@@ -14,6 +14,8 @@ interface RelationInterface
     // Relation types
     const RELATION_ONE = 'one';
     const RELATION_MANY = 'many';
+    const RELATION_ONE_TROUGH = 'oneTrough';
+    const RELATION_MANY_TROUGH = 'manyTrough';
 
     /**
      * Returns relation name
@@ -21,15 +23,6 @@ interface RelationInterface
      * @return string
      */
     public function name();
-
-    /**
-     * Sets relation transparency
-     *
-     * @param bool $transparent
-     *
-     * @return bool
-     */
-    public function transparent($transparent = null);
 
     /**
      * Returns relation query instance
@@ -44,6 +37,15 @@ interface RelationInterface
      * @param string $relation
      *
      * @return $this
+     */
+    public function with($relation);
+
+    /**
+     * Returns sub relation instance
+     *
+     * @param string $relation
+     *
+     * @return QueryInterface
      */
     public function relation($relation);
 
@@ -63,7 +65,7 @@ interface RelationInterface
      *
      * @return array|\ArrayAccess
      */
-    public function write($result);
+    public function write(&$result);
 
     /**
      * Executes delete relation
@@ -72,7 +74,7 @@ interface RelationInterface
      *
      * @return array|\ArrayAccess
      */
-    public function delete($result);
+    public function delete(&$result);
 
     /**
      * Executes clear relation

@@ -23,8 +23,6 @@ abstract class Relation implements RelationInterface
     /** @var RelationDefinitionInterface */
     protected $relation;
 
-    protected $transparent;
-
     /**
      * Constructor
      *
@@ -50,23 +48,6 @@ abstract class Relation implements RelationInterface
     }
 
     /**
-     * Sets relation transparency
-     *
-     * @param bool $transparent
-     *
-     * @return bool
-     */
-    public function transparent($transparent = null)
-    {
-        if ($transparent !== null) {
-            $this->transparent = (bool) $transparent;
-        }
-
-        return $this->transparent;
-    }
-
-
-    /**
      * Returns relation query instance
      *
      * @return QueryInterface
@@ -83,12 +64,37 @@ abstract class Relation implements RelationInterface
      *
      * @return $this
      */
-    public function relation($relation)
+    public function with($relation)
     {
         $this->query()
-             ->relation($relation);
+            ->with($relation);
 
         return $this;
+    }
+
+    /**
+     * Returns sub relation instance
+     *
+     * @param string $relation
+     *
+     * @return QueryInterface
+     */
+    public function relation($relation)
+    {
+        return $this->query()
+            ->relation($relation);
+    }
+
+    /**
+     * Returns var type
+     *
+     * @param mixed $var
+     *
+     * @return string
+     */
+    private function getType($var)
+    {
+        return is_object($var) ? get_class($var) : gettype($var);
     }
 
     /**
@@ -102,9 +108,8 @@ abstract class Relation implements RelationInterface
     protected function assertInstance($entity)
     {
         $entityClass = $this->relation->entity();
-
         if (!$entity instanceof $entityClass) {
-            throw new RelationException(sprintf('Relation table must be instance of %s, got %s', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
+            throw new RelationException(sprintf('Relation table must be instance of %s, got %s', $entityClass, $this->getType($entity)));
         }
 
         return true;
@@ -129,16 +134,88 @@ abstract class Relation implements RelationInterface
     }
 
     /**
-     * Builds local key from entity relation property values
+     * Checks if container has array access
+     *
+     * @param $container
+     *
+     * @throws RelationException
+     */
+    protected function assertArrayAccess($container)
+    {
+        if (!$container instanceof \ArrayAccess && !is_array($container)) {
+            throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', $this->getType($container)));
+        }
+    }
+
+    /**
+     * Fetches collection of entities matching set conditions
+     *
+     * @param string $entity
+     * @param array  $conditions
+     *
+     * @return array
+     */
+    protected function fetch($entity, array $conditions)
+    {
+        $query = clone $this->query;
+        $query->operation(QueryInterface::OPERATION_READ, $entity);
+
+        foreach ($conditions as $field => $values) {
+            $query->where($field, $values);
+        }
+
+        return $query->execute();
+    }
+
+    /**
+     * Removes obsolete entities that match conditions but don't exist in collection
+     *
+     * @param string $entity
+     * @param array  $collection
+     * @param array  $conditions
+     */
+    protected function cleanup($entity, array $collection, array $conditions)
+    {
+        if (empty($collection) || empty($conditions)) {
+            return;
+        }
+
+        $existing = $this->fetch($entity, $conditions);
+
+        if (empty($existing)) {
+            return;
+        }
+
+        $identifiers = array();
+        foreach ($collection as $instance) {
+            $identifiers[] = $this->identifyEntity($entity, $instance);
+        }
+
+        foreach ($existing as $instance) {
+            if (in_array($this->identifyEntity($entity, $instance), $identifiers)) {
+                continue;
+            }
+
+            $query = clone $this->query;
+            $query->operation(QueryInterface::OPERATION_DELETE, $entity, $instance)
+                ->execute();
+        }
+
+        return;
+    }
+
+    /**
+     * Builds local key from field property pairs
      *
      * @param mixed $entity
+     * @param array $pairs
      *
      * @return string
      */
-    protected function buildLocalKey($entity)
+    protected function buildLocalKey($entity, array $pairs)
     {
         $key = '';
-        foreach ($this->relation->keys() as $local => $refer) {
+        foreach ($pairs as $local => $refer) {
             $key .= $local . ':' . $this->accessProperty($entity, $local);
         }
 
@@ -146,16 +223,17 @@ abstract class Relation implements RelationInterface
     }
 
     /**
-     * Builds foreign key from entity relation property values
+     * Builds foreign key from field property pairs
      *
      * @param mixed $entity
+     * @param array $pairs
      *
      * @return string
      */
-    protected function buildForeignKey($entity)
+    protected function buildForeignKey($entity, array $pairs)
     {
         $key = '';
-        foreach ($this->relation->keys() as $local => $refer) {
+        foreach ($pairs as $local => $refer) {
             $key .= $local . ':' . $this->accessProperty($entity, $refer);
         }
 
@@ -166,15 +244,16 @@ abstract class Relation implements RelationInterface
      * Returns property value
      * If third parameter passed, value will be set to it
      *
-     * @param object     $entity
-     * @param string     $field
-     * @param null|mixed $value
+     * @param array|object $entity
+     * @param string       $field
+     * @param null|mixed   $value
      *
      * @return mixed|null
+     * @throws RelationException
      */
     protected function accessProperty(&$entity, $field, $value = null)
     {
-        if ($entity instanceof \ArrayAccess || is_array($entity)) {
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
             if ($value !== null) {
                 $entity[$field] = $value;
             }
@@ -183,14 +262,13 @@ abstract class Relation implements RelationInterface
         }
 
         $ref = new \ReflectionObject($entity);
+
         if (!$ref->hasProperty($field)) {
             if ($value !== null) {
                 $entity->$field = $value;
-
-                return $entity->$field;
             }
 
-            return null;
+            return isset($entity->$field) ? $entity->$field : null;
         }
 
         $prop = $ref->getProperty($field);
@@ -207,24 +285,19 @@ abstract class Relation implements RelationInterface
      * Returns entity identifier
      * If more than one primary keys, entity will not be identified
      *
-     * @param object $entity
+     * @param string $entity
+     * @param object $instance
      *
      * @return mixed|null
      */
-    protected function identifyEntity($entity)
+    protected function identifyEntity($entity, $instance)
     {
         $indexes = $this->models->get($entity)
-                                ->primaryFields();
-
-        if (count($indexes) == 1) {
-            $field = reset($indexes);
-
-            return $this->accessProperty($entity, $field->name());
-        }
+            ->primaryFields();
 
         $id = array();
         foreach ($indexes as $field) {
-            $id[] = $this->accessProperty($entity, $field->name());
+            $id[] = $this->accessProperty($instance, $field->name());
         }
 
         return implode(':', $id);
