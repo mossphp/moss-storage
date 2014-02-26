@@ -41,7 +41,7 @@ class Model implements ModelInterface
     public function __construct($entityClass, $table, array $fields, array $indexes = array(), array $relations = array())
     {
         $this->table = $table;
-        $this->entity = ltrim($entityClass, '\\');
+        $this->entity = $entityClass ? ltrim($entityClass, '\\') : null;
 
         $this->assignFields($fields);
         $this->assignIndexes($indexes);
@@ -55,10 +55,7 @@ class Model implements ModelInterface
                 throw new ModelException(sprintf('Field must be an instance of FieldInterface, got "%s"', $this->getType($field)));
             }
 
-            if (!$field instanceof ForeignInterface) {
-                $field->table($this->table);
-            }
-
+            $field->table($this->table);
             $this->fields[$field->name()] = $field;
         }
     }
@@ -78,7 +75,7 @@ class Model implements ModelInterface
                 }
             }
 
-            if (!$index instanceof ForeignInterface) {
+            if ($index->type() !== ModelInterface::INDEX_FOREIGN) {
                 $index->table($this->table);
             }
 

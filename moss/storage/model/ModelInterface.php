@@ -16,6 +16,8 @@ interface ModelInterface
     // Relation types
     const RELATION_ONE = 'one';
     const RELATION_MANY = 'many';
+    const RELATION_ONE_TROUGH = 'oneTrough';
+    const RELATION_MANY_TROUGH = 'manyTrough';
 
     // Field types
     const FIELD_BOOLEAN = 'boolean';
