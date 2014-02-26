@@ -92,7 +92,7 @@ DELETE FROM ... WHERE
 	$entity = new Entity();
 	$entity = $storage->delete($entity)
 		->execute();
-
+```
 ## Clear
 
 Removes all entities from storage (just like truncate table)
@@ -292,35 +292,86 @@ $result = $storage->read('entity')
 ## Relations
 
 By using relations you can read entire object structures, article with author, comments and tag in single query.
-To use relation, it must be defined in entity model, the rest is easy:
+To use relation, it must be defined in entity model, the rest is easy, just use the `::with()` method.
+
 Assuming that required models and relations exists:
 
+```php
 	$result = $storage->read('article')
-		->relation('author')
-		->relation('comment')
-		->relation('tag')
+		->with('author')
 		->execute();
+```
+
+Or in case of many relations:
+
+```php
+	$result = $storage->read('article')
+		->with(array('author', 'comment', 'tag'))
+		->execute();
+```
 
 To read comments with their authors:
 
+```php
 	$result = $storage->read('article')
-		->relation('author')
-		->relation('comment.author')
-		->relation('tag')
+		->with(array('author', 'comment.author', 'tag'))
 		->execute();
+```
 
-To set additional conditions, sorting order to relation, access its query:
+### Filtering
 
-    $query = $storage->read('article')
-    		->relation('author')
-    		->relation('comment.author')
-    		->relation('tag');
+Entities read in relations can be filtered by passing additional conditions in relation:
 
-    $query->relQuery('comment')->where('isSpam', false);
+```php
+	$result = $storage->read('article')
+		->with('comment', $relationConditions)
+		->execute();
+```
+
+Where `$relationCondition` is an array containing conditions for entities read in relation.
+Conditions are represented as arrays with values in same order as those passed to `::where()` method.
+
+```php
+	$result = $storage->read('article')
+		->with('comment', array(array('published', true)))
+		->execute();
+```
+
+This will read only published comments for articles.
+
+### Sorting
+
+The `::where()` method has third argument used to sort entities in relation.
+
+```php
+	$result = $storage->read('article')
+		->with('comment', array(array('published', true)), array('created', 'desc'))
+		->execute();
+```
+
+### Query
+
+If there's a need for more complicated conditions, calling the `::relation($relation)` method will return `Relation` representing `$relation`, that can be accessed for `Query`
+
+```php
+	$query = $storage->read('article');
+	$query->with(array('comment', 'author', 'tag'));
+
+	$commentRelation = $query->relation('comment');
+	$commentQuery = $commentRelation->query();
+
+	$commentQuery->condition(....);
 
 	$result = $query->execute();
+```
 
-The above query will read all mentioned before, but without comments flagged as spam.
+Or simpler way:
+
+```php
+	$query = $storage->read('article')->with(array('comment', 'author', 'tag'));
+	$query->relation('comment')->query()->condition(....);
+	$result = $query->execute();
+```
 
 ### Join
 

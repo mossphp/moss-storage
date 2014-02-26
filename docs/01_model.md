@@ -1,6 +1,6 @@
 # Model
 
-`Model` represents entity structure, how properties are mapped to table, what indexes exist and how modeled entity relate to other.
+`Model` represents entity structure, how objects properties are mapped to table fields, what indexes exist and how modeled entity relate to other.
 
 Each `Model` consists of:
 
@@ -13,31 +13,32 @@ Each `Model` consists of:
 To create model type:
 
 ```php
-$fields = array(...); // array containing field definitions
-$indexes = array(...); // array containing index definitions
-$relations = array(...); // another array with relation definitions
-$SomeModel = new \moss\storage\model\Model(
-	'someTable',
+$model = new \moss\storage\model\Model(
 	'\some\Entity',
-	$fields,
-	$indexes,
-	$relations
+	'someTable',
+	array(...), // array containing field definitions
+	array(...), // array containing index definitions
+	array(...) // another array with relation definitions
 )
 ```
 
-Each entity class must have separate model which must be registered in `Storage` under some alias:
+Each entity class must have separate model which must be registered in `Storage`:
 
 ```php
 $storage = new Storage($Adapter);
-$storage->register('alias', $SomeModel);
+$storage->register($SomeModel);
 ```
 
-When creating query you can call entity by namespaced class name or its alias.
+When creating query you can call entity by namespaced class name or by alias, as in example below:
+
+```php
+$storage->register($SomeModel, 'someAlias');
+```
 
 ## Fields
 
 Object mapping means that entity properties are represented as table fields.
-Therefore `Model` must contain field definitions:
+Therefore `Model` must contain at least one field definition:
 
 ```php
 $field = new Field($field, $type, $attributes, $mapping);
@@ -65,7 +66,7 @@ Supported attributes:
 Parameter `$mapping` is provided for situations where field name is different than property name.
 For instance property `companyAddress` can be represented as `company_address` field.
 
-For example - define decimal field, with 4 digits, two of which on the fractional, in result represented as `fooBar` in table `foo_bar`:
+For example - decimal field, with 4 digits, 2 of which on the fractional, entity property is called `fooBar` but stored in `foo_bar` field:
 
 ```php
 $field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
@@ -85,7 +86,7 @@ $primary = new Primary(array('id'));
 
 ### Foreign key
 
-Foreign key definition must include ist name - unique within entire database, array containing fields from local and foreign table - as key-value pairs and foreign table name.
+Foreign key definition must include its name - unique within entire database, array containing fields from local and foreign table - as key-value pairs and foreign table name.
 
 ```php
 $foreign = new Foreign('fk_other_id', array('other_id' => 'id'), 'other');
@@ -115,37 +116,40 @@ Relations describe what other entities can be contained inside entity.
 `Storage` supports only two relations:
 
  * `one` - one-to-one relation, where entity points to exactly one entity,
- * `many` - one-to-many relation, entity points to many entities
+ * `many` - one-to-many relation, entity points to many entities,
+ * `oneTrough` - one-to-one relation with mediator table in between,
+ * `manyTrough` - many-to-many relation with mediator table in between
 
-Both relations are defined in same way:
+Both `one` and `many` relations are defined as:
 
 ```php
-$relation = new Relation($entity, $type, $keys, $table);
+$relation = new Relation($entity, $type, $keys, $container);
 ```
 
  * `$entity` - namespaced entity class pointed by relation its alias
  * `$type` - relation type, `one` or `many`
  * `$keys` - array containing local fields as keys and referenced fields as corresponding values
- * `$table` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
+ * `$container` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
 
 For example, one `BlogEntry` can contain `Author` entity and many `Comment` entities.
-To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`:
+To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`, `Author` will be available in `Author` property.:
 
 ```php
 $authorRelation = new Relation('\Author', 'one', array('author_id' => 'id'));
 ```
 
-`Author` will be available in `Author` property.
+Relations with mediator table - `oneTrough` and `manyTrough` are defined as:
 
 ```php
-$commentRelation = new Relation('\Comment', 'many', array('id' => 'entry_id'), 'Comments');
-$commentRelation->localValues(array('commentable' => 1));
-$commentRelation->foreignValues(array('visibility' => 1));
+$relation = new Relation($entity, $type, array($localKeys, $foreignKeys), $container, $mediator);
 ```
 
-Comment relation uses `::localValues()` and `::foreignValues()` methods to limit read `Comments`.
-Method `::localValues` limits that only _commentable_ `Articles` will have comments.
-The `::foreignValues()` adds additional limitation, only _visible_ comments will be read.
+ * `$entity` - namespaced entity class pointed by relation its alias
+ * `$type` - relation type, `one` or `many`
+ * `$localKeys` - array containing entity fields as keys and mediator fields as values
+ * `$foreignKeys` - array containing mediator fields as keys and referenced entity fields as values
+ * `$container` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
+ * `mediator` - name of model representing mediator table
 
 **Important**
 Relations are unidirectional, therefore if `Author` should point to `BlogEntry`, new relation in `Author` model must be defined.
