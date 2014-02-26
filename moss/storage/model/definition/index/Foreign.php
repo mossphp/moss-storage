@@ -2,10 +2,9 @@
 namespace moss\storage\model\definition\index;
 
 use moss\storage\model\definition\DefinitionException;
-use moss\storage\model\definition\ForeignInterface;
 use moss\storage\model\ModelInterface;
 
-class Foreign extends Index implements ForeignInterface
+class Foreign extends Index
 {
     protected $table;
 
