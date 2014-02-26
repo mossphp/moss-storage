@@ -80,7 +80,7 @@ class Storage implements StorageInterface
      *
      * @return Storage
      */
-    public function register($alias, ModelInterface $model)
+    public function register(ModelInterface $model, $alias = null)
     {
         $this->models->set($model, $alias);
 
@@ -149,6 +149,7 @@ class Storage implements StorageInterface
     {
         $schema = new Schema($this->driver, $this->builders['schema'], $this->models);
         $schema->operation($operation, $entity);
+
         return $schema;
     }
 
@@ -252,6 +253,7 @@ class Storage implements StorageInterface
     {
         $query = new Query($this->driver, $this->builders['query'], $this->models);
         $query->operation($operation, $entity, $instance);
+
         return $query;
     }
 

@@ -25,12 +25,12 @@ interface StorageInterface
     /**
      * Registers model into storage
      *
-     * @param string         $alias
      * @param ModelInterface $model
+     * @param string         $alias
      *
      * @return StorageInterface
      */
-    public function register($alias, ModelInterface $model);
+    public function register(ModelInterface $model, $alias = null);
 
     /**
      * Returns all registered models
