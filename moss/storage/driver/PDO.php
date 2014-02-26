@@ -4,13 +4,13 @@ namespace moss\storage\driver;
 class PDO implements DriverInterface
 {
 
-    private $prefix;
+    protected $prefix;
 
     /** @var \PDO */
-    private $pdo;
+    protected $pdo;
 
     /** @var \PDOStatement */
-    private $statement;
+    protected $statement;
 
     /**
      * Constructor
