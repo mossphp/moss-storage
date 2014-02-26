@@ -896,7 +896,7 @@ class Query implements QueryInterface
     {
         try {
             return $this->build();
-        } catch(BuilderException $e) {
+        } catch (BuilderException $e) {
             return get_class($e) . ' - ' . $e->getMessage();
         }
     }

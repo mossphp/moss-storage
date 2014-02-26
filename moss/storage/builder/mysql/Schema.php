@@ -621,7 +621,7 @@ class Schema implements SchemaInterface
     {
         try {
             return (string) $this->build();
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return get_class($e) . ' - ' . $e->getMessage();
         }
     }
