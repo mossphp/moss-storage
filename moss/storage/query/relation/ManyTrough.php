@@ -43,7 +43,7 @@ class ManyTrough extends Relation
             $relations[$this->buildLocalKey($entity, $this->relation->localKeys())][] = & $result[$i];
         }
 
-        $collection = $this->fetch($this->relation->mediator(), $conditions);
+        $collection = $this->fetch($this->relation->mediator(), $conditions, true);
 
 // --- MEDIATOR START
 
@@ -119,7 +119,8 @@ class ManyTrough extends Relation
             }
 
             $query = clone $this->query;
-            $query->operation(QueryInterface::OPERATION_WRITE, $this->relation->mediator(), $mediator)
+            $query->reset()
+                ->operation(QueryInterface::OPERATION_WRITE, $this->relation->mediator(), $mediator)
                 ->fields($fields)
                 ->execute();
 
@@ -164,7 +165,8 @@ class ManyTrough extends Relation
             }
 
             $query = clone $this->query;
-            $query->operation(QueryInterface::OPERATION_DELETE, $this->relation->mediator(), $mediator)
+            $query->reset()
+                ->operation(QueryInterface::OPERATION_DELETE, $this->relation->mediator(), $mediator)
                 ->execute();
 
         }

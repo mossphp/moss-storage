@@ -152,12 +152,18 @@ abstract class Relation implements RelationInterface
      *
      * @param string $entity
      * @param array  $conditions
+     * @param bool   $reset
      *
      * @return array
      */
-    protected function fetch($entity, array $conditions)
+    protected function fetch($entity, array $conditions, $reset = false)
     {
         $query = clone $this->query;
+
+        if ($reset) {
+            $query->reset();
+        }
+
         $query->operation(QueryInterface::OPERATION_READ, $entity);
 
         foreach ($conditions as $field => $values) {
@@ -197,7 +203,8 @@ abstract class Relation implements RelationInterface
             }
 
             $query = clone $this->query;
-            $query->operation(QueryInterface::OPERATION_DELETE, $entity, $instance)
+            $query->reset()
+                ->operation(QueryInterface::OPERATION_DELETE, $entity, $instance)
                 ->execute();
         }
 
