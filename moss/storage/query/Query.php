@@ -220,8 +220,8 @@ class Query implements QueryInterface
             throw new QueryException(sprintf('Entity for operation "%s" must be an instance of "%s" or array got "%s"', $this->operation, $this->model->entity(), $this->getType($instance)));
         }
 
-        // todo - if array check if has primary fields
-        // todo - if object check if it is instance of required entity
+        // todo - if array - check if has primary fields
+        // todo - if object - check if it is instance of required entity
     }
 
     /**
@@ -787,8 +787,6 @@ class Query implements QueryInterface
      */
     public function with($relation, array $conditions = array(), array $order = array())
     {
-        // todo - if $relation is array, then threat each element as relation
-
         if (!is_array($relation)) {
             $this->assignRelation($relation, $conditions, $order);
 
@@ -833,13 +831,15 @@ class Query implements QueryInterface
         }
 
         foreach ($conditions as $node) {
+            // todo - check if node is array
             $instance->query()
-                ->where($node[0], $node[1]);
+                ->where($node[0], $node[1], isset($node[2]) ? $node[2] : BuilderInterface::COMPARISON_EQUAL, isset($node[3]) ? $node[3] : BuilderInterface::LOGICAL_AND);
         }
 
         foreach ($order as $node) {
+            // todo - check if node is array
             $instance->query()
-                ->order($node[0], $node[1]);
+                ->order($node[0], isset($node[1]) ? $node[1] : BuilderInterface::ORDER_DESC);
         }
 
         if ($furtherRelations) {
@@ -854,7 +854,7 @@ class Query implements QueryInterface
      *
      * @param string $relation
      *
-     * @return QueryInterface
+     * @return RelationInterface
      * @throws QueryException
      */
     public function relation($relation)
