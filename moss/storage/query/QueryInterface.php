@@ -254,12 +254,14 @@ interface QueryInterface
     /**
      * Adds relation to query
      *
-     * @param string $relation
-     * @param bool   $transparent
+     * @param string|array $relation
+     * @param array $conditions
+     * @param array $order
      *
      * @return $this
+     * @throws QueryException
      */
-    public function relation($relation, $transparent = false);
+    public function with($relation, array $conditions = array(), array $order = array());
 
     /**
      * Returns query instance from requested relation
@@ -268,7 +270,7 @@ interface QueryInterface
      *
      * @return QueryInterface
      */
-    public function relQuery($relation);
+    public function relation($relation);
 
     /**
      * Executes query
