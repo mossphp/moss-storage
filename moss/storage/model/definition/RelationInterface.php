@@ -18,6 +18,13 @@ interface RelationInterface
     public function name();
 
     /**
+     * Returns relation mediating instance
+     *
+     * @return string
+     */
+    public function mediator();
+
+    /**
      * Returns relation type
      *
      * @return string
@@ -44,6 +51,20 @@ interface RelationInterface
      * @return array
      */
     public function keys();
+
+    /**
+     * Returns array containing local keys
+     *
+     * @return array
+     */
+    public function localKeys();
+
+    /**
+     * Returns array containing foreign keys
+     *
+     * @return array
+     */
+    public function foreignKeys();
 
     /**
      * Returns associative array containing local key - value pairs
