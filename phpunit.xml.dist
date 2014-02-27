@@ -3,9 +3,9 @@
 <phpunit colors="true" bootstrap="./tests/autoload.php.dist">
 	<testsuites>
 		<testsuite name="Storage tests">
-			<directory>./tests/moss/builder/mysql/</directory>
-			<directory>./tests/moss/model/</directory>
-			<directory>./tests/moss/query/</directory>
+			<directory>./tests/Moss/Builder/MySQL/</directory>
+			<directory>./tests/Moss/Model/</directory>
+			<directory>./tests/Moss/Query/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

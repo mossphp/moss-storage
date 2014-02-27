@@ -13,7 +13,7 @@ Each `Model` consists of:
 To create model type:
 
 ```php
-$model = new \moss\storage\model\Model(
+$model = new \Moss\Storage\Model\Model(
 	'\some\Entity',
 	'someTable',
 	array(...), // array containing field definitions
