@@ -70,7 +70,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver($current), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->operation(Schema::OPERATION_ALTER);
+               ->operation(Schema::OPERATION_ALTER, 'table');
         $this->assertEquals($expected, $schema->queryString());
     }
 
@@ -115,7 +115,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
         $driver->expects($this->any())
                ->method('affectedRows')
-               ->will($this->returnValue(empty($this->queryString) ? 0 : 1));
+               ->will($this->returnValue($this->queryString || $queryString  ? 1 : 0));
 
         return $driver;
     }
