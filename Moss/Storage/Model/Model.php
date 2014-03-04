@@ -272,14 +272,18 @@ class Model implements ModelInterface
      */
     public function indexFields()
     {
-        $result = array();
+        $fields = array();
         foreach ($this->indexes as $index) {
             foreach ($index->fields() as $field) {
-                $result[] = $this->field($field);
+                if (isset($fields[$field])) {
+                    continue;
+                }
+
+                $fields[$field] = $this->field($field);
             }
         }
 
-        return $result;
+        return array_values($fields);
     }
 
     /**
