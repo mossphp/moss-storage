@@ -11,21 +11,32 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->operation(Query::OPERATION_SELECT)
-              ->fields(array('foo', 'bar'))
-              ->build();
+            ->operation(Query::OPERATION_SELECT)
+            ->fields(array('foo', 'bar'))
+            ->build();
     }
 
     public function testTable()
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->table('foobar', 'fb')
-              ->operation(Query::OPERATION_SELECT)
-              ->fields(array('foo', 'bar'))
-              ->build();
+            ->table('foobar', 'fb')
+            ->operation(Query::OPERATION_SELECT)
+            ->fields(array('foo', 'bar'))
+            ->build();
 
         $this->assertEquals('SELECT `fb`.`foo`, `fb`.`bar` FROM `foobar` AS `fb`', $query->build());
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Builder\BuilderException
+     * @expectedExceptionMessage Missing table name
+     */
+    public function testTableWithEmptyString()
+    {
+        $query = new Query('table', 't', Query::OPERATION_INSERT);
+        $query->reset()
+            ->table('', 'fb');
     }
 
     public function operationProvider()
@@ -44,14 +55,30 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperation($expected, $operation)
     {
-        $query = new Query('table', 't', Query::OPERATION_INSERT);
-        $query->reset()
-              ->table('table')
-              ->operation($operation)
-              ->fields(array('foo', 'bar'))
-              ->value('foo', ':bind1')
-              ->value('bar', ':bind2')
-              ->build();
+        $query = new Query();
+        $query->table('table')
+            ->operation($operation)
+            ->fields(array('foo', 'bar'))
+            ->value('foo', ':bind1')
+            ->value('bar', ':bind2')
+            ->build();
+
+        $this->assertEquals($expected, $query->build());
+    }
+
+    /**
+     * @dataProvider operationProvider
+     */
+    public function testOperationAliases($expected, $operation)
+    {
+        $query = new Query();
+
+        call_user_func(array($query, $operation), 'table');
+
+        $query->fields(array('foo', 'bar'))
+            ->value('foo', ':bind1')
+            ->value('bar', ':bind2')
+            ->build();
 
         $this->assertEquals($expected, $query->build());
     }
@@ -64,10 +91,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->reset()
-              ->table('table')
-              ->operation('foo')
-              ->fields(array('foo', 'bar'))
-              ->build();
+            ->table('table')
+            ->operation('foo')
+            ->fields(array('foo', 'bar'))
+            ->build();
     }
 
     // SELECT
@@ -93,7 +120,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->where('foo', ':bind', '!!');
+            ->where('foo', ':bind', '!!');
     }
 
     /**
@@ -104,7 +131,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->where('foo', ':bind', '=', 'BOO');
+            ->where('foo', ':bind', '=', 'BOO');
     }
 
     public function testSelectWithSubQuery()
@@ -114,7 +141,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query('foo', 'f', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->sub($sub, 'b');
+            ->sub($sub, 'b');
 
         $this->assertEquals('SELECT `f`.`foo`, ( SELECT `b`.`bar` FROM `bar` AS `b` ) AS `b` FROM `foo` AS `f`', $query->build());
     }
@@ -129,10 +156,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($conditions as $condition) {
             $query->where(
-                  $condition[0],
-                  $condition[1],
-                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
+                $condition[0],
+                $condition[1],
+                isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 
@@ -149,10 +176,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($conditions as $condition) {
             $query->having(
-                  $condition[0],
-                  $condition[1],
-                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
+                $condition[0],
+                $condition[1],
+                isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 
@@ -262,7 +289,20 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->aggregate($method, 'bar');
+            ->aggregate($method, 'bar');
+
+        $this->assertEquals('SELECT ' . $expected . ', `t`.`foo` FROM `table` AS `t`', $query->build());
+    }
+
+    /**
+     * @dataProvider aggregateProvider
+     */
+    public function testSelectWithAggregateAliases($expected, $method)
+    {
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
+        $query->fields(array('foo'));
+
+        call_user_func(array($query, $method), 'bar');
 
         $this->assertEquals('SELECT ' . $expected . ', `t`.`foo` FROM `table` AS `t`', $query->build());
     }
@@ -283,7 +323,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_SELECT);
         $query->fields(array('foo'))
-              ->group('bar');
+            ->group('bar');
 
         $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` GROUP BY `t`.`bar`', $query->build());
     }
@@ -375,6 +415,19 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $query->build());
     }
 
+    /**
+     * @dataProvider joinProvider
+     */
+    public function testSelectWithJoinAliases($join, $table, $joins, $expected)
+    {
+        $query = new Query('table', 't', Query::OPERATION_SELECT);
+        $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
+
+        call_user_func(array($query, $join . 'Join'), $table, $joins);
+
+        $this->assertEquals($expected, $query->build());
+    }
+
     public function joinProvider()
     {
         return array(
@@ -441,10 +494,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query('table', 't', Query::OPERATION_INSERT);
         $query->values(
-              array(
-                  'foo' => ':bind1',
-                  'bar' => ':bind2'
-              )
+            array(
+                'foo' => ':bind1',
+                'bar' => ':bind2'
+            )
         );
         $this->assertEquals('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', $query->build());
     }
@@ -478,10 +531,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($conditions as $condition) {
             $query->where(
-                  $condition[0],
-                  $condition[1],
-                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
+                $condition[0],
+                $condition[1],
+                isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 
@@ -515,10 +568,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         foreach ($conditions as $condition) {
             $query->where(
-                  $condition[0],
-                  $condition[1],
-                  isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
-                  isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
+                $condition[0],
+                $condition[1],
+                isset($condition[2]) ? $condition[2] : Query::COMPARISON_EQUAL,
+                isset($condition[3]) ? $condition[3] : Query::LOGICAL_AND
             );
         }
 

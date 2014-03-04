@@ -208,6 +208,25 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $query->queryString());
     }
 
+    /**
+     * @dataProvider aggregateProvider
+     */
+    public function testReadAggregateAliases($method, $queryPart)
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query->reset()
+            ->operation(Query::OPERATION_READ, 'table');
+
+        call_user_func(array($query, $method), 'id');
+
+        $expected = array(
+            'SELECT ' . $queryPart . ', `table`.`id`, `table`.`text` FROM `table`',
+            array()
+        );
+
+        $this->assertEquals($expected, $query->queryString());
+    }
+
     public function aggregateProvider()
     {
         return array(
@@ -270,6 +289,56 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             array('id', array(1, 2), '(`table`.`id` = :condition_0_id OR `table`.`id` = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
             array(array('id', 'text'), array(1, 2), '(`table`.`id` = :condition_0_id OR `table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
             array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((`table`.`id` = :condition_0_id OR `table`.`id` = :condition_1_id) OR (`table`.`text` = :condition_2_text OR `table`.`text` = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+        );
+    }
+
+    /**
+     * @dataProvider joinProvider
+     */
+    public function testJoin($join, $queryPart)
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query->reset()
+            ->operation(Query::OPERATION_READ, 'table')
+            ->join($join, 'other')
+            ->field('table.id')
+            ->field('other.id');
+
+        $expected = array(
+            'SELECT `table`.`id`, `table`.`text`, `table`.`id`, `other`.`id` FROM `table` ' . $queryPart . ' `other` ON `table`.`id` = `other`.`id`',
+            array()
+        );
+
+        $this->assertEquals($expected, $query->queryString());
+    }
+
+    /**
+     * @dataProvider joinProvider
+     */
+    public function testJoinAliases($join, $queryPart)
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query->reset()
+            ->operation(Query::OPERATION_READ, 'table')
+            ->field('table.id')
+            ->field('other.id');
+
+        call_user_func(array($query, $join . 'Join'), 'other');
+
+        $expected = array(
+            'SELECT `table`.`id`, `table`.`text`, `table`.`id`, `other`.`id` FROM `table` ' . $queryPart . ' `other` ON `table`.`id` = `other`.`id`',
+            array()
+        );
+
+        $this->assertEquals($expected, $query->queryString());
+    }
+
+    public function joinProvider()
+    {
+        return array(
+            array(Builder::JOIN_INNER, 'INNER JOIN'),
+            array(Builder::JOIN_LEFT, 'LEFT OUTER JOIN'),
+            array(Builder::JOIN_RIGHT, 'RIGHT OUTER JOIN')
         );
     }
 

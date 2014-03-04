@@ -78,12 +78,12 @@ class FieldTest extends \PHPUnit_Framework_TestCase
     public function attributeProvider()
     {
         return array(
-            ModelInterface::ATTRIBUTE_UNSIGNED => array(array(ModelInterface::ATTRIBUTE_UNSIGNED), ModelInterface::ATTRIBUTE_UNSIGNED, true),
-            ModelInterface::ATTRIBUTE_DEFAULT => array(array(ModelInterface::ATTRIBUTE_DEFAULT => 1), ModelInterface::ATTRIBUTE_DEFAULT, 1),
-            ModelInterface::ATTRIBUTE_AUTO => array(array(ModelInterface::ATTRIBUTE_AUTO), ModelInterface::ATTRIBUTE_AUTO, true),
-            ModelInterface::ATTRIBUTE_NULL => array(array(ModelInterface::ATTRIBUTE_NULL), ModelInterface::ATTRIBUTE_NULL, true),
-            ModelInterface::ATTRIBUTE_LENGTH => array(array(ModelInterface::ATTRIBUTE_LENGTH => 4), ModelInterface::ATTRIBUTE_LENGTH, 4),
-            ModelInterface::ATTRIBUTE_PRECISION => array(array(ModelInterface::ATTRIBUTE_PRECISION => 2), ModelInterface::ATTRIBUTE_PRECISION, 2),
+            array(array(ModelInterface::ATTRIBUTE_UNSIGNED), ModelInterface::ATTRIBUTE_UNSIGNED, true),
+            array(array(ModelInterface::ATTRIBUTE_DEFAULT => 1), ModelInterface::ATTRIBUTE_DEFAULT, 1),
+            array(array(ModelInterface::ATTRIBUTE_AUTO), ModelInterface::ATTRIBUTE_AUTO, true),
+            array(array(ModelInterface::ATTRIBUTE_NULL), ModelInterface::ATTRIBUTE_NULL, true),
+            array(array(ModelInterface::ATTRIBUTE_LENGTH => 4), ModelInterface::ATTRIBUTE_LENGTH, 4),
+            array(array(ModelInterface::ATTRIBUTE_PRECISION => 2), ModelInterface::ATTRIBUTE_PRECISION, 2),
         );
     }
 
@@ -99,12 +99,12 @@ class FieldTest extends \PHPUnit_Framework_TestCase
     public function attributesProvider()
     {
         return array(
-            ModelInterface::ATTRIBUTE_UNSIGNED => array(array(ModelInterface::ATTRIBUTE_UNSIGNED), ModelInterface::ATTRIBUTE_UNSIGNED, array(ModelInterface::ATTRIBUTE_UNSIGNED => true)),
-            ModelInterface::ATTRIBUTE_DEFAULT => array(array(ModelInterface::ATTRIBUTE_DEFAULT => 1), ModelInterface::ATTRIBUTE_DEFAULT, array(ModelInterface::ATTRIBUTE_DEFAULT => 1)),
-            ModelInterface::ATTRIBUTE_AUTO => array(array(ModelInterface::ATTRIBUTE_AUTO), ModelInterface::ATTRIBUTE_AUTO, array(ModelInterface::ATTRIBUTE_AUTO => true)),
-            ModelInterface::ATTRIBUTE_NULL => array(array(ModelInterface::ATTRIBUTE_NULL), ModelInterface::ATTRIBUTE_NULL, array(ModelInterface::ATTRIBUTE_NULL => true)),
-            ModelInterface::ATTRIBUTE_LENGTH => array(array(ModelInterface::ATTRIBUTE_LENGTH => 4), ModelInterface::ATTRIBUTE_LENGTH, array(ModelInterface::ATTRIBUTE_LENGTH => 4)),
-            ModelInterface::ATTRIBUTE_PRECISION => array(array(ModelInterface::ATTRIBUTE_PRECISION => 2), ModelInterface::ATTRIBUTE_PRECISION, array(ModelInterface::ATTRIBUTE_PRECISION => 2)),
+            array(array(ModelInterface::ATTRIBUTE_UNSIGNED), ModelInterface::ATTRIBUTE_UNSIGNED, array(ModelInterface::ATTRIBUTE_UNSIGNED => true)),
+            array(array(ModelInterface::ATTRIBUTE_DEFAULT => 1), ModelInterface::ATTRIBUTE_DEFAULT, array(ModelInterface::ATTRIBUTE_DEFAULT => 1)),
+            array(array(ModelInterface::ATTRIBUTE_AUTO), ModelInterface::ATTRIBUTE_AUTO, array(ModelInterface::ATTRIBUTE_AUTO => true)),
+            array(array(ModelInterface::ATTRIBUTE_NULL), ModelInterface::ATTRIBUTE_NULL, array(ModelInterface::ATTRIBUTE_NULL => true)),
+            array(array(ModelInterface::ATTRIBUTE_LENGTH => 4), ModelInterface::ATTRIBUTE_LENGTH, array(ModelInterface::ATTRIBUTE_LENGTH => 4)),
+            array(array(ModelInterface::ATTRIBUTE_PRECISION => 2), ModelInterface::ATTRIBUTE_PRECISION, array(ModelInterface::ATTRIBUTE_PRECISION => 2)),
         );
     }
 }

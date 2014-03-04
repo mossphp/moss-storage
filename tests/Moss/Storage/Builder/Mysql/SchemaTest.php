@@ -24,6 +24,17 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Builder\BuilderException
+     * @expectedExceptionMessage Missing table name
+     */
+    public function testTableWithEmptyString()
+    {
+        $query = new Schema('table', Schema::OPERATION_CHECK);
+        $query->reset()
+            ->table('');
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Builder\BuilderException
      * @expectedExceptionMessage Unknown operation
      */
     public function testInvalidOperation()
@@ -31,14 +42,27 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         new Schema('table', 'foo');
     }
 
+    /**
+     * @dataProvider shortOperationProvider
+     */
+    public function testOperation($operation, $expected)
+    {
+        $schema = new Schema('table', Schema::OPERATION_CHECK);
+        $schema
+            ->operation($operation)
+            ->column('foo')
+            ->index('idx', array('foo'), 'index');
+        $this->assertEquals($expected, $schema->build());
+    }
 
     /**
      * @dataProvider shortOperationProvider
      */
-    public function testShortOperation($operation, $expected)
+    public function testOperationAliases($operation, $expected)
     {
-        $schema = new Schema('table', $operation);
-        $schema->column('foo')
+        $schema = new Schema('foo', Schema::OPERATION_CHECK);
+        $schema->{$operation}('table')
+                ->column('foo')
                ->index('idx', array('foo'), 'index');
         $this->assertEquals($expected, $schema->build());
     }

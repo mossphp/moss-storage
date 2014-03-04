@@ -1,6 +1,0 @@
-<?php
-require __DIR__ . '/../Moss/Loader/Loader.php';
-
-$loader = new \Moss\loader\Loader();
-$loader->addNamespace('Moss', __DIR__ . '/../');
-$loader->register();
