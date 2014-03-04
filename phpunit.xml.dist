@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit colors="true" bootstrap="./tests/autoload.php.dist">
+<phpunit colors="true" bootstrap="./vendor/autoload.php">
 	<testsuites>
 		<testsuite name="Storage tests">
-			<directory>./tests/Moss/Builder/MySQL/</directory>
-			<directory>./tests/Moss/Model/</directory>
-			<directory>./tests/Moss/Query/</directory>
+			<directory>./tests/Moss/Storage/Builder/MySQL/</directory>
+			<directory>./tests/Moss/Storage/Model/</directory>
+			<directory>./tests/Moss/Storage/Query/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>
