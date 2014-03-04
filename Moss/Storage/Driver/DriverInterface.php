@@ -11,6 +11,8 @@ interface DriverInterface
     const FIELD_DATETIME = 'datetime';
     const FIELD_SERIAL = 'serial';
 
+    // todo - add method returning database type
+
     /**
      * Returns current statements query string
      *
