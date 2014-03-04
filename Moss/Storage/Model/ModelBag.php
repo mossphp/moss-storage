@@ -85,6 +85,8 @@ class ModelBag
      */
     public function has($alias)
     {
+        $alias = ltrim($alias, '\\');
+
         if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
             return true;
         }
