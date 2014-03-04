@@ -104,6 +104,76 @@ class Query implements QueryInterface
     }
 
     /**
+     * Sets select operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function select($table, $alias = null)
+    {
+        return $this->operation(self::OPERATION_SELECT)
+            ->table($table, $alias);
+    }
+
+    /**
+     * Sets insert operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function insert($table, $alias = null)
+    {
+        return $this->operation(self::OPERATION_INSERT)
+            ->table($table, $alias);
+    }
+
+    /**
+     * Sets update operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function update($table, $alias = null)
+    {
+        return $this->operation(self::OPERATION_UPDATE)
+            ->table($table, $alias);
+    }
+
+    /**
+     * Sets delete operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function delete($table, $alias = null)
+    {
+        return $this->operation(self::OPERATION_DELETE)
+            ->table($table, $alias);
+    }
+
+    /**
+     * Sets clear operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function clear($table, $alias = null)
+    {
+        return $this->operation(self::OPERATION_CLEAR)
+            ->table($table, $alias);
+    }
+
+    /**
      * Sets table name
      *
      * @param string $table
@@ -885,7 +955,6 @@ class Query implements QueryInterface
 
         return $this;
     }
-
 
     /**
      * Casts query to string (builds it)

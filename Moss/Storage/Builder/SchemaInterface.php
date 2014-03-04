@@ -36,6 +36,69 @@ interface SchemaInterface extends BuilderInterface
     const INDEX_UNIQUE = 'unique';
 
     /**
+     * Sets check operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function check($table);
+
+    /**
+     * Sets check operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function info($table);
+
+    /**
+     * Sets check operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function create($table);
+
+    /**
+     * Sets check operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function add($table);
+
+    /**
+     * Sets change operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function change($table);
+
+    /**
+     * Sets remove operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function remove($table);
+
+    /**
+     * Sets drop operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function drop($table);
+
+    /**
      * Sets table column
      *
      * @param string      $name

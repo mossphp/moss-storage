@@ -65,6 +65,97 @@ class Schema implements SchemaInterface
     }
 
     /**
+     * Sets check operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function check($table)
+    {
+        return $this->operation(self::OPERATION_CHECK)
+            ->table($table);
+    }
+
+    /**
+     * Sets info operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function info($table)
+    {
+        return $this->operation(self::OPERATION_INFO)
+            ->table($table);
+    }
+
+    /**
+     * Sets create operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function create($table)
+    {
+        return $this->operation(self::OPERATION_CREATE)
+            ->table($table);
+    }
+
+    /**
+     * Sets add operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function add($table)
+    {
+        return $this->operation(self::OPERATION_ADD)
+            ->table($table);
+    }
+
+    /**
+     * Sets change operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function change($table)
+    {
+        return $this->operation(self::OPERATION_CHANGE)
+            ->table($table);
+    }
+
+    /**
+     * Sets remove operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function remove($table)
+    {
+        return $this->operation(self::OPERATION_REMOVE)
+            ->table($table);
+    }
+
+    /**
+     * Sets drop operation on table
+     *
+     * @param string $table
+     *
+     * @return $this
+     */
+    public function drop($table)
+    {
+        return $this->operation(self::OPERATION_DROP)
+            ->table($table);
+    }
+
+    /**
      * Sets table name
      *
      * @param string $table

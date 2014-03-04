@@ -45,6 +45,56 @@ interface QueryInterface extends BuilderInterface
     const ORDER_DESC = 'desc';
 
     /**
+     * Sets select operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function select($table, $alias = null);
+
+    /**
+     * Sets insert operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function insert($table, $alias = null);
+
+    /**
+     * Sets update operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function update($table, $alias = null);
+
+    /**
+     * Sets delete operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function delete($table, $alias = null);
+
+    /**
+     * Sets clear operation on table
+     *
+     * @param string $table
+     * @param string $alias
+     *
+     * @return $this
+     */
+    public function clear($table, $alias = null);
+
+    /**
      * Adds fields to query
      *
      * @param array $fields
