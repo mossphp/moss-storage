@@ -14,7 +14,6 @@ namespace Moss\Storage\Model;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\IndexInterface;
 use Moss\Storage\Model\Definition\RelationInterface;
-use Moss\Storage\Model\Definition\ForeignInterface;
 
 /**
  * Model describing entity and its relationship to other entities
