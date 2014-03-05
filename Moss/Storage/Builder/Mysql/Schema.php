@@ -1,10 +1,25 @@
 <?php
-namespace Moss\Storage\Builder\MySQL;
 
+/*
+ * This file is part of the Storage package
+ *
+ * (c) Michal Wachowski <wachowski.michal@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Moss\Storage\Builder\MySQL;
 
 use Moss\Storage\Builder\BuilderException;
 use Moss\Storage\Builder\SchemaInterface;
 
+/**
+ * MySQL schema builder - builds queries managing tables (create, alter, drop)
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage\Builder\MySQL
+ */
 class Schema implements SchemaInterface
 {
     const QUOTE = '`';
@@ -34,8 +49,8 @@ class Schema implements SchemaInterface
     protected $operation;
 
     protected $table;
-    protected $engine;
-    protected $charset;
+    protected $engine = 'InnoDB';
+    protected $charset = 'utf8';
 
     protected $columns = array();
     protected $indexes = array();
@@ -45,18 +60,16 @@ class Schema implements SchemaInterface
      *
      * @param string $table
      * @param string $operation
-     * @param string $engine
-     * @param string $charset
      */
-    public function __construct($table = null, $operation = self::OPERATION_CREATE, $engine = 'InnoDB', $charset = 'utf8')
+    public function __construct($table = null, $operation = self::OPERATION_CREATE)
     {
         if ($table !== null) {
             $this->table($table);
-            $this->operation($operation);
         }
 
-        $this->engine = $engine; // todo assert engine
-        $this->charset = $charset; // todo assert charset
+        if ($operation !== null) {
+            $this->operation($operation);
+        }
     }
 
     protected function quote($string)

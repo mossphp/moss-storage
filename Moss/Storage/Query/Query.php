@@ -1,4 +1,14 @@
 <?php
+
+/*
+ * This file is part of the Storage package
+ *
+ * (c) Michal Wachowski <wachowski.michal@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Moss\Storage\Query;
 
 use Moss\Storage\Builder\QueryInterface as BuilderInterface;
@@ -13,10 +23,10 @@ use Moss\Storage\Query\Relation\OneTrough;
 use Moss\Storage\Query\Relation\RelationInterface;
 
 /**
- * Entity query representation
+ * Query used to create and execute CRUD operations on entities
  *
- * @package Moss Storage
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage\Query
  */
 class Query implements QueryInterface
 {

@@ -1,10 +1,25 @@
 <?php
-namespace Moss\Storage\Builder\MySQL;
 
+/*
+ * This file is part of the Storage package
+ *
+ * (c) Michal Wachowski <wachowski.michal@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Moss\Storage\Builder\MySQL;
 
 use Moss\Storage\Builder\BuilderException;
 use Moss\Storage\Builder\QueryInterface;
 
+/**
+ * MySQL query builder - builds CRUD queries
+ *
+ * @author Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage\Builder\MySQL
+ */
 class Query implements QueryInterface
 {
     const QUOTE = '`';
@@ -80,6 +95,12 @@ class Query implements QueryInterface
         }
     }
 
+    /**
+     * @param string $string
+     * @param null $table
+     *
+     * @return string
+     */
     protected function quote($string, $table = null)
     {
         $array = explode(self::SEPARATOR, $string, 2);

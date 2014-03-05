@@ -1,4 +1,14 @@
 <?php
+
+/*
+ * This file is part of the Storage package
+ *
+ * (c) Michal Wachowski <wachowski.michal@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Moss\Storage\Query\Relation;
 
 use Moss\Storage\Model\ModelBag;
@@ -8,8 +18,8 @@ use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterfa
 /**
  * Abstract class for basic relation methods
  *
- * @package Moss Storage
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage\Query
  */
 abstract class Relation implements RelationInterface
 {
