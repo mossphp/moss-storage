@@ -806,8 +806,8 @@ class Query implements QueryInterface
         foreach (array_keys($relation) as $i) {
             $this->assignRelation(
                 $relation[$i],
-                isset($conditions[$i]) ? $conditions[$i] : null,
-                isset($order[$i]) ? $order[$i] : null
+                isset($conditions[$i]) ? $conditions[$i] : array(),
+                isset($order[$i]) ? $order[$i] : array()
             );
         }
 
