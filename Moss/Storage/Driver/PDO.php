@@ -47,7 +47,7 @@ class PDO implements DriverInterface
         );
 
         if (!$this->pdo = new \PDO($dsn, $username, $password, $initCmd)) {
-            throw new DriverException('Database adapter error!');
+            throw new DriverException('Unable to connect with set credentials');
         }
 
         if (!empty($prefix)) {
