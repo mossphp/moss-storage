@@ -138,8 +138,10 @@ class ManyTrough extends Relation
         }
 
         $conditions = array();
-        foreach ($this->relation->localKeys() as $foreign) {
-            $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
+        foreach ($mediators as $mediator) {
+            foreach ($this->relation->localKeys() as $foreign) {
+                $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
+            }
         }
 
         $this->cleanup($this->relation->mediator(), $mediators, $conditions);
