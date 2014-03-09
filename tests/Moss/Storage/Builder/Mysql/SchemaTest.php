@@ -1,8 +1,6 @@
 <?php
 namespace Moss\Storage\Builder\MySQL;
 
-use Moss\Storage\Builder\SchemaInterface;
-
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
     /**
@@ -17,7 +15,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testTable()
     {
-        $schema = new Schema('table', Schema::OPERATION_ADD);
+        $schema = new Schema('table', 'add');
         $schema->column('foo');
         $this->assertEquals('ALTER TABLE `table` ADD `foo` TEXT NOT NULL', $schema->build());
     }
@@ -28,7 +26,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testTableWithEmptyString()
     {
-        $query = new Schema('table', Schema::OPERATION_CHECK);
+        $query = new Schema('table', 'check');
         $query->reset()
             ->table('');
     }
@@ -47,7 +45,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperation($operation, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_CHECK);
+        $schema = new Schema('table', 'check');
         $schema
             ->operation($operation)
             ->column('foo')
@@ -60,7 +58,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperationAliases($operation, $expected)
     {
-        $schema = new Schema('foo', Schema::OPERATION_CHECK);
+        $schema = new Schema('foo', 'check');
         $schema->{$operation}('table')
                 ->column('foo')
                ->index('idx', array('foo'), 'index');
@@ -71,15 +69,15 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                Schema::OPERATION_CHECK,
+                'check',
                 'SHOW TABLES LIKE \'table\''
             ),
             array(
-                Schema::OPERATION_INFO,
+                'info',
                 'SHOW CREATE TABLE `table`'
             ),
             array(
-                Schema::OPERATION_DROP,
+                'drop',
                 'DROP TABLE IF EXISTS `table`'
             )
         );
@@ -90,7 +88,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateColumn($actual, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_CREATE);
+        $schema = new Schema('table', 'create');
         $schema->column('foo', $actual);
         $this->assertEquals('CREATE TABLE `table` ( `foo` ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
@@ -100,7 +98,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddColumn($actual, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_ADD);
+        $schema = new Schema('table', 'add');
         $schema->column('foo', $actual);
         $this->assertEquals('ALTER TABLE `table` ADD `foo` ' . $expected . '', $schema->build());
     }
@@ -110,7 +108,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testChangeColumn($actual, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_CHANGE);
+        $schema = new Schema('table', 'change');
         $schema->column('foo', $actual);
         $this->assertEquals('ALTER TABLE `table` CHANGE `foo` `foo` ' . $expected . '', $schema->build());
     }
@@ -120,7 +118,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveColumn($actual, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_REMOVE);
+        $schema = new Schema('table', 'remove');
         $schema->column('foo', $actual);
         $this->assertEquals('ALTER TABLE `table` DROP `foo`', $schema->build());
     }
@@ -129,27 +127,27 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                Schema::FIELD_BOOLEAN,
+                'boolean',
                 'TINYINT(1) COMMENT \'boolean\' NOT NULL'
             ),
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 'INT(10) NOT NULL',
             ),
             array(
-                Schema::FIELD_DECIMAL,
+                'decimal',
                 'DECIMAL(10,0) NOT NULL',
             ),
             array(
-                Schema::FIELD_STRING,
+                'string',
                 'TEXT NOT NULL'
             ),
             array(
-                Schema::FIELD_DATETIME,
+                'datetime',
                 'DATETIME NOT NULL'
             ),
             array(
-                Schema::FIELD_SERIAL,
+                'serial',
                 'TEXT COMMENT \'serial\' NOT NULL'
             ),
 
@@ -161,7 +159,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testColumnAttributes($type, $attributes, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_ADD);
+        $schema = new Schema('table', 'add');
         $schema->column('foo', $type, $attributes);
         $this->assertEquals('ALTER TABLE `table` ADD `foo` ' . $expected . '', $schema->build());
     }
@@ -170,62 +168,62 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 array('unsigned'),
                 'INT(10) UNSIGNED NOT NULL'
             ),
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 array('default' => 1),
                 'INT(10) DEFAULT 1'
             ),
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 array('auto_increment'),
                 'INT(10) NOT NULL AUTO_INCREMENT'
             ),
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 array('null'),
                 'INT(10) DEFAULT NULL'
             ),
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 array('length' => 6),
                 'INT(6) NOT NULL'
             ),
             array(
-                Schema::FIELD_STRING,
+                'string',
                 array('length' => null),
                 'TEXT NOT NULL'
             ),
             array(
-                Schema::FIELD_STRING,
+                'string',
                 array('length' => 2048),
                 'TEXT NOT NULL'
             ),
             array(
-                Schema::FIELD_STRING,
+                'string',
                 array('length' => 512),
                 'VARCHAR(512) NOT NULL'
             ),
             array(
-                Schema::FIELD_STRING,
+                'string',
                 array('length' => 10),
                 'CHAR(10) NOT NULL'
             ),
             array(
-                Schema::FIELD_DECIMAL,
+                'decimal',
                 array('precision' => 2),
                 'DECIMAL(10,2) NOT NULL'
             ),
             array(
-                Schema::FIELD_DECIMAL,
+                'decimal',
                 array('length' => 6, 'precision' => 2),
                 'DECIMAL(6,2) NOT NULL'
             ),
             array(
-                Schema::FIELD_INTEGER,
+                'integer',
                 array('comment' => 'some comment'),
                 'INT(10) COMMENT \'some comment\' NOT NULL'
             ),
@@ -237,8 +235,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateIndex($type, $fields, $table, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_CREATE);
-        $schema->column('foo', Schema::FIELD_INTEGER)
+        $schema = new Schema('table', 'create');
+        $schema->column('foo', 'integer')
                ->index('foo', $fields, $type, $table);
         $this->assertEquals('CREATE TABLE `table` ( `foo` INT(10) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
@@ -248,7 +246,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddIndex($type, $fields, $table, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_ADD);
+        $schema = new Schema('table', 'add');
         $schema->index('foo', $fields, $type, $table);
         $this->assertEquals('ALTER TABLE `table` ADD ' . $expected . '', $schema->build());
     }
@@ -258,25 +256,25 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                Schema::INDEX_PRIMARY,
+                'primary',
                 array('foo'),
                 null,
                 'PRIMARY KEY (`foo`)'
             ),
             array(
-                Schema::INDEX_UNIQUE,
+                'unique',
                 array('foo'),
                 null,
                 'UNIQUE KEY `foo` (`foo`)'
             ),
             array(
-                Schema::INDEX_INDEX,
+                'index',
                 array('foo'),
                 null,
                 'KEY `foo` (`foo`)'
             ),
             array(
-                Schema::INDEX_FOREIGN,
+                'foreign',
                 array('foo' => 'bar'),
                 'yada',
                 'CONSTRAINT `foo` FOREIGN KEY (`foo`) REFERENCES `yada` (`bar`) ON UPDATE CASCADE ON DELETE RESTRICT'
@@ -289,7 +287,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveIndex($type, $fields, $table, $expected)
     {
-        $schema = new Schema('table', Schema::OPERATION_REMOVE);
+        $schema = new Schema('table', 'remove');
         $schema->index('foo', $fields, $type, $table);
         $this->assertEquals('ALTER TABLE `table` DROP ' . $expected, $schema->build());
     }
@@ -298,25 +296,25 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                Schema::INDEX_PRIMARY,
+                'primary',
                 array('foo'),
                 null,
                 'PRIMARY KEY'
             ),
             array(
-                Schema::INDEX_UNIQUE,
+                'unique',
                 array('foo'),
                 null,
                 'KEY `foo`',
             ),
             array(
-                Schema::INDEX_INDEX,
+                'index',
                 array('foo'),
                 null,
                 'KEY `foo`',
             ),
             array(
-                Schema::INDEX_FOREIGN,
+                'foreign',
                 array('bar'),
                 'yada',
                 'FOREIGN KEY `foo`',
@@ -346,49 +344,49 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             array(
                 'CREATE TABLE `table` (`int` int(10) unsigned NOT NULL AUTO_INCREMENT,) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'int', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
+                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
                 ),
                 array()
             ),
             array(
                 'CREATE TABLE `table` (`int` int(10) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'int', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10)),
+                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
                 ),
                 array()
             ),
             array(
                 'CREATE TABLE `table` (`string` char(10) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'string', 'type' => SchemaInterface::FIELD_STRING, 'attributes' => array('length' => 10)),
+                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
                 ),
                 array()
             ),
             array(
                 'CREATE TABLE `table` (`decimal` decimal(10,2) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'decimal', 'type' => SchemaInterface::FIELD_DECIMAL, 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
+                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
                 ),
                 array()
             ),
             array(
                 'CREATE TABLE `table` (`boolean` tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\') ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'boolean', 'type' => SchemaInterface::FIELD_BOOLEAN, 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => 1, 'comment' => 'boolean')),
+                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => 1, 'comment' => 'boolean')),
                 ),
                 array()
             ),
             array(
                 'CREATE TABLE `table` (`datetime` datetime NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'datetime', 'type' => SchemaInterface::FIELD_DATETIME, 'attributes' => array()),
+                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
                 ),
                 array()
             ),
             array(
                 'CREATE TABLE `table` (`serial` text COMMENT \'serial\') ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'serial', 'type' => SchemaInterface::FIELD_SERIAL, 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
                 ),
                 array()
             ),
@@ -407,37 +405,37 @@ KEY `ind` (`string`),
 CONSTRAINT `fk` FOREIGN KEY (`id`) REFERENCES `rm_rel` (`src_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'id', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => SchemaInterface::FIELD_STRING, 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => SchemaInterface::FIELD_DECIMAL, 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => SchemaInterface::FIELD_BOOLEAN, 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => SchemaInterface::FIELD_DATETIME, 'attributes' => array()),
-                    array('name' => 'serial', 'type' => SchemaInterface::FIELD_SERIAL, 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
+                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
+                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
+                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
+                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
+                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
+                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
                 ),
                 'indexes' => array(
-                    array('name' => 'primary', 'type' => SchemaInterface::INDEX_PRIMARY, 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => SchemaInterface::INDEX_UNIQUE, 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => SchemaInterface::INDEX_INDEX, 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => SchemaInterface::INDEX_FOREIGN, 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
+                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
+                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
+                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
+                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
                 )
             ),
             array(
                 'CREATE TABLE `table` ( `id` int(10) unsigned NOT NULL AUTO_INCREMENT, `int` int(10) NOT NULL, `string` char(10) NOT NULL, `decimal` decimal(10,2) unsigned NOT NULL, `boolean` tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\', `datetime` datetime NOT NULL, `serial` text COMMENT \'serial\', PRIMARY KEY (`id`), UNIQUE KEY `uni` (`int`), KEY `ind` (`string`), CONSTRAINT `fk` FOREIGN KEY (`id`) REFERENCES `rm_rel` (`src_id`) ON UPDATE CASCADE ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'id', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => SchemaInterface::FIELD_STRING, 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => SchemaInterface::FIELD_DECIMAL, 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => SchemaInterface::FIELD_BOOLEAN, 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => SchemaInterface::FIELD_DATETIME, 'attributes' => array()),
-                    array('name' => 'serial', 'type' => SchemaInterface::FIELD_SERIAL, 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
+                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
+                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
+                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
+                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
+                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
+                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
                 ),
                 'indexes' => array(
-                    array('name' => 'primary', 'type' => SchemaInterface::INDEX_PRIMARY, 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => SchemaInterface::INDEX_UNIQUE, 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => SchemaInterface::INDEX_INDEX, 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => SchemaInterface::INDEX_FOREIGN, 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
+                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
+                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
+                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
+                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
                 )
             ),
             array(
@@ -455,37 +453,37 @@ KEY ind (string),
 CONSTRAINT fk FOREIGN KEY (id) REFERENCES rm_rel (src_id) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'id', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => SchemaInterface::FIELD_STRING, 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => SchemaInterface::FIELD_DECIMAL, 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => SchemaInterface::FIELD_BOOLEAN, 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => SchemaInterface::FIELD_DATETIME, 'attributes' => array()),
-                    array('name' => 'serial', 'type' => SchemaInterface::FIELD_SERIAL, 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
+                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
+                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
+                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
+                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
+                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
+                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
                 ),
                 'indexes' => array(
-                    array('name' => 'primary', 'type' => SchemaInterface::INDEX_PRIMARY, 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => SchemaInterface::INDEX_UNIQUE, 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => SchemaInterface::INDEX_INDEX, 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => SchemaInterface::INDEX_FOREIGN, 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
+                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
+                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
+                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
+                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
                 )
             ),
             array(
                 'CREATE TABLE table ( id int(10) unsigned NOT NULL AUTO_INCREMENT, int int(10) NOT NULL, string char(10) NOT NULL, decimal decimal(10,2) unsigned NOT NULL, boolean tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\', datetime datetime NOT NULL, serial text COMMENT \'serial\', PRIMARY KEY (id), UNIQUE KEY uni (int), KEY ind (string), CONSTRAINT fk FOREIGN KEY (id) REFERENCES rm_rel (src_id) ON UPDATE CASCADE ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
                 array(
-                    array('name' => 'id', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => SchemaInterface::FIELD_INTEGER, 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => SchemaInterface::FIELD_STRING, 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => SchemaInterface::FIELD_DECIMAL, 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => SchemaInterface::FIELD_BOOLEAN, 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => SchemaInterface::FIELD_DATETIME, 'attributes' => array()),
-                    array('name' => 'serial', 'type' => SchemaInterface::FIELD_SERIAL, 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
+                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
+                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
+                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
+                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
+                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
+                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
                 ),
                 'indexes' => array(
-                    array('name' => 'primary', 'type' => SchemaInterface::INDEX_PRIMARY, 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => SchemaInterface::INDEX_UNIQUE, 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => SchemaInterface::INDEX_INDEX, 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => SchemaInterface::INDEX_FOREIGN, 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
+                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
+                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
+                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
+                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
                 )
             ),
         );

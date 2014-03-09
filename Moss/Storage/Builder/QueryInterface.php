@@ -21,44 +21,6 @@ interface QueryInterface extends BuilderInterface
 {
     const SEPARATOR = '.';
 
-    // Query operations
-    const OPERATION_SELECT = 'select';
-    const OPERATION_INSERT = 'insert';
-    const OPERATION_UPDATE = 'update';
-    const OPERATION_DELETE = 'delete';
-    const OPERATION_CLEAR = 'clear';
-
-    // Aggregate methods
-    const AGGREGATE_DISTINCT = 'distinct';
-    const AGGREGATE_COUNT = 'count';
-    const AGGREGATE_AVERAGE = 'average';
-    const AGGREGATE_MAX = 'max';
-    const AGGREGATE_MIN = 'min';
-    const AGGREGATE_SUM = 'sum';
-
-    // Join types
-    const JOIN_INNER = 'inner';
-    const JOIN_LEFT = 'left';
-    const JOIN_RIGHT = 'right';
-
-    // Comparison operator types
-    const COMPARISON_EQUAL = '=';
-    const COMPARISON_NOT_EQUAL = '!=';
-    const COMPARISON_LESS = '<';
-    const COMPARISON_GREATER = '>';
-    const COMPARISON_LESS_EQUAL = '<=';
-    const COMPARISON_GREATER_EQUAL = '>=';
-    const COMPARISON_LIKE = 'like';
-    const COMPARISON_REGEX = 'regex';
-
-    // Logical operator types
-    const LOGICAL_AND = 'and';
-    const LOGICAL_OR = 'or';
-
-    // Sorting methods
-    const ORDER_ASC = 'asc';
-    const ORDER_DESC = 'desc';
-
     /**
      * Sets select operation on table
      *
@@ -288,7 +250,7 @@ interface QueryInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND);
+    public function where($field, $value, $comparison = '==', $logical = 'and');
 
     /**
      * Adds having condition to builder
@@ -300,7 +262,7 @@ interface QueryInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function having($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND);
+    public function having($field, $value, $comparison = '==', $logical = 'and');
 
     /**
      * Adds sorting to query
@@ -310,7 +272,7 @@ interface QueryInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function order($field, $order = self::ORDER_DESC);
+    public function order($field, $order = 'desc');
 
     /**
      * Sets limits to query

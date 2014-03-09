@@ -25,25 +25,25 @@ class Schema implements SchemaInterface
     const QUOTE = '`';
 
     private $fieldTypes = array(
-        self::FIELD_BOOLEAN => array('tinyint:boolean'), // tinyint with "bool" in comment
-        self::FIELD_INTEGER => array('tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint'),
-        self::FIELD_DECIMAL => array('decimal'),
-        self::FIELD_STRING => array('char', 'varchar', 'tinytext', 'mediumtext', 'text', 'longtext'),
-        self::FIELD_DATETIME => array('time', 'date', 'datetime', 'timestamp', 'year'),
-        self::FIELD_SERIAL => array('text:serial') // text with "serial" in comment
+        'boolean' => array('tinyint:boolean'), // tinyint with "bool" in comment
+        'integer' => array('tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint'),
+        'decimal' => array('decimal'),
+        'string' => array('char', 'varchar', 'tinytext', 'mediumtext', 'text', 'longtext'),
+        'datetime' => array('time', 'date', 'datetime', 'timestamp', 'year'),
+        'serial' => array('text:serial') // text with "serial" in comment
     );
 
     private $defaults = array(
         'name' => null,
-        'type' => self::FIELD_STRING,
+        'type' => 'string',
         'attributes' => 'null',
-        self::ATTRIBUTE_LENGTH => null,
-        self::ATTRIBUTE_PRECISION => null,
-        self::ATTRIBUTE_NULL => false,
-        self::ATTRIBUTE_UNSIGNED => false,
-        self::ATTRIBUTE_AUTO => false,
-        self::ATTRIBUTE_DEFAULT => null,
-        self::ATTRIBUTE_COMMENT => null
+        'length' => null,
+        'precision' => null,
+        'null' => false,
+        'unsigned' => false,
+        'auto' => false,
+        'default' => null,
+        'comment' => null
     );
 
     protected $operation;
@@ -61,7 +61,7 @@ class Schema implements SchemaInterface
      * @param string $table
      * @param string $operation
      */
-    public function __construct($table = null, $operation = self::OPERATION_CREATE)
+    public function __construct($table = null, $operation = 'create')
     {
         if ($table !== null) {
             $this->table($table);
@@ -86,7 +86,7 @@ class Schema implements SchemaInterface
      */
     public function check($table)
     {
-        return $this->operation(self::OPERATION_CHECK)
+        return $this->operation('check')
             ->table($table);
     }
 
@@ -99,7 +99,7 @@ class Schema implements SchemaInterface
      */
     public function info($table)
     {
-        return $this->operation(self::OPERATION_INFO)
+        return $this->operation('info')
             ->table($table);
     }
 
@@ -112,7 +112,7 @@ class Schema implements SchemaInterface
      */
     public function create($table)
     {
-        return $this->operation(self::OPERATION_CREATE)
+        return $this->operation('create')
             ->table($table);
     }
 
@@ -125,7 +125,7 @@ class Schema implements SchemaInterface
      */
     public function add($table)
     {
-        return $this->operation(self::OPERATION_ADD)
+        return $this->operation('add')
             ->table($table);
     }
 
@@ -138,7 +138,7 @@ class Schema implements SchemaInterface
      */
     public function change($table)
     {
-        return $this->operation(self::OPERATION_CHANGE)
+        return $this->operation('change')
             ->table($table);
     }
 
@@ -151,7 +151,7 @@ class Schema implements SchemaInterface
      */
     public function remove($table)
     {
-        return $this->operation(self::OPERATION_REMOVE)
+        return $this->operation('remove')
             ->table($table);
     }
 
@@ -164,7 +164,7 @@ class Schema implements SchemaInterface
      */
     public function drop($table)
     {
-        return $this->operation(self::OPERATION_DROP)
+        return $this->operation('drop')
             ->table($table);
     }
 
@@ -198,13 +198,13 @@ class Schema implements SchemaInterface
     public function operation($operation)
     {
         switch ($operation) {
-            case self::OPERATION_CHECK:
-            case self::OPERATION_INFO:
-            case self::OPERATION_CREATE:
-            case self::OPERATION_ADD:
-            case self::OPERATION_CHANGE:
-            case self::OPERATION_REMOVE:
-            case self::OPERATION_DROP:
+            case 'check':
+            case 'info':
+            case 'create':
+            case 'add':
+            case 'change':
+            case 'remove':
+            case 'drop':
                 break;
             default:
                 throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
@@ -226,7 +226,7 @@ class Schema implements SchemaInterface
      * @return $this
      * @throws BuilderException
      */
-    public function column($name, $type = self::FIELD_STRING, $attributes = array(), $after = null)
+    public function column($name, $type = 'string', $attributes = array(), $after = null)
     {
         $this->assertColumnType($type);
 
@@ -256,7 +256,7 @@ class Schema implements SchemaInterface
                 $value = true;
             }
 
-            if ($key === self::ATTRIBUTE_LENGTH || $key === self::ATTRIBUTE_PRECISION) {
+            if ($key === 'length' || $key === 'precision') {
                 $value = (int) $value;
             }
 
@@ -274,28 +274,28 @@ class Schema implements SchemaInterface
     protected function buildColumnType($name, $type, array $attributes)
     {
         switch ($type) {
-            case self::FIELD_BOOLEAN:
+            case 'boolean':
                 return 'TINYINT(1) COMMENT \'boolean\'';
                 break;
-            case self::FIELD_INTEGER:
-                $len = isset($attributes[self::ATTRIBUTE_LENGTH]) ? $attributes[self::ATTRIBUTE_LENGTH] : 10;
+            case 'integer':
+                $len = isset($attributes['length']) ? $attributes['length'] : 10;
 
                 return sprintf('INT(%u)', $len);
                 break;
-            case self::FIELD_DECIMAL:
-                $len = isset($attributes[self::ATTRIBUTE_LENGTH]) ? $attributes[self::ATTRIBUTE_LENGTH] : 10;
-                $prc = isset($attributes[self::ATTRIBUTE_PRECISION]) ? $attributes[self::ATTRIBUTE_PRECISION] : 0;
+            case 'decimal':
+                $len = isset($attributes['length']) ? $attributes['length'] : 10;
+                $prc = isset($attributes['precision']) ? $attributes['precision'] : 0;
 
                 return sprintf('DECIMAL(%u,%u)', $len, $prc);
                 break;
-            case self::FIELD_DATETIME:
+            case 'datetime':
                 return 'DATETIME';
                 break;
-            case self::FIELD_SERIAL:
+            case 'serial':
                 return 'TEXT COMMENT \'serial\'';
                 break;
-            case self::FIELD_STRING:
-                $len = isset($attributes[self::ATTRIBUTE_LENGTH]) ? $attributes[self::ATTRIBUTE_LENGTH] : null;
+            case 'string':
+                $len = isset($attributes['length']) ? $attributes['length'] : null;
                 if ($len == 0 || $len > 1023) {
                     return 'TEXT';
                 } elseif ($len > 255) {
@@ -314,27 +314,27 @@ class Schema implements SchemaInterface
     {
         $node = array();
 
-        if (isset($attributes[self::ATTRIBUTE_COMMENT]) && $type != self::FIELD_BOOLEAN && $type != self::FIELD_SERIAL) {
-            $node[] = 'COMMENT \'' . $attributes[self::ATTRIBUTE_COMMENT] . '\'';
+        if (isset($attributes['comment']) && $type != 'boolean' && $type != 'serial') {
+            $node[] = 'COMMENT \'' . $attributes['comment'] . '\'';
         }
 
-        if (isset($attributes[self::ATTRIBUTE_UNSIGNED]) && in_array($type, array(self::FIELD_INTEGER, self::FIELD_DECIMAL))) {
+        if (isset($attributes['unsigned']) && in_array($type, array('integer', 'decimal'))) {
             $node[] = 'UNSIGNED';
         }
 
-        if (isset($attributes[self::ATTRIBUTE_DEFAULT])) {
-            if (!in_array($type, array(self::FIELD_BOOLEAN, self::FIELD_INTEGER, self::FIELD_DECIMAL))) {
-                $node[] = 'DEFAULT \'' . $attributes[self::ATTRIBUTE_DEFAULT] . '\'';
+        if (isset($attributes['default'])) {
+            if (!in_array($type, array('boolean', 'integer', 'decimal'))) {
+                $node[] = 'DEFAULT \'' . $attributes['default'] . '\'';
             } else {
-                $node[] = 'DEFAULT ' . $attributes[self::ATTRIBUTE_DEFAULT];
+                $node[] = 'DEFAULT ' . $attributes['default'];
             }
-        } elseif (isset($attributes[self::ATTRIBUTE_NULL])) {
+        } elseif (isset($attributes['null'])) {
             $node[] = 'DEFAULT NULL';
         } else {
             $node[] = 'NOT NULL';
         }
 
-        if ($type == self::FIELD_INTEGER && isset($attributes[self::ATTRIBUTE_AUTO])) {
+        if ($type == 'integer' && isset($attributes['auto_increment'])) {
             $node[] = 'AUTO_INCREMENT';
         }
 
@@ -352,7 +352,7 @@ class Schema implements SchemaInterface
     {
         $this->assertIndexFields($localFields);
 
-        $this->index('primary', $localFields, self::INDEX_PRIMARY);
+        $this->index('primary', $localFields, 'primary');
     }
 
     /**
@@ -371,7 +371,7 @@ class Schema implements SchemaInterface
         $this->indexes[] = array(
             $name,
             (array) $fields,
-            self::INDEX_FOREIGN,
+            'foreign',
             $table,
         );
 
@@ -393,7 +393,7 @@ class Schema implements SchemaInterface
         $this->indexes[] = array(
             $name,
             (array) $fields,
-            self::INDEX_UNIQUE,
+            'unique',
             null
         );
 
@@ -410,7 +410,7 @@ class Schema implements SchemaInterface
      *
      * @return $this
      */
-    public function index($name, array $fields, $type = self::INDEX_INDEX, $table = null)
+    public function index($name, array $fields, $type = 'index', $table = null)
     {
         $this->assertIndexType($type);
         $this->assertIndexFields($fields);
@@ -427,7 +427,7 @@ class Schema implements SchemaInterface
 
     protected function assertIndexType($type)
     {
-        if (!in_array($type, array(self::INDEX_PRIMARY, self::INDEX_INDEX, self::INDEX_UNIQUE, self::INDEX_FOREIGN))) {
+        if (!in_array($type, array('primary', 'index', 'unique', 'foreign'))) {
             throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->table));
         }
     }
@@ -439,19 +439,19 @@ class Schema implements SchemaInterface
         }
     }
 
-    protected function buildIndex($name, array $fields, $type = self::INDEX_INDEX, $table = null)
+    protected function buildIndex($name, array $fields, $type = 'index', $table = null)
     {
         switch ($type) {
-            case self::INDEX_PRIMARY:
+            case 'primary':
                 return 'PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
                 break;
-            case self::INDEX_FOREIGN:
+            case 'foreign':
                 return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
-            case self::INDEX_UNIQUE:
+            case 'unique':
                 return 'UNIQUE KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
                 break;
-            case self::INDEX_INDEX:
+            case 'index':
                 return 'KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
                 break;
             default:
@@ -488,15 +488,15 @@ class Schema implements SchemaInterface
         $stmt = array();
 
         switch ($this->operation) {
-            case self::OPERATION_CHECK:
+            case 'check':
                 $stmt[] = 'SHOW TABLES LIKE';
                 $stmt[] = '\'' . $this->table . '\'';
                 break;
-            case self::OPERATION_INFO:
+            case 'info':
                 $stmt[] = 'SHOW CREATE TABLE';
                 $stmt[] = $this->quote($this->table);
                 break;
-            case self::OPERATION_CREATE:
+            case 'create':
                 $stmt[] = 'CREATE TABLE';
                 $stmt[] = $this->quote($this->table);
                 $stmt[] = '(';
@@ -516,7 +516,7 @@ class Schema implements SchemaInterface
                 $stmt[] = 'ENGINE=' . $this->engine;
                 $stmt[] = sprintf('DEFAULT CHARSET=%1$s', $this->charset);
                 break;
-            case self::OPERATION_ADD:
+            case 'add':
                 $stmt[] = 'ALTER TABLE';
                 $stmt[] = $this->quote($this->table);
                 $nodes = array();
@@ -534,7 +534,7 @@ class Schema implements SchemaInterface
                 }
                 $stmt[] = implode(', ', $nodes);
                 break;
-            case self::OPERATION_CHANGE:
+            case 'change':
                 $stmt[] = 'ALTER TABLE';
                 $stmt[] = $this->quote($this->table);
                 $nodes = array();
@@ -544,7 +544,7 @@ class Schema implements SchemaInterface
                 }
                 $stmt[] = implode(', ', $nodes);
                 break;
-            case self::OPERATION_REMOVE:
+            case 'remove':
                 $stmt[] = 'ALTER TABLE';
                 $stmt[] = $this->quote($this->table);
                 $nodes = array();
@@ -553,10 +553,10 @@ class Schema implements SchemaInterface
                 }
                 foreach ($this->indexes as $node) {
                     switch ($node[2]) {
-                        case self::INDEX_PRIMARY:
+                        case 'primary':
                             $nodes[] = 'DROP PRIMARY KEY';
                             break;
-                        case self::INDEX_FOREIGN:
+                        case 'foreign':
                             $nodes[] = 'DROP FOREIGN KEY ' . $this->quote($node[0]);
                             break;
                         default:
@@ -565,7 +565,7 @@ class Schema implements SchemaInterface
                 }
                 $stmt[] = implode(', ', $nodes);
                 break;
-            case self::OPERATION_DROP:
+            case 'drop':
                 $stmt[] = 'DROP TABLE IF EXISTS';
                 $stmt[] = $this->quote($this->table);
                 break;
@@ -611,36 +611,36 @@ class Schema implements SchemaInterface
                 'name' => $match['name'],
                 'type' => $match['type'],
                 'attributes' => array(
-                    self::ATTRIBUTE_LENGTH => (int) $match['length'],
-                    self::ATTRIBUTE_PRECISION => (int) $match['precision'],
-                    self::ATTRIBUTE_NULL => stripos($match['attributes'], 'not null') === false || stripos($match['attributes'], 'default null') !== false,
-                    self::ATTRIBUTE_UNSIGNED => stripos($match['attributes'], 'unsigned') !== false,
-                    self::ATTRIBUTE_AUTO => stripos($match['attributes'], 'auto_increment') !== false,
-                    self::ATTRIBUTE_DEFAULT => stripos($match['attributes'], 'default') !== false ? preg_replace('/.*DEFAULT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null,
-                    self::ATTRIBUTE_COMMENT => stripos($match['attributes'], 'comment') !== false ? preg_replace('/.*COMMENT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null
+                    'length' => (int) $match['length'],
+                    'precision' => (int) $match['precision'],
+                    'null' => stripos($match['attributes'], 'not null') === false || stripos($match['attributes'], 'default null') !== false,
+                    'unsigned' => stripos($match['attributes'], 'unsigned') !== false,
+                    'auto_increment' => stripos($match['attributes'], 'auto_increment') !== false,
+                    'default' => stripos($match['attributes'], 'default') !== false ? preg_replace('/.*DEFAULT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null,
+                    'comment' => stripos($match['attributes'], 'comment') !== false ? preg_replace('/.*COMMENT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null
                 )
             );
 
             $type = strtolower($node['type']);
-            $comm = strtolower($node['attributes'][self::ATTRIBUTE_COMMENT]);
+            $comm = strtolower($node['attributes']['comment']);
             switch ($type) {
-                case in_array($type . ':' . $comm, $this->fieldTypes[self::FIELD_BOOLEAN]):
-                    $node['type'] = self::FIELD_BOOLEAN;
+                case in_array($type . ':' . $comm, $this->fieldTypes['boolean']):
+                    $node['type'] = 'boolean';
                     break;
-                case in_array($type . ':' . $comm, $this->fieldTypes[self::FIELD_SERIAL]):
-                    $node['type'] = self::FIELD_SERIAL;
+                case in_array($type . ':' . $comm, $this->fieldTypes['serial']):
+                    $node['type'] = 'serial';
                     break;
-                case in_array($type, $this->fieldTypes[self::FIELD_INTEGER]):
-                    $node['type'] = self::FIELD_INTEGER;
+                case in_array($type, $this->fieldTypes['integer']):
+                    $node['type'] = 'integer';
                     break;
-                case in_array($type, $this->fieldTypes[self::FIELD_DECIMAL]):
-                    $node['type'] = self::FIELD_DECIMAL;
+                case in_array($type, $this->fieldTypes['decimal']):
+                    $node['type'] = 'decimal';
                     break;
-                case in_array($type, $this->fieldTypes[self::FIELD_STRING]):
-                    $node['type'] = self::FIELD_STRING;
+                case in_array($type, $this->fieldTypes['string']):
+                    $node['type'] = 'string';
                     break;
-                case in_array($type, $this->fieldTypes[self::FIELD_DATETIME]):
-                    $node['type'] = self::FIELD_DATETIME;
+                case in_array($type, $this->fieldTypes['datetime']):
+                    $node['type'] = 'datetime';
                     break;
                 default:
                     throw new BuilderException(sprintf('Invalid or unsupported field type "%s" in table "%s"', $type, $this->table));
@@ -674,20 +674,20 @@ class Schema implements SchemaInterface
 
             switch ($node['type']) {
                 case 'PRIMARY KEY':
-                    $node['name'] = self::INDEX_PRIMARY;
-                    $node['type'] = self::INDEX_PRIMARY;
+                    $node['name'] = 'primary';
+                    $node['type'] = 'primary';
                     break;
                 case 'FOREIGN KEY':
-                    $node['type'] = self::INDEX_FOREIGN;
+                    $node['type'] = 'foreign';
                     break;
                 case 'UNIQUE KEY':
-                    $node['type'] = self::INDEX_UNIQUE;
+                    $node['type'] = 'unique';
                     break;
                 default:
-                    $node['type'] = self::INDEX_INDEX;
+                    $node['type'] = 'index';
             }
 
-            if ($node['type'] === self::INDEX_FOREIGN) {
+            if ($node['type'] === 'foreign') {
                 $node['fields'] = array_combine($node['fields'], $node['foreign']);
                 unset($node['foreign']);
             } else {

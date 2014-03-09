@@ -25,39 +25,39 @@ class Query implements QueryInterface
     const QUOTE = '`';
 
     protected $aggregateMethods = array(
-        self::AGGREGATE_DISTINCT => 'DISTINCT',
-        self::AGGREGATE_COUNT => 'COUNT',
-        self::AGGREGATE_AVERAGE => 'AVERAGE',
-        self::AGGREGATE_MAX => 'MAX',
-        self::AGGREGATE_MIN => 'MIN',
-        self::AGGREGATE_SUM => 'SUM'
+        'distinct' => 'DISTINCT',
+        'count' => 'COUNT',
+        'average' => 'AVERAGE',
+        'max' => 'MAX',
+        'min' => 'MIN',
+        'sum' => 'SUM'
     );
 
     protected $joinTypes = array(
-        self::JOIN_INNER => 'INNER JOIN',
-        self::JOIN_LEFT => 'LEFT OUTER JOIN',
-        self::JOIN_RIGHT => 'RIGHT OUTER JOIN',
+        'inner' => 'INNER JOIN',
+        'left' => 'LEFT OUTER JOIN',
+        'right' => 'RIGHT OUTER JOIN',
     );
 
     protected $comparisonOperators = array(
-        self::COMPARISON_EQUAL => '=',
-        self::COMPARISON_NOT_EQUAL => '!=',
-        self::COMPARISON_LESS => '<',
-        self::COMPARISON_GREATER => '>',
-        self::COMPARISON_LESS_EQUAL => '<=',
-        self::COMPARISON_GREATER_EQUAL => '>=',
-        self::COMPARISON_LIKE => 'LIKE',
-        self::COMPARISON_REGEX => 'REGEX'
+        '=' => '=',
+        '!=' => '!=',
+        '<' => '<',
+        '>' => '>',
+        '<=' => '<=',
+        '>=' => '>=',
+        'like' => 'LIKE',
+        'regex' => 'REGEX'
     );
 
     protected $logicalOperators = array(
-        self::LOGICAL_AND => 'AND',
-        self::LOGICAL_OR => 'OR',
+        'and' => 'AND',
+        'or' => 'OR',
     );
 
     protected $orderMethods = array(
-        self::ORDER_ASC => 'ASC',
-        self::ORDER_DESC => 'DESC',
+        'asc' => 'ASC',
+        'desc' => 'DESC',
     );
 
     protected $operation;
@@ -87,7 +87,7 @@ class Query implements QueryInterface
      * @param string $alias
      * @param string $operation
      */
-    public function __construct($table = null, $alias = null, $operation = self::OPERATION_SELECT)
+    public function __construct($table = null, $alias = null, $operation = 'select')
     {
         if ($table !== null) {
             $this->table($table, $alias);
@@ -105,7 +105,7 @@ class Query implements QueryInterface
     {
         $array = explode(self::SEPARATOR, $string, 2);
 
-        if ($this->operation !== self::OPERATION_SELECT) {
+        if ($this->operation !== 'select') {
             return self::QUOTE . $string . self::QUOTE;
         }
 
@@ -121,7 +121,7 @@ class Query implements QueryInterface
             $array[0] = self::QUOTE . $array[0] . self::QUOTE;
         }
 
-        return $array[0] . self::SEPARATOR . self::QUOTE . $array[1] . self::QUOTE;
+        return $array[0] . '.' . self::QUOTE . $array[1] . self::QUOTE;
     }
 
     /**
@@ -134,7 +134,7 @@ class Query implements QueryInterface
      */
     public function select($table, $alias = null)
     {
-        return $this->operation(self::OPERATION_SELECT)
+        return $this->operation('select')
             ->table($table, $alias);
     }
 
@@ -148,7 +148,7 @@ class Query implements QueryInterface
      */
     public function insert($table, $alias = null)
     {
-        return $this->operation(self::OPERATION_INSERT)
+        return $this->operation('insert')
             ->table($table, $alias);
     }
 
@@ -162,7 +162,7 @@ class Query implements QueryInterface
      */
     public function update($table, $alias = null)
     {
-        return $this->operation(self::OPERATION_UPDATE)
+        return $this->operation('update')
             ->table($table, $alias);
     }
 
@@ -176,7 +176,7 @@ class Query implements QueryInterface
      */
     public function delete($table, $alias = null)
     {
-        return $this->operation(self::OPERATION_DELETE)
+        return $this->operation('delete')
             ->table($table, $alias);
     }
 
@@ -190,7 +190,7 @@ class Query implements QueryInterface
      */
     public function clear($table, $alias = null)
     {
-        return $this->operation(self::OPERATION_CLEAR)
+        return $this->operation('clear')
             ->table($table, $alias);
     }
 
@@ -233,11 +233,11 @@ class Query implements QueryInterface
     public function operation($operation)
     {
         switch ($operation) {
-            case self::OPERATION_SELECT:
-            case self::OPERATION_INSERT:
-            case self::OPERATION_UPDATE:
-            case self::OPERATION_DELETE:
-            case self::OPERATION_CLEAR:
+            case 'select':
+            case 'insert':
+            case 'update':
+            case 'delete':
+            case 'clear':
                 break;
             default:
                 throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
@@ -253,7 +253,7 @@ class Query implements QueryInterface
         $result = array();
         $result[] = $this->table[0];
 
-        if ($this->operation !== self::OPERATION_SELECT) {
+        if ($this->operation !== 'select') {
             return implode(' ', $result);
         }
 
@@ -274,7 +274,7 @@ class Query implements QueryInterface
             $result[] = 'ON';
 
             foreach ($joins as $join) {
-                $result[] = $join[0] . ' ' . self::COMPARISON_EQUAL . ' ' . $join[1];
+                $result[] = $join[0] . ' = ' . $join[1];
             }
         }
 
@@ -326,7 +326,7 @@ class Query implements QueryInterface
      */
     public function distinct($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_DISTINCT, $field, $alias);
+        return $this->aggregate('distinct', $field, $alias);
     }
 
     /**
@@ -339,7 +339,7 @@ class Query implements QueryInterface
      */
     public function count($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_COUNT, $field, $alias);
+        return $this->aggregate('count', $field, $alias);
     }
 
     /**
@@ -352,7 +352,7 @@ class Query implements QueryInterface
      */
     public function average($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_AVERAGE, $field, $alias);
+        return $this->aggregate('average', $field, $alias);
     }
 
     /**
@@ -365,7 +365,7 @@ class Query implements QueryInterface
      */
     public function max($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_MAX, $field, $alias);
+        return $this->aggregate('max', $field, $alias);
     }
 
     /**
@@ -378,7 +378,7 @@ class Query implements QueryInterface
      */
     public function min($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_MIN, $field, $alias);
+        return $this->aggregate('min', $field, $alias);
     }
 
     /**
@@ -391,7 +391,7 @@ class Query implements QueryInterface
      */
     public function sum($field, $alias = null)
     {
-        return $this->aggregate(self::AGGREGATE_SUM, $field, $alias);
+        return $this->aggregate('sum', $field, $alias);
     }
 
     /**
@@ -541,7 +541,12 @@ class Query implements QueryInterface
             $values[] = ($node[1] === null ? 'NULL' : $node[1]);
         }
 
-        return '(' . implode(', ', $fields) . ') ' . (count($fields) > 1 ? 'VALUES' : 'VALUE') . ' (' . implode(', ', $values) . ')';
+        return sprintf(
+            '(%s) %s (%s)',
+            implode(', ', $fields),
+            count($fields) > 1 ? 'VALUES' : 'VALUE',
+            implode(', ', $values)
+        );
     }
 
     protected function buildUpdateValues()
@@ -569,7 +574,7 @@ class Query implements QueryInterface
      */
     public function innerJoin($table, array $joins)
     {
-        return $this->join(self::JOIN_INNER, $table, $joins);
+        return $this->join('inner', $table, $joins);
     }
 
     /**
@@ -582,7 +587,7 @@ class Query implements QueryInterface
      */
     public function leftJoin($table, array $joins)
     {
-        return $this->join(self::JOIN_LEFT, $table, $joins);
+        return $this->join('left', $table, $joins);
     }
 
     /**
@@ -595,7 +600,7 @@ class Query implements QueryInterface
      */
     public function rightJoin($table, array $joins)
     {
-        return $this->join(self::JOIN_RIGHT, $table, $joins);
+        return $this->join('right', $table, $joins);
     }
 
     /**
@@ -661,7 +666,7 @@ class Query implements QueryInterface
      * @return $this
      * @throws BuilderException
      */
-    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
+    public function where($field, $value, $comparison = '=', $logical = 'and')
     {
         $this->assertComparisonOperator($comparison);
         $this->assertLogicalOperator($logical);
@@ -693,7 +698,7 @@ class Query implements QueryInterface
      * @return $this
      * @throws BuilderException
      */
-    public function having($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
+    public function having($field, $value, $comparison = '=', $logical = 'and')
     {
         $this->assertComparisonOperator($comparison);
         $this->assertLogicalOperator($logical);
@@ -775,7 +780,7 @@ class Query implements QueryInterface
                 $condition[] = $this->buildConditionString($node[0][$key], is_array($node[1]) ? $node[1][$key] : $node[1], $node[2]);
             }
 
-            $result[] = '(' . implode(' ' . $this->logicalOperators[self::LOGICAL_OR] . ' ', $condition) . ')';
+            $result[] = '(' . implode(' OR ', $condition) . ')';
             $result[] = $node[3];
         }
 
@@ -792,17 +797,17 @@ class Query implements QueryInterface
                 unset($val);
             }
 
-            $operator = $operator == self::COMPARISON_NOT_EQUAL ? self::LOGICAL_AND : self::LOGICAL_OR;
+            $operator = $operator === '!=' ? 'AND' : 'OR';
 
-            return '(' . implode(sprintf(' %s ', $this->logicalOperators[$operator]), $bind) . ')';
+            return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
         }
 
         if ($bind === null) {
             return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
         }
 
-        if ($operator == self::COMPARISON_REGEX) {
-            return sprintf('LOWER(%s) %s LOWER(%s)', $field, $operator, $bind);
+        if ($operator === 'REGEX') {
+            return sprintf('LOWER(%s) REGEX LOWER(%s)', $field, $bind);
         }
 
         return $field . ' ' . $operator . ' ' . $bind;
@@ -817,7 +822,7 @@ class Query implements QueryInterface
      * @return $this
      * @throws BuilderException
      */
-    public function order($field, $order = self::ORDER_DESC)
+    public function order($field, $order = 'desc')
     {
         if (!is_array($order) && !isset($this->orderMethods[$order])) {
             throw new BuilderException(sprintf('Query builder does not supports order method "%s"', $order));
@@ -856,7 +861,7 @@ class Query implements QueryInterface
             }
 
             foreach ($node[1] as $v) {
-                $output[] = $this->buildConditionString($node[0], $v, $this->comparisonOperators[self::COMPARISON_EQUAL]) . ' ' . $this->orderMethods[self::ORDER_DESC];
+                $output[] = $this->buildConditionString($node[0], $v, '=') . ' DESC';
             }
         }
 
@@ -907,7 +912,7 @@ class Query implements QueryInterface
         $stmt = array();
 
         switch ($this->operation) {
-            case self::OPERATION_SELECT:
+            case 'select':
                 $stmt[] = 'SELECT';
                 $stmt[] = $this->buildFields();
                 $stmt[] = 'FROM';
@@ -918,25 +923,25 @@ class Query implements QueryInterface
                 $stmt[] = $this->buildOrder();
                 $stmt[] = $this->buildLimit();
                 break;
-            case self::OPERATION_INSERT:
+            case 'insert':
                 $stmt[] = 'INSERT INTO';
                 $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildInsertValues();
                 break;
-            case self::OPERATION_UPDATE:
+            case 'update':
                 $stmt[] = 'UPDATE';
                 $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildUpdateValues();
                 $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildLimit();
                 break;
-            case self::OPERATION_DELETE:
+            case 'delete':
                 $stmt[] = 'DELETE FROM';
                 $stmt[] = $this->buildTable();
                 $stmt[] = $this->buildWhere();
                 $stmt[] = $this->buildLimit();
                 break;
-            case self::OPERATION_CLEAR:
+            case 'clear':
                 $stmt[] = 'TRUNCATE TABLE';
                 $stmt[] = $this->buildTable();
                 break;
