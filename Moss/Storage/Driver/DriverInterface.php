@@ -19,14 +19,6 @@ namespace Moss\Storage\Driver;
  */
 interface DriverInterface
 {
-    // Field types
-    const FIELD_BOOLEAN = 'boolean';
-    const FIELD_INTEGER = 'integer';
-    const FIELD_DECIMAL = 'decimal';
-    const FIELD_STRING = 'string';
-    const FIELD_DATETIME = 'datetime';
-    const FIELD_SERIAL = 'serial';
-
     // todo - add method returning database type
 
     /**

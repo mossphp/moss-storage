@@ -31,14 +31,17 @@ class PDO implements DriverInterface
     /**
      * Constructor
      *
-     * @param string $dsn
+     * @param string $driver
+     * @param string $database
      * @param string $username
      * @param string $password
+     * @param string $hostname
+     * @param int    $port
      * @param string $prefix
      *
      * @throws DriverException
      */
-    public function __construct($dsn, $username, $password, $prefix = null)
+    public function __construct($driver, $database, $username, $password, $hostname = 'localhost', $port = 3306, $prefix = null)
     {
         $initCmd = array(
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
@@ -46,8 +49,9 @@ class PDO implements DriverInterface
             \PDO::ATTR_EMULATE_PREPARES => 1,
         );
 
+        $dsn = sprintf('%s:dbname=%s;host=%s;port=%u', $driver, $database, $hostname, $port);
         if (!$this->pdo = new \PDO($dsn, $username, $password, $initCmd)) {
-            throw new DriverException('Unable to connect with set credentials');
+            throw new DriverException('Database adapter error!');
         }
 
         if (!empty($prefix)) {
@@ -121,22 +125,22 @@ class PDO implements DriverInterface
             return null;
         }
 
-        if ($type === self::FIELD_BOOLEAN || $type === self::FIELD_INTEGER) {
+        if ($type === 'boolean' || $type === 'integer') {
             return (int) $value;
         }
 
-        if ($type === self::FIELD_DECIMAL) {
+        if ($type === 'decimal') {
             $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
             $value = str_replace(',', '.', $value);
 
             return (float) $value;
         }
 
-        if ($type === self::FIELD_DATETIME && $value instanceof \DateTime) {
+        if ($type === 'datetime' && $value instanceof \DateTime) {
             return $value->format('Y-m-d H:i:s');
         }
 
-        if ($type === self::FIELD_SERIAL) {
+        if ($type === 'serial') {
             return base64_encode(serialize($value));
         }
 
@@ -157,15 +161,15 @@ class PDO implements DriverInterface
             return null;
         }
 
-        if ($type === self::FIELD_BOOLEAN) {
+        if ($type === 'boolean') {
             return (bool) $value;
         }
 
-        if ($type === self::FIELD_INTEGER) {
+        if ($type === 'integer') {
             return (int) $value;
         }
 
-        if ($type === self::FIELD_DECIMAL) {
+        if ($type === 'decimal') {
             $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
             $value = str_replace(',', '.', $value);
             $value = strpos($value, '.') === false ? (int) $value : (float) $value;
@@ -173,11 +177,11 @@ class PDO implements DriverInterface
             return $value;
         }
 
-        if ($type === self::FIELD_DATETIME) {
+        if ($type === 'datetime') {
             return new \DateTime($value);
         }
 
-        if ($type === self::FIELD_SERIAL) {
+        if ($type === 'serial') {
             return unserialize(base64_decode($value));
         }
 
