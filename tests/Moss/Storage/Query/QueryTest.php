@@ -2,8 +2,10 @@
 namespace Moss\Storage\Query;
 
 use Moss\Storage\Builder\MySQL\Query as Builder;
-use Moss\Storage\Model\Definition\Field\Field;
+use Moss\Storage\Model\Definition\Field\Integer;
+use Moss\Storage\Model\Definition\Field\String;
 use Moss\Storage\Model\Definition\Index\Primary;
+use Moss\Storage\Model\Definition\Relation\One;
 use Moss\Storage\Model\Definition\Relation\Relation;
 use Moss\Storage\Model\Model;
 use Moss\Storage\Model\ModelBag;
@@ -20,14 +22,6 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $this->assertInstanceOf('\Moss\Storage\Builder\QueryInterface', $query->builder());
-    }
-
-    public function testGetModel()
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->operation(Query::OPERATION_READ, 'table');
-        $this->assertInstanceOf('\Moss\Storage\Model\ModelInterface', $query->model());
     }
 
     /**
@@ -48,7 +42,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_WRITE, 'table', $instance);
+            ->operation('read', 'table', $instance);
     }
 
     public function instanceProvider()
@@ -59,11 +53,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    public function testCount()
+    public function testNumber()
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_COUNT, 'table');
+            ->number('table');
 
         $expected = array(
             'SELECT `table`.`id` FROM `table`',
@@ -77,7 +71,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table');
+            ->read('table');
 
         $expected = array(
             'SELECT `table`.`id`, `table`.`text` FROM `table`',
@@ -91,7 +85,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ_ONE, 'table');
+            ->readOne('table');
 
         $expected = array(
             'SELECT `table`.`id`, `table`.`text` FROM `table` LIMIT 1',
@@ -109,8 +103,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                     '\stdClass',
                     'table',
                     array(
-                        new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                        new Field('text', Model::FIELD_STRING, array('length' => '128', 'null'), 'mapping'),
+                        new Integer('id', array('unsigned', 'auto_increment')),
+                        new String('text', array('length' => '128', 'null'), 'mapping'),
                     ),
                     array(
                         new Primary(array('id')),
@@ -121,7 +115,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $bag);
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table');
+            ->read('table');
 
         $expected = array(
             'SELECT `table`.`id`, `table`.`text` AS `mapping` FROM `table`',
@@ -139,7 +133,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->fields(array('foobar'));
     }
 
@@ -150,7 +144,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->fields($fields);
 
         $expected = array(
@@ -186,7 +180,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->aggregate('foo', 'id');
     }
 
@@ -197,7 +191,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->aggregate($method, 'id');
 
         $expected = array(
@@ -215,7 +209,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table');
+            ->read('table');
 
         call_user_func(array($query, $method), 'id');
 
@@ -230,12 +224,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function aggregateProvider()
     {
         return array(
-            array(Builder::AGGREGATE_DISTINCT, 'DISTINCT(`table`.`id`) AS `distinct`'),
-            array(Builder::AGGREGATE_COUNT, 'COUNT(`table`.`id`) AS `count`'),
-            array(Builder::AGGREGATE_AVERAGE, 'AVERAGE(`table`.`id`) AS `average`'),
-            array(Builder::AGGREGATE_MAX, 'MAX(`table`.`id`) AS `max`'),
-            array(Builder::AGGREGATE_MIN, 'MIN(`table`.`id`) AS `min`'),
-            array(Builder::AGGREGATE_SUM, 'SUM(`table`.`id`) AS `sum`'),
+            array('distinct', 'DISTINCT(`table`.`id`) AS `distinct`'),
+            array('count', 'COUNT(`table`.`id`) AS `count`'),
+            array('average', 'AVERAGE(`table`.`id`) AS `average`'),
+            array('max', 'MAX(`table`.`id`) AS `max`'),
+            array('min', 'MIN(`table`.`id`) AS `min`'),
+            array('sum', 'SUM(`table`.`id`) AS `sum`'),
         );
     }
 
@@ -247,7 +241,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->where('id', 1, '!!');
     }
 
@@ -259,7 +253,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->where('id', 1, '=', 'foo');
     }
 
@@ -270,7 +264,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->where($field, $value);
 
         $expected = array(
@@ -299,7 +293,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->join($join, 'other')
             ->field('table.id')
             ->field('other.id');
@@ -319,7 +313,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->field('table.id')
             ->field('other.id');
 
@@ -336,9 +330,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function joinProvider()
     {
         return array(
-            array(Builder::JOIN_INNER, 'INNER JOIN'),
-            array(Builder::JOIN_LEFT, 'LEFT OUTER JOIN'),
-            array(Builder::JOIN_RIGHT, 'RIGHT OUTER JOIN')
+            array('inner', 'INNER JOIN'),
+            array('left', 'LEFT OUTER JOIN'),
+            array('right', 'RIGHT OUTER JOIN')
         );
     }
 
@@ -349,7 +343,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->where('id', 1, $operator);
 
         $expected = array(
@@ -370,7 +364,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             array('<', '(`table`.`id` < :condition_0_id)'),
             array('<=', '(`table`.`id` <= :condition_0_id)'),
             array('like', '(`table`.`id` LIKE :condition_0_id)'),
-            array('regex', '(`table`.`id` REGEX :condition_0_id)'),
+            array('regex', '(LOWER(`table`.`id`) REGEX LOWER(:condition_0_id))'),
         );
     }
 
@@ -381,7 +375,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->where('id', 1, '=', $operator)
             ->where('id', 2, '=', $operator);
 
@@ -405,7 +399,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->group('id');
 
         $expected = array(
@@ -424,7 +418,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->order('foo', 'bar');
     }
 
@@ -435,7 +429,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->order('id', $order);
 
         $expected = array(
@@ -449,8 +443,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function orderProvider()
     {
         return array(
-            array(Builder::ORDER_ASC, '`table`.`id` ASC'),
-            array(Builder::ORDER_DESC, '`table`.`id` DESC'),
+            array('asc', '`table`.`id` ASC'),
+            array('desc', '`table`.`id` DESC'),
             array(array(1, 2), '`table`.`id` = :order_0_id DESC, `table`.`id` = :order_1_id DESC', array(':order_0_id' => 1, ':order_1_id' => 2))
         );
     }
@@ -462,7 +456,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_READ, 'table')
+            ->read('table')
             ->limit($limit, $offset);
 
         $expected = array(
@@ -492,7 +486,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_WRITE, 'table', $entity);
+            ->write('table', $entity);
 
         $expected = array(
             'INSERT INTO `table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
@@ -510,7 +504,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query($this->mockDriver(1), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_WRITE, 'table', $entity);
+            ->write('table', $entity);
 
         $expected = array(
             'UPDATE `table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
@@ -528,7 +522,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_INSERT, 'table', $entity);
+            ->insert('table', $entity);
 
         $expected = array(
             'INSERT INTO `table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
@@ -546,7 +540,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_UPDATE, 'table', $entity);
+            ->update('table', $entity);
 
         $expected = array(
             'UPDATE `table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
@@ -564,7 +558,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_DELETE, 'table', $entity);
+            ->delete('table', $entity);
 
         $expected = array(
             'DELETE FROM `table` WHERE `id` = :condition_0_id',
@@ -578,7 +572,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->operation(Query::OPERATION_CLEAR, 'table');
+            ->clear('table');
 
         $expected = array(
             'TRUNCATE TABLE `table`',
@@ -628,14 +622,14 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             '\stdClass',
             'table',
             array(
-                new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
+                new Integer('id', array('unsigned', 'auto_increment')),
+                new String('text', array('length' => '128', 'null')),
             ),
             array(
                 new Primary(array('id')),
             ),
             array(
-                new Relation('\altClass', Model::RELATION_ONE, array('id' => 'id'), 'other')
+                new One('\altClass', array('id' => 'id'), 'other')
             )
         );
 
@@ -643,8 +637,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             '\altClass',
             'other',
             array(
-                new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
+                new Integer('id', array('unsigned', 'auto_increment')),
+                new String('text', array('length' => '128', 'null')),
             ),
             array(
                 new Primary(array('id')),

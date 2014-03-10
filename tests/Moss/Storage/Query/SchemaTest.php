@@ -2,8 +2,10 @@
 namespace Moss\Storage\Query;
 
 use Moss\Storage\Builder\MySQL\Schema as Builder;
-use Moss\Storage\Model\Definition\Field\Field;
+use Moss\Storage\Model\Definition\Field\Integer;
+use Moss\Storage\Model\Definition\Field\String;
 use Moss\Storage\Model\Definition\Index\Primary;
+use Moss\Storage\Model\Definition\Relation\One;
 use Moss\Storage\Model\Definition\Relation\Relation;
 use Moss\Storage\Model\Model;
 use Moss\Storage\Model\ModelBag;
@@ -21,7 +23,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->operation(Schema::OPERATION_CHECK, $table);
+               ->check($table);
         $this->assertEquals(array($table => 'SHOW TABLES LIKE \'' . $table . '\''), $schema->queryString());
     }
 
@@ -32,7 +34,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->operation(Schema::OPERATION_DROP, $table);
+               ->drop($table);
         $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $table . '`'), $schema->queryString());
     }
 
@@ -51,7 +53,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->operation(Schema::OPERATION_CREATE, $table);
+               ->create($table);
         $this->assertEquals(array(0 => $expected), $schema->queryString());
     }
 
@@ -70,7 +72,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver($current), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->operation(Schema::OPERATION_ALTER, 'table');
+               ->alter('table');
         $this->assertEquals($expected, $schema->queryString());
     }
 
@@ -134,14 +136,14 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             '\stdClass',
             'table',
             array(
-                new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
+                new Integer('id', array('unsigned', 'auto_increment')),
+                new String('text', array('length' => '128', 'null')),
             ),
             array(
                 new Primary(array('id')),
             ),
             array(
-                new Relation('\stdClass', Model::RELATION_ONE, array('id' => 'id'), 'other')
+                new One('\stdClass', array('id' => 'id'), 'other')
             )
         );
 
@@ -149,8 +151,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             '\altClass',
             'other',
             array(
-                new Field('id', Model::FIELD_INTEGER, array('unsigned', 'auto_increment')),
-                new Field('text', Model::FIELD_STRING, array('length' => '128', 'null')),
+                new Integer('id', array('unsigned', 'auto_increment')),
+                new String('text', array('length' => '128', 'null')),
             ),
             array(
                 new Primary(array('id')),
