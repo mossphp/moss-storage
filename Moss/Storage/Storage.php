@@ -43,7 +43,6 @@ class Storage implements StorageInterface
 
     /**
      * Constructor
-     * If Modeler passed - modeler will be used to build models on the run when not present in storage
      *
      * @param DriverInterface    $driver
      * @param BuilderInterface[] $builders
@@ -110,55 +109,61 @@ class Storage implements StorageInterface
     /**
      * Returns true if entity table exists
      *
-     * @param string|object $entityClass
+     * @param string|object $entity
      *
      * @return Schema
      */
-    public function check($entityClass = null)
+    public function check($entity = null)
     {
-        return $this->schema(Schema::OPERATION_CHECK, $entityClass);
+        return $this->schema()
+            ->check($entity);
     }
 
     /**
      * Returns query creating entity table
      *
-     * @param string|object $entityClass
+     * @param string|object $entity
      *
      * @return Schema
      */
-    public function create($entityClass = null)
+    public function create($entity = null)
     {
-        return $this->schema(Schema::OPERATION_CREATE, $entityClass);
+        return $this->schema()
+            ->create($entity);
     }
 
     /**
      * Returns query altering entity table
      *
-     * @param string|object $entityClass
+     * @param string|object $entity
      *
      * @return Schema
      */
-    public function alter($entityClass = null)
+    public function alter($entity = null)
     {
-        return $this->schema(Schema::OPERATION_ALTER, $entityClass);
+        return $this->schema()
+            ->alter($entity);
     }
 
     /**
      * Returns query removing entity table
      *
-     * @param string|object $entityClass
+     * @param string|object $entity
      *
      * @return Schema
      */
-    public function drop($entityClass = null)
+    public function drop($entity = null)
     {
-        return $this->schema(Schema::OPERATION_DROP, $entityClass);
+        return $this->schema()
+            ->drop($entity);
     }
 
-    protected function schema($operation, $entity)
+    /**
+     * @return Schema
+     */
+    protected function schema()
     {
         $schema = new Schema($this->driver, $this->builders['schema'], $this->models);
-        $schema->operation($operation, $entity);
 
         return $schema;
     }
@@ -166,103 +171,113 @@ class Storage implements StorageInterface
     /**
      * Returns count query for passed entity class
      *
-     * @param string $entityClass
+     * @param string $entity
      *
      * @return Query
      */
-    public function count($entityClass)
+    public function count($entity)
     {
-        return $this->query(Query::OPERATION_COUNT, $entityClass);
+        return $this->query()
+            ->number($entity);
     }
 
     /**
      * Returns read single entity for passed entity class
      *
-     * @param string $entityClass
+     * @param string $entity
      *
      * @return Query
      */
-    public function readOne($entityClass)
+    public function readOne($entity)
     {
-        return $this->query(Query::OPERATION_READ_ONE, $entityClass);
+        return $this->query()
+            ->readOne($entity);
     }
 
     /**
      * Returns read query for passed entity class
      *
-     * @param string $entityClass
+     * @param string $entity
      *
      * @return Query
      */
-    public function read($entityClass)
+    public function read($entity)
     {
-        return $this->query(Query::OPERATION_READ, $entityClass);
-    }
-
-    /**
-     * Returns insert query for passed entity object or entity class
-     *
-     * @param string|object $entity
-     *
-     * @return Query
-     */
-    public function insert($entity)
-    {
-        return $this->query(Query::OPERATION_INSERT, get_class($entity), $entity);
+        return $this->query()
+            ->read($entity);
     }
 
     /**
      * Returns write query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param string|object $instance
      *
      * @return Query
      */
-    public function write($entity)
+    public function write($instance)
     {
-        return $this->query(Query::OPERATION_WRITE, get_class($entity), $entity);
+        return $this->query()
+            ->write(get_class($instance), $instance);
+    }
+
+    /**
+     * Returns insert query for passed entity object or entity class
+     *
+     * @param string|object $instance
+     *
+     * @return Query
+     */
+    public function insert($instance)
+    {
+        return $this->query()
+            ->insert(get_class($instance), $instance);
     }
 
     /**
      * Returns update query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param string|object $instance
      *
      * @return Query
      */
-    public function update($entity)
+    public function update($instance)
     {
-        return $this->query(Query::OPERATION_UPDATE, get_class($entity), $entity);
+        return $this->query()
+            ->update(get_class($instance), $instance);
     }
 
     /**
      * Returns delete query for passed entity object or entity class
      *
-     * @param string|object $entity
+     * @param string|object $instance
      *
      * @return Query
      */
-    public function delete($entity)
+    public function delete($instance)
     {
-        return $this->query(Query::OPERATION_DELETE, get_class($entity), $entity);
+        return $this->query()
+            ->delete(get_class($instance), $instance);
     }
 
     /**
      * Returns clear query for passed entity class
      *
-     * @param string $entityClass
+     * @param string $entity
      *
      * @return Query
      */
-    public function clear($entityClass)
+    public function clear($entity)
     {
-        return $this->query(Query::OPERATION_CLEAR, $entityClass);
+        return $this->query()
+            ->clear($entity);
     }
 
-    protected function query($operation, $entity, $instance = null)
+    /**
+     * @return Query
+     */
+    protected function query()
     {
         $query = new Query($this->driver, $this->builders['query'], $this->models);
-        $query->operation($operation, $entity, $instance);
 
         return $query;
     }

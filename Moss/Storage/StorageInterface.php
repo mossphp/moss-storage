@@ -113,40 +113,40 @@ interface StorageInterface
     public function read($entityClass);
 
     /**
-     * Returns insert query for passed entity object or entity class
-     *
-     * @param object $entity
-     *
-     * @return QueryInterface
-     */
-    public function insert($entity);
-
-    /**
      * Returns write query for passed entity object or entity class
      *
-     * @param object $entity
+     * @param object $instance
      *
      * @return QueryInterface
      */
-    public function write($entity);
+    public function write($instance);
+
+    /**
+     * Returns insert query for passed entity object or entity class
+     *
+     * @param object $instance
+     *
+     * @return QueryInterface
+     */
+    public function insert($instance);
 
     /**
      * Returns update query for passed entity object or entity class
      *
-     * @param object $entity
+     * @param object $instance
      *
      * @return QueryInterface
      */
-    public function update($entity);
+    public function update($instance);
 
     /**
      * Returns delete query for passed entity object or entity class
      *
-     * @param object $entity
+     * @param object $instance
      *
      * @return QueryInterface
      */
-    public function delete($entity);
+    public function delete($instance);
 
     /**
      * Clears entity table
