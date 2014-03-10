@@ -174,7 +174,7 @@ abstract class Relation implements RelationInterface
             $query->reset();
         }
 
-        $query->operation(QueryInterface::OPERATION_READ, $entity);
+        $query->read($entity);
 
         foreach ($conditions as $field => $values) {
             $query->where($field, $values);
@@ -214,7 +214,7 @@ abstract class Relation implements RelationInterface
 
             $query = clone $this->query;
             $query->reset()
-                ->operation(QueryInterface::OPERATION_DELETE, $entity, $instance)
+                ->delete($entity, $instance)
                 ->execute();
         }
 

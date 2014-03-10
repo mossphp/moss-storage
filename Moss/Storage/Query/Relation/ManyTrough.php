@@ -110,7 +110,7 @@ class ManyTrough extends Relation
 
         foreach ($container as $entity) {
             $query = clone $this->query;
-            $query->operation(QueryInterface::OPERATION_WRITE, $this->relation->entity(), $entity)
+            $query->write($this->relation->entity(), $entity)
                 ->execute();
         }
 
@@ -130,7 +130,7 @@ class ManyTrough extends Relation
 
             $query = clone $this->query;
             $query->reset()
-                ->operation(QueryInterface::OPERATION_WRITE, $this->relation->mediator(), $mediator)
+                ->write($this->relation->mediator(), $mediator)
                 ->fields($fields)
                 ->execute();
 
@@ -138,8 +138,8 @@ class ManyTrough extends Relation
         }
 
         $conditions = array();
-        foreach ($mediators as $mediator) {
-            foreach ($this->relation->localKeys() as $foreign) {
+        foreach ($this->relation->localKeys() as $foreign) {
+            foreach($mediators as $mediator) {
                 $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
             }
         }
@@ -178,7 +178,7 @@ class ManyTrough extends Relation
 
             $query = clone $this->query;
             $query->reset()
-                ->operation(QueryInterface::OPERATION_DELETE, $this->relation->mediator(), $mediator)
+                ->delete($this->relation->mediator(), $mediator)
                 ->execute();
 
         }
@@ -192,7 +192,7 @@ class ManyTrough extends Relation
     public function clear()
     {
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_CLEAR, $this->relation->mediator())
+        $query->clear($this->relation->mediator())
             ->execute();
     }
 }

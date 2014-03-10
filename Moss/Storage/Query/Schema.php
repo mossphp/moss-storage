@@ -70,37 +70,92 @@ class Schema implements SchemaInterface
     }
 
     /**
+     * Sets check operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function check($entity = array())
+    {
+        return $this->operation('check', (array) $entity);
+    }
+
+    /**
+     * Sets create operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function create($entity = array())
+    {
+        return $this->operation('create', (array) $entity);
+    }
+
+    /**
+     * Sets alter operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function alter($entity = array())
+    {
+        return $this->operation('alter', (array) $entity);
+    }
+
+    /**
+     * Sets drop operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function drop($entity = array())
+    {
+        return $this->operation('drop', (array) $entity);
+    }
+
+    /**
      * Sets query operation
      *
-     * @param string        $operation
-     * @param string|object $entity
+     * @param string $operation
+     * @param array  $entity
      *
      * @return $this
      * @throws QueryException
      */
-    public function operation($operation, $entity = null)
+    public function operation($operation, array $entity = array())
     {
         $this->operation = $operation;
 
-        $models = $entity === null ? $this->models->all() : array($this->models->get($entity));
+        $models = array();
+        foreach ($entity as $node) {
+            $models[] = $this->models->get($node);
+        }
+
+        if(empty($models)) {
+            $models = $this->models->all();
+        }
 
         switch ($this->operation) {
-            case self::OPERATION_CHECK:
+            case 'check':
                 foreach ($models as $model) {
                     $this->buildCheck($model);
                 }
                 break;
-            case self::OPERATION_CREATE:
+            case 'create':
                 foreach ($models as $model) {
                     $this->buildCreate($model);
                 }
                 break;
-            case self::OPERATION_ALTER:
+            case 'alter':
                 foreach ($models as $model) {
                     $this->buildAlter($model);
                 }
                 break;
-            case self::OPERATION_DROP:
+            case 'drop':
                 foreach ($models as $model) {
                     $this->buildDrop($model);
                 }
@@ -115,9 +170,8 @@ class Schema implements SchemaInterface
     protected function buildCheck(ModelInterface $model)
     {
         $this->queries[$model->table()] = $this->builder->reset()
-                                                        ->operation(BuilderInterface::OPERATION_CHECK)
-                                                        ->table($model->table())
-                                                        ->build();
+            ->check($model->table())
+            ->build();
     }
 
     protected function buildCreate(ModelInterface $model)
@@ -127,8 +181,7 @@ class Schema implements SchemaInterface
         }
 
         $this->builder->reset()
-                      ->operation(BuilderInterface::OPERATION_CREATE)
-                      ->table($model->table());
+            ->create($model->table());
 
         foreach ($model->fields() as $index) {
             $this->builder->column($index->name(), $index->type(), $index->attributes());
@@ -136,7 +189,7 @@ class Schema implements SchemaInterface
 
         $foreign = array();
         foreach ($model->indexes() as $index) {
-            if ($index->type() === BuilderInterface::INDEX_FOREIGN) {
+            if ($index->type() === 'foreign') {
                 $foreign[] = $index;
                 continue;
             }
@@ -161,7 +214,7 @@ class Schema implements SchemaInterface
         // todo - optimize, remove unnecessary index operations (add, remove) and column alterations
         // removing foreign keys
         foreach ($current['indexes'] as $index) {
-            if ($index['type'] !== BuilderInterface::INDEX_FOREIGN) {
+            if ($index['type'] !== 'foreign') {
                 continue;
             }
             $this->before[] = $this->buildIndexRemove($model, $index['name'], $index['fields'], $index['type']);
@@ -169,7 +222,7 @@ class Schema implements SchemaInterface
 
         // applying indexes
         foreach ($model->indexes() as $index) {
-            if ($index->type() !== BuilderInterface::INDEX_FOREIGN) {
+            if ($index->type() !== 'foreign') {
                 continue;
             }
 
@@ -179,16 +232,16 @@ class Schema implements SchemaInterface
 
         // removing auto increment
         foreach ($current['fields'] as $columns) {
-            if (!isset($columns['attributes'][BuilderInterface::ATTRIBUTE_AUTO])) {
+            if (!isset($columns['attributes']['auto_increment'])) {
                 continue;
             }
-            unset($columns['attributes'][BuilderInterface::ATTRIBUTE_AUTO]);
+            unset($columns['attributes']['auto_increment']);
             $this->queries[] = $this->buildColumnChange($model, $columns['name'], $columns['type'], $columns['attributes']);
         }
 
         // removing primary keys and indexes
         foreach ($current['indexes'] as $index) {
-            if ($index['type'] == BuilderInterface::INDEX_FOREIGN) {
+            if ($index['type'] == 'foreign') {
                 continue;
             }
 
@@ -199,20 +252,20 @@ class Schema implements SchemaInterface
         $prev = null;
         foreach ($model->fields() as $column) {
             $attributes = $column->attributes();
-            if (isset($attributes[BuilderInterface::ATTRIBUTE_AUTO])) {
-                unset($attributes[BuilderInterface::ATTRIBUTE_AUTO]);
+            if (isset($attributes['auto_increment'])) {
+                unset($attributes['auto_increment']);
             }
 
             $i = $this->findField($current['fields'], $column->mapping());
             if ($i !== false) {
                 if (!$this->sameField($current['fields'][$i], $column)) {
-                    $this->queries[] = $this->buildColumnChange($model, $column->mapping(), $column->type(), $attributes, $column->name());
+                    $this->queries[] = $this->buildColumnChange($model, $column->mapping(), $column->type(), $attributes);
                 }
                 unset($current['fields'][$i]);
             }
 
             if ($i === false) {
-                $this->queries[] = $this->buildColumnAdd($model, $column->mapping(), $column->type(), $attributes, $column->name(), $prev);
+                $this->queries[] = $this->buildColumnAdd($model, $column->mapping(), $column->type(), $attributes, $prev);
             }
 
             $prev = $column->mapping();
@@ -224,7 +277,7 @@ class Schema implements SchemaInterface
 
         // applying indexes
         foreach ($model->indexes() as $index) {
-            if ($index->type() === BuilderInterface::INDEX_FOREIGN) {
+            if ($index->type() === 'foreign') {
                 continue;
             }
 
@@ -233,8 +286,8 @@ class Schema implements SchemaInterface
 
         // applying auto increment
         foreach ($model->fields() as $column) {
-            if ($column->attribute(BuilderInterface::ATTRIBUTE_AUTO)) {
-                $this->queries[] = $this->buildColumnChange($model, $column->name(), $column->type(), $column->attributes(), $column->name());
+            if ($column->attribute('auto_increment')) {
+                $this->queries[] = $this->buildColumnChange($model, $column->name(), $column->type(), $column->attributes());
             }
         }
     }
@@ -242,26 +295,25 @@ class Schema implements SchemaInterface
     protected function checkIfSchemaExists(ModelInterface $model)
     {
         $query = $this->builder->reset()
-                               ->operation(BuilderInterface::OPERATION_CHECK)
-                               ->table($model->table())
-                               ->build();
+            ->check($model->table())
+            ->build();
 
         $count = $this->driver->prepare($query)
-                              ->execute()
-                              ->affectedRows();
+            ->execute()
+            ->affectedRows();
+
         return $count == 1;
     }
 
     protected function getCurrentSchema(ModelInterface $model)
     {
         $query = $this->builder->reset()
-                               ->operation(BuilderInterface::OPERATION_INFO)
-                               ->table($model->table())
-                               ->build();
+            ->info($model->table())
+            ->build();
 
         $result = $this->driver->prepare($query)
-                               ->execute()
-                               ->fetchField(1);
+            ->execute()
+            ->fetchField(1);
 
         $array = $this->builder->parse($result);
 
@@ -295,7 +347,7 @@ class Schema implements SchemaInterface
             $attributes['precision'] = $old['attributes']['precision'];
         }
 
-        if (in_array($new->type(), array(ModelInterface::FIELD_BOOLEAN, ModelInterface::FIELD_SERIAL)) && !isset($attributes['comment'])) {
+        if (in_array($new->type(), array('boolean', 'serial')) && !isset($attributes['comment'])) {
             $attributes['comment'] = $old['attributes']['comment'];
         }
 
@@ -307,7 +359,7 @@ class Schema implements SchemaInterface
         if ($this->checkIfSchemaExists($model)) {
             $current = $this->getCurrentSchema($model);
             foreach ($current['indexes'] as $index) {
-                if ($index['type'] != BuilderInterface::INDEX_FOREIGN) {
+                if ($index['type'] != 'foreign') {
                     continue;
                 }
 
@@ -317,56 +369,50 @@ class Schema implements SchemaInterface
         }
 
         $this->queries[] = $this->builder->reset()
-                                         ->operation(BuilderInterface::OPERATION_DROP)
-                                         ->table($model->table())
-                                         ->build();
+            ->drop($model->table())
+            ->build();
     }
 
     protected function buildIndexAdd(ModelInterface $model, $name, $fields, $type, $table = null)
     {
         return $this->builder->reset()
-                             ->table($model->table())
-                             ->operation(BuilderInterface::OPERATION_ADD)
-                             ->index($name, $fields, $type, $table)
-                             ->build();
+            ->add($model->table())
+            ->index($name, $fields, $type, $table)
+            ->build();
     }
 
     protected function buildIndexRemove(ModelInterface $model, $name, $fields, $type, $table = null)
     {
         return $this->builder->reset()
-                             ->table($model->table())
-                             ->operation(BuilderInterface::OPERATION_REMOVE)
-                             ->index($name, $fields, $type, $table)
-                             ->build();
+            ->remove($model->table())
+            ->index($name, $fields, $type, $table)
+            ->build();
 
     }
 
     protected function buildColumnAdd(ModelInterface $model, $name, $type, $attributes, $prev = null)
     {
         return $this->builder->reset()
-                             ->table($model->table())
-                             ->operation(BuilderInterface::OPERATION_ADD)
-                             ->column($name, $type, $attributes, $prev)
-                             ->build();
+            ->add($model->table())
+            ->column($name, $type, $attributes, $prev)
+            ->build();
 
     }
 
     protected function buildColumnChange(ModelInterface $model, $name, $type, $attributes, $prev = null)
     {
         return $this->builder->reset()
-                             ->table($model->table())
-                             ->operation(BuilderInterface::OPERATION_CHANGE)
-                             ->column($name, $type, $attributes, $prev)
-                             ->build();
+            ->change($model->table())
+            ->column($name, $type, $attributes, $prev)
+            ->build();
     }
 
     protected function buildColumnRemove(ModelInterface $model, $name, $type, $attributes)
     {
         return $this->builder->reset()
-                             ->table($model->table())
-                             ->operation(BuilderInterface::OPERATION_REMOVE)
-                             ->column($name, $type, $attributes)
-                             ->build();
+            ->remove($model->table())
+            ->column($name, $type, $attributes)
+            ->build();
     }
 
     /**
@@ -381,7 +427,7 @@ class Schema implements SchemaInterface
 
         $result = array();
         switch ($this->operation) {
-            case self::OPERATION_CHECK:
+            case 'check':
                 foreach ($queries as $table => $query) {
                     $result[$table] = $this->driver
                             ->prepare($query)
@@ -389,9 +435,9 @@ class Schema implements SchemaInterface
                             ->affectedRows() == 1;
                 }
                 break;
-            case self::OPERATION_CREATE:
-            case self::OPERATION_ALTER:
-            case self::OPERATION_DROP:
+            case 'create':
+            case 'alter':
+            case 'drop':
                 foreach ($queries as $query) {
                     $this->driver
                         ->prepare($query)

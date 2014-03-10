@@ -11,6 +11,9 @@
 
 namespace Moss\Storage\Query;
 
+use Moss\Storage\Driver\DriverInterface;
+use Moss\Storage\Builder\QueryInterface as BuilderInterface;
+
 /**
  * Schema interface
  *
@@ -19,22 +22,65 @@ namespace Moss\Storage\Query;
  */
 interface SchemaInterface
 {
+    /**
+     * Returns driver instance
+     *
+     * @return DriverInterface
+     */
+    public function driver();
 
-    // Schema operations
-    const OPERATION_CHECK = 'check';
-    const OPERATION_CREATE = 'create';
-    const OPERATION_ALTER = 'alter';
-    const OPERATION_DROP = 'drop';
+    /**
+     * Returns builder instance
+     *
+     * @return BuilderInterface
+     */
+    public function builder();
+
+    /**
+     * Sets check operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function check($entity = array());
+
+    /**
+     * Sets create operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function create($entity = array());
+
+    /**
+     * Sets alter operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function alter($entity = array());
+
+    /**
+     * Sets drop operation
+     *
+     * @param array $entity
+     *
+     * @return $this
+     */
+    public function drop($entity = array());
 
     /**
      * Sets query operation
      *
-     * @param string        $operation
-     * @param string|object $entity
+     * @param string $operation
+     * @param array  $entity
      *
      * @return $this
      */
-    public function operation($operation, $entity = null);
+    public function operation($operation, array $entity = array());
 
     /**
      * Executes query

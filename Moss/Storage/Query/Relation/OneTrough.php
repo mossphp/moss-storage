@@ -105,7 +105,7 @@ class OneTrough extends Relation
         $entity = & $result->{$this->relation->container()};
 
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_WRITE, $this->relation->entity(), $entity)
+        $query->write($this->relation->entity(), $entity)
             ->execute();
 
         $fields = array_merge(array_values($this->relation->localKeys()), array_keys($this->relation->foreignKeys()));
@@ -120,7 +120,7 @@ class OneTrough extends Relation
         }
 
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_WRITE, $this->relation->mediator(), $mediator)
+        $query->write($this->relation->mediator(), $mediator)
             ->fields($fields)
             ->execute();
 
@@ -159,7 +159,7 @@ class OneTrough extends Relation
         }
 
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_DELETE, $this->relation->mediator(), $mediator)
+        $query->delete($this->relation->mediator(), $mediator)
             ->execute();
 
         return $result;
@@ -171,7 +171,7 @@ class OneTrough extends Relation
     public function clear()
     {
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_CLEAR, $this->relation->mediator())
+        $query->clear($this->relation->mediator())
             ->execute();
     }
 }

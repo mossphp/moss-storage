@@ -98,7 +98,7 @@ class Many extends Relation
             }
 
             $query = clone $this->query;
-            $query->operation(QueryInterface::OPERATION_WRITE, $this->relation->entity(), $relEntity)
+            $query->write($this->relation->entity(), $relEntity)
                 ->execute();
         }
 
@@ -137,7 +137,7 @@ class Many extends Relation
 
         foreach ($result->{$this->relation->container()} as $relEntity) {
             $query = clone $this->query;
-            $query->operation(QueryInterface::OPERATION_DELETE, $this->relation->entity(), $relEntity)
+            $query->delete($this->relation->entity(), $relEntity)
                 ->execute();
         }
 
@@ -150,7 +150,7 @@ class Many extends Relation
     public function clear()
     {
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_CLEAR, $this->relation->entity())
+        $query->clear($this->relation->entity())
             ->execute();
     }
 }

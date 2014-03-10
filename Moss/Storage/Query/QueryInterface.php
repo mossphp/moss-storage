@@ -23,16 +23,6 @@ use Moss\Storage\Model\ModelInterface;
  */
 interface QueryInterface
 {
-    // Entity operation types
-    const OPERATION_COUNT = 'count';
-    const OPERATION_READ_ONE = 'readOne';
-    const OPERATION_READ = 'read';
-    const OPERATION_WRITE = 'write';
-    const OPERATION_INSERT = 'insert';
-    const OPERATION_UPDATE = 'update';
-    const OPERATION_DELETE = 'delete';
-    const OPERATION_CLEAR = 'clear';
-
     /**
      * Returns driver instance
      *
@@ -48,21 +38,91 @@ interface QueryInterface
     public function builder();
 
     /**
-     * Returns model instance
+     * Sets counting operation
      *
-     * @return ModelInterface
+     * @param string $entity
+     *
+     * @return $this
      */
-    public function model();
+    public function number($entity);
+
+    /**
+     * Sets read operation
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function read($entity);
+
+    /**
+     * Sets read one operation
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function readOne($entity);
+
+    /**
+     * Sets write operation
+     *
+     * @param string $entity
+     * @param object $instance
+     *
+     * @return $this
+     */
+    public function write($entity, $instance);
+
+    /**
+     * Sets insert operation
+     *
+     * @param string $entity
+     * @param object $instance
+     *
+     * @return $this
+     */
+    public function insert($entity, $instance);
+
+    /**
+     * Sets update operation
+     *
+     * @param string $entity
+     * @param object $instance
+     *
+     * @return $this
+     */
+    public function update($entity, $instance);
+
+    /**
+     * Sets delete operation
+     *
+     * @param string $entity
+     * @param object $instance
+     *
+     * @return $this
+     */
+    public function delete($entity, $instance);
+
+    /**
+     * Sets clear operation
+     *
+     * @param string $entity
+     *
+     * @return $this
+     */
+    public function clear($entity);
 
     /**
      * Sets query operation
      *
-     * @param string        $operation
-     * @param string|object $entity
+     * @param string $operation
+     * @param string $entity
+     * @param object $instance
      *
      * @return $this
      */
-    public function operation($operation, $entity);
+    public function operation($operation, $entity, $instance = null);
 
     /**
      * Sets field names which will be read
@@ -227,7 +287,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function where($field, $value, $comparison = BuilderInterface::COMPARISON_EQUAL, $logical = BuilderInterface::LOGICAL_AND);
+    public function where($field, $value, $comparison = '==', $logical = 'and');
 
     /**
      * Adds having condition to builder
@@ -239,7 +299,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function having($field, $value, $comparison = BuilderInterface::COMPARISON_EQUAL, $logical = BuilderInterface::LOGICAL_AND);
+    public function having($field, $value, $comparison = '==', $logical = 'and');
 
     /**
      * Adds sorting to query
@@ -249,7 +309,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function order($field, $order = BuilderInterface::ORDER_DESC);
+    public function order($field, $order = 'desc');
 
     /**
      * Sets limits to query
@@ -265,8 +325,8 @@ interface QueryInterface
      * Adds relation to query
      *
      * @param string|array $relation
-     * @param array $conditions
-     * @param array $order
+     * @param array        $conditions
+     * @param array        $order
      *
      * @return $this
      * @throws QueryException

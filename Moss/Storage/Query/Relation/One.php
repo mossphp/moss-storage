@@ -105,7 +105,7 @@ class One extends Relation
 
         $query = clone $this->query;
         $query
-            ->operation(QueryInterface::OPERATION_WRITE, $this->relation->entity(), $entity)
+            ->write($this->relation->entity(), $entity)
             ->execute();
 
         $conditions = array();
@@ -141,7 +141,7 @@ class One extends Relation
         $this->assertInstance($entity);
 
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_DELETE, $this->relation->entity(), $entity)
+        $query->delete($this->relation->entity(), $entity)
             ->execute();
 
         return $result;
@@ -153,7 +153,7 @@ class One extends Relation
     public function clear()
     {
         $query = clone $this->query;
-        $query->operation(QueryInterface::OPERATION_CLEAR, $this->relation->entity())
+        $query->clear($this->relation->entity())
             ->execute();
     }
 }
