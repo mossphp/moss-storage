@@ -77,14 +77,14 @@ class Model implements ModelInterface
             }
 
             foreach ($index->fields() as $key => $field) {
-                $field = $index->type() == self::INDEX_FOREIGN ? $key : $field;
+                $field = $index->type() == 'foreign' ? $key : $field;
 
                 if (!$this->hasField($field)) {
                     throw new ModelException(sprintf('Index field "%s" does not exist in entity model "%s"', $field, $this->entity));
                 }
             }
 
-            if ($index->type() !== ModelInterface::INDEX_FOREIGN) {
+            if ($index->type() !== 'foreign') {
                 $index->table($this->table);
             }
 

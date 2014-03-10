@@ -24,8 +24,8 @@ class Primary extends Index
 {
     public function __construct(array $fields)
     {
-        $this->name = ModelInterface::INDEX_PRIMARY;
-        $this->type = ModelInterface::INDEX_PRIMARY;
+        $this->name = 'primary';
+        $this->type = 'primary';
 
         if (empty($fields)) {
             throw new DefinitionException('No fields in primary key definition');

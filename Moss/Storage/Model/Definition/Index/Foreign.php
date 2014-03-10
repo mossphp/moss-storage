@@ -27,7 +27,7 @@ class Foreign extends Index
     public function __construct($name, array $fields, $table)
     {
         $this->name = $name;
-        $this->type = ModelInterface::INDEX_FOREIGN;
+        $this->type = 'foreign';
 
         if (empty($fields)) {
             throw new DefinitionException('No fields in foreign key definition');

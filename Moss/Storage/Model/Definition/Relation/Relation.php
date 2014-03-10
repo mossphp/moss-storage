@@ -21,7 +21,7 @@ use Moss\Storage\Model\ModelInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Model
  */
-class Relation implements RelationInterface
+abstract class Relation implements RelationInterface
 {
     protected $entity;
 
@@ -37,44 +37,7 @@ class Relation implements RelationInterface
     protected $local = array();
     protected $foreign = array();
 
-    private $trough = false;
-
-    public function __construct($entity, $type, array $keys, $container = null, $mediator = null)
-    {
-        $this->entity = $entity ? ltrim($entity, '\\') : null;
-
-        $this->assertType($type);
-
-        $this->type = $type;
-        $this->container = $this->containerName($container);
-
-        if (empty($keys)) {
-            throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
-        }
-
-        $this->trough = in_array($type, array(ModelInterface::RELATION_ONE_TROUGH, ModelInterface::RELATION_MANY_TROUGH));
-
-        if ($this->trough) {
-            if (empty($mediator)) {
-                throw new DefinitionException(sprintf('Missing mediator name for relation %s', $type, $this->entity));
-            }
-
-            $this->mediator = $mediator ? ltrim($mediator, '\\') : $mediator;
-
-            $this->assertTroughKeys($keys);
-            $this->assignKeys($keys[0], $this->in);
-            $this->assignKeys($keys[1], $this->out);
-            $this->keys = array_combine(array_keys($this->in), array_values($this->out));
-
-            return;
-        }
-
-        $this->assignKeys($keys, $this->keys);
-        $this->in = array_keys($this->keys);
-        $this->out = array_values($this->keys);
-    }
-
-    private function containerName($container)
+    protected function containerName($container)
     {
         if ($container) {
             return $container;
@@ -88,7 +51,7 @@ class Relation implements RelationInterface
         return substr($this->entity, strrpos($this->entity, '\\') + 1);
     }
 
-    private function assignKeys(array $keys, array &$container)
+    protected function assignKeys(array $keys, array &$container)
     {
         foreach ($keys as $local => $foreign) {
             $this->assertField($local);
@@ -101,10 +64,10 @@ class Relation implements RelationInterface
     protected function assertType($type)
     {
         $types = array(
-            ModelInterface::RELATION_ONE,
-            ModelInterface::RELATION_MANY,
-            ModelInterface::RELATION_ONE_TROUGH,
-            ModelInterface::RELATION_MANY_TROUGH
+            'one',
+            'many',
+            'oneTrough',
+            'manyTrough'
         );
 
         if (!in_array($type, $types)) {

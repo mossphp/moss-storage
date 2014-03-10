@@ -31,7 +31,7 @@ class Index implements IndexInterface
     public function __construct($name, array $fields)
     {
         $this->name = $name;
-        $this->type = ModelInterface::INDEX_INDEX;
+        $this->type = 'index';
 
         if (empty($fields)) {
             throw new DefinitionException(sprintf('No fields in index "%s" definition', $this->name));
@@ -106,7 +106,7 @@ class Index implements IndexInterface
      */
     public function isPrimary()
     {
-        return $this->type == ModelInterface::INDEX_PRIMARY;
+        return $this->type == 'primary';
     }
 
     /**
@@ -116,6 +116,6 @@ class Index implements IndexInterface
      */
     public function isUnique()
     {
-        return $this->type == ModelInterface::INDEX_UNIQUE || $this->type == ModelInterface::INDEX_PRIMARY;
+        return $this->type == 'unique' || $this->type == 'primary';
     }
 }

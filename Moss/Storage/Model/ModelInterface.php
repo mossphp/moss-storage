@@ -23,34 +23,6 @@ use Moss\Storage\Model\Definition\RelationInterface;
  */
 interface ModelInterface
 {
-    // Index types
-    const INDEX_PRIMARY = 'primary';
-    const INDEX_FOREIGN = 'foreign';
-    const INDEX_INDEX = 'index';
-    const INDEX_UNIQUE = 'unique';
-
-    // Relation types
-    const RELATION_ONE = 'one';
-    const RELATION_MANY = 'many';
-    const RELATION_ONE_TROUGH = 'oneTrough';
-    const RELATION_MANY_TROUGH = 'manyTrough';
-
-    // Field types
-    const FIELD_BOOLEAN = 'boolean';
-    const FIELD_INTEGER = 'integer';
-    const FIELD_DECIMAL = 'decimal';
-    const FIELD_STRING = 'string';
-    const FIELD_DATETIME = 'datetime';
-    const FIELD_SERIAL = 'serial';
-
-    // Attributes
-    const ATTRIBUTE_UNSIGNED = 'unsigned';
-    const ATTRIBUTE_DEFAULT = 'default';
-    const ATTRIBUTE_AUTO = 'auto_increment';
-    const ATTRIBUTE_NULL = 'null';
-    const ATTRIBUTE_LENGTH = 'length';
-    const ATTRIBUTE_PRECISION = 'precision';
-
     /**
      * Returns table
      *

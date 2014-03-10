@@ -21,7 +21,7 @@ use Moss\Storage\Model\ModelInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Model
  */
-class Field implements FieldInterface
+abstract class Field implements FieldInterface
 {
     protected $table;
     protected $name;
@@ -29,12 +29,8 @@ class Field implements FieldInterface
     protected $mapping;
     protected $attributes;
 
-    public function __construct($field, $type = ModelInterface::FIELD_STRING, $attributes = array(), $mapping = null)
+    protected function prepareAttributes($attributes)
     {
-        if (!in_array($type, array(ModelInterface::FIELD_BOOLEAN, ModelInterface::FIELD_INTEGER, ModelInterface::FIELD_DECIMAL, ModelInterface::FIELD_STRING, ModelInterface::FIELD_DATETIME, ModelInterface::FIELD_SERIAL))) {
-            throw new DefinitionException(sprintf('Invalid type "%s" for field "%s"', $type, $field));
-        }
-
         foreach ($attributes as $key => $value) {
             if (!is_numeric($key)) {
                 continue;
@@ -44,10 +40,16 @@ class Field implements FieldInterface
             $attributes[$value] = true;
         }
 
-        $this->name = $field;
-        $this->type = $type;
-        $this->mapping = $mapping;
-        $this->attributes = $attributes;
+        return $attributes;
+    }
+
+    protected function verifyAttribute($allowed = array())
+    {
+        foreach (array_keys($this->attributes) as $attr) {
+            if (!in_array($attr, $allowed)) {
+                throw new DefinitionException(sprintf('Forbidden attribute "%s" in field type "%s"', $attr, $this->type));
+            }
+        }
     }
 
     public function table($table = null)

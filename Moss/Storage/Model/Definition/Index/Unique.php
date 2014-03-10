@@ -30,7 +30,7 @@ class Unique extends Index
     public function __construct($name, array $fields)
     {
         $this->name = $name;
-        $this->type = ModelInterface::INDEX_UNIQUE;
+        $this->type = 'unique';
 
         if (empty($fields)) {
             throw new DefinitionException(sprintf('No fields in index "%s" definition', $this->name));

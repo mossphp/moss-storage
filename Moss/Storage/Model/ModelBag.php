@@ -114,12 +114,12 @@ class ModelBag
      */
     public function all($array = array())
     {
-        if ($array !== array()) {
+        if(!empty($array)) {
             foreach ($array as $key => $model) {
                 $this->set($model, is_numeric($key) ? null : $key);
             }
         }
 
-        return $this->collection;
+        return $this->byAlias;
     }
 }
