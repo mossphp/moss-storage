@@ -14,7 +14,7 @@ class PrimaryTest extends \PHPUnit_Framework_TestCase
     public function testType()
     {
         $index = new Primary(array('foo', 'bar'));
-        $this->assertEquals(ModelInterface::INDEX_PRIMARY, $index->type());
+        $this->assertEquals('primary', $index->type());
     }
 
     /**

@@ -16,7 +16,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
     public function testType()
     {
         $index = new Index('foo', array('foo', 'bar'));
-        $this->assertEquals(ModelInterface::INDEX_INDEX, $index->type());
+        $this->assertEquals('index', $index->type());
     }
 
     /**

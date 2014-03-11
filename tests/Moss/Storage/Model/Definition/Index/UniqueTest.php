@@ -16,7 +16,7 @@ class UniqueTest extends \PHPUnit_Framework_TestCase
     public function testType()
     {
         $index = new Unique('foo', array('foo', 'bar'));
-        $this->assertEquals(ModelInterface::INDEX_UNIQUE, $index->type());
+        $this->assertEquals('unique', $index->type());
     }
 
     /**
