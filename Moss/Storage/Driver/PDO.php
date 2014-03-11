@@ -441,7 +441,7 @@ class PDO implements DriverInterface
      */
     public function transactionCheck()
     {
-        return $this->pdo->inTransaction();
+        return (bool) $this->pdo->inTransaction();
     }
 
     /**

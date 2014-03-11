@@ -13,7 +13,6 @@ namespace Moss\Storage\Model\Definition\Index;
 
 use Moss\Storage\Model\Definition\DefinitionException;
 use Moss\Storage\Model\Definition\IndexInterface;
-use Moss\Storage\Model\ModelInterface;
 
 /**
  * Index definition describing ordinary index

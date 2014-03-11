@@ -13,7 +13,6 @@ namespace Moss\Storage\Model\Definition\Field;
 
 use Moss\Storage\Model\Definition\DefinitionException;
 use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\ModelInterface;
 
 /**
  * Field describes how entities property is mapped to field in database

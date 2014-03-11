@@ -13,7 +13,6 @@ namespace Moss\Storage\Query;
 
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Builder\QueryInterface as BuilderInterface;
-use Moss\Storage\Model\ModelInterface;
 
 /**
  * Query interface

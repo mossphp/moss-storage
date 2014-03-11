@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Query\Relation;
 
-use Moss\Storage\Query\QueryInterface;
-
 /**
  * One to one relation handler with mediator (pivot) table
  *

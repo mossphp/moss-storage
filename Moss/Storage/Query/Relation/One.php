@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Query\Relation;
 
-use Moss\Storage\Query\QueryInterface;
-
 /**
  * One to one relation handler
  *
@@ -36,7 +34,7 @@ class One extends Relation
             $conditions[$refer][] = $value;
         }
 
-        foreach ($result as $i => $entity) {
+        foreach ($result as $entity) {
             if (!$this->assertEntity($entity)) {
                 continue;
             }

@@ -13,7 +13,6 @@ namespace Moss\Storage\Model\Definition\Relation;
 
 use Moss\Storage\Model\Definition\DefinitionException;
 use Moss\Storage\Model\Definition\RelationInterface;
-use Moss\Storage\Model\ModelInterface;
 
 /**
  * Relation definition describing relationship between entities in model

@@ -954,7 +954,6 @@ class Query implements QueryInterface
 
     protected function splitRelationName($relationName)
     {
-        $furtherRelations = null;
         if (strpos($relationName, '.') !== false) {
             return explode('.', $relationName, 2);
         }

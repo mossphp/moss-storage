@@ -14,7 +14,6 @@ namespace Moss\Storage\Query;
 use Moss\Storage\Builder\SchemaInterface as BuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\Definition\IndexInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
 

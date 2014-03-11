@@ -12,7 +12,6 @@
 namespace Moss\Storage\Model\Definition\Index;
 
 use Moss\Storage\Model\Definition\DefinitionException;
-use Moss\Storage\Model\ModelInterface;
 
 /**
  * Defines unique index for model
