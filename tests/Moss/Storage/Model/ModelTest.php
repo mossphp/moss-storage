@@ -27,7 +27,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructorInvalidRelationInstance()
     {
-        new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))), array(new \stdClass()));
+        new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('foo'))), array(new \stdClass()));
     }
 
     public function testTable()
@@ -74,7 +74,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     public function testIsPrimary()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', Model::INDEX_PRIMARY, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'primary', array('foo'))));
         $this->assertTrue($model->isPrimary('foo'));
         $this->assertFalse($model->isPrimary('bar'));
     }
@@ -84,7 +84,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsNonExistingPrimaryField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', Model::INDEX_PRIMARY, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'primary', array('foo'))));
         $model->isPrimary('yada');
     }
 
@@ -92,7 +92,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
     {
         $fields = array($this->mockField('foo'), $this->mockField('bar'));
 
-        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', Model::INDEX_PRIMARY, array('foo'))));
+        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', 'primary', array('foo'))));
         $this->assertEquals(array($fields[0]), $model->primaryFields());
     }
 
@@ -101,7 +101,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsIndex($field, $expected)
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
         $this->assertEquals($expected, $model->isIndex($field));
     }
 
@@ -119,7 +119,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsIndexWithInvalidField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
         $model->isIndex('yada');
     }
 
@@ -128,14 +128,14 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testInIndex($field, $expected)
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
         $this->assertEquals($expected, $model->inIndex($field));
     }
 
     public function inIndexProvider()
     {
         return array(
-            array('foo', array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo')))),
+            array('foo', array($this->mockIndex('foo', 'index', array('foo')))),
             array('bar', array())
         );
     }
@@ -146,7 +146,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testInIndexWithInvalidField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
         $model->inIndex('yada');
     }
 
@@ -155,21 +155,21 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsNonExistingIndexField()
     {
-        new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('bar'))));
+        new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('bar'))));
     }
 
     public function testIndexFields()
     {
         $fields = array($this->mockField('foo'), $this->mockField('bar'));
 
-        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))));
+        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', 'index', array('foo'))));
         $this->assertEquals(array($fields[0]), $model->indexFields());
     }
 
     public function testIndexFieldsWithoutReps()
     {
         $fields = array($this->mockField('foo'), $this->mockField('bar'));
-        $indexes = array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo')), $this->mockIndex('foobar', Model::INDEX_INDEX, array('foo', 'bar')), $this->mockIndex('bar', Model::INDEX_INDEX, array('bar')));
+        $indexes = array($this->mockIndex('foo', 'index', array('foo')), $this->mockIndex('foobar', 'index', array('foo', 'bar')), $this->mockIndex('bar', 'index', array('bar')));
 
         $model = new Model('foo', 'Foo', $fields, $indexes);
         $this->assertEquals($fields, $model->indexFields());
@@ -177,7 +177,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     public function testIndex()
     {
-        $index = $this->mockIndex('foo', Model::INDEX_INDEX, array('foo'));
+        $index = $this->mockIndex('foo', 'index', array('foo'));
 
         $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($index));
         $this->assertEquals($index, $model->index('foo'));
@@ -188,7 +188,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testUndefinedIndex()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', Model::INDEX_INDEX, array('foo'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('foo'))));
         $model->index('yada');
     }
 
@@ -197,7 +197,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testUndefinedRelationKeyField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', Model::RELATION_ONE, array('bar' => 'bar'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', 'one', array('bar' => 'bar'))));
         $model->index('yada');
     }
 
@@ -206,13 +206,13 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testUndefinedRelationLocalField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', Model::RELATION_ONE, array('foo' => 'bar'), array('bar' => 'bar'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', 'one', array('foo' => 'bar'), array('bar' => 'bar'))));
         $model->index('yada');
     }
 
     public function testRelations()
     {
-        $rel = $this->mockRelation('bar', Model::RELATION_ONE, array('foo' => 'bar'));
+        $rel = $this->mockRelation('bar', 'one', array('foo' => 'bar'));
 
         $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($rel));
         $this->assertEquals(array($rel->name() => $rel), $model->relations());
@@ -220,7 +220,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     public function testRelation()
     {
-        $rel = $this->mockRelation('bar', Model::RELATION_ONE, array('foo' => 'bar'));
+        $rel = $this->mockRelation('bar', 'one', array('foo' => 'bar'));
 
         $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($rel));
         $this->assertEquals($rel, $model->relation($rel->name()));
@@ -231,7 +231,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testUndefinedRelation()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', Model::RELATION_ONE, array('foo' => 'bar'))));
+        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', 'one', array('foo' => 'bar'))));
         $model->relation('yada');
     }
 
@@ -282,7 +282,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
         $mock->expects($this->any())
             ->method('isPrimary')
-            ->will($this->returnValue($type == ModelInterface::INDEX_PRIMARY));
+            ->will($this->returnValue($type =='primary'));
 
         $mock->expects($this->any())
             ->method('fields')
