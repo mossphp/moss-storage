@@ -1,5 +1,7 @@
 # Storage
 
+## About
+
 `Storage` is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss).
 In philosophy similar to _Data Mapper_ pattern, that moves data between objects and database and tries to keep them independent of each other.
 
@@ -7,7 +9,8 @@ In _Active Record_ pattern, entities (objects with data) often extend some base 
 That base class adds functionality to read from / write into database but also bloats entire design... and adds unnecessary tight coupling.
 
 `Storage` approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by database (repository).
-Entities can be written independently from any databases, weird base classes.
+Entities can be written independently from any databases or other weird base classes.
+The only connection between entities and database is in `Storage` itself.
 
 For example:
 
@@ -18,17 +21,45 @@ $result = $storage->readOne('article')
 	->execute();
 ```
 
-`Storage` will read single `article` that has `id` equal to `1`, with relationship to: `comments` and `tags`.
+This simple code, will read one `article` with `id = 1` with any comments and tags.
 
-In fact, `Storage` is just a facade do simplify creation of `Query` or `Schema` instances:
-If one of below methods is called, `Storage` will return `Schema` instance which is responsible for creating, altering and dropping data containers (tables):
+## Requirements
+
+## Installation
+
+## Usage
+
+```php
+use Moss\Storage\Driver\PDO;
+use Moss\Storage\Builder\MySQL\QueryBuilder;
+use Moss\Storage\Builder\MySQL\SchemaBuilder;
+use Moss\Storage\Storage;
+
+$driver = new Driver\PDO('mysql', 'database', 'user', 'password');
+$builders = array(
+    new QueryBuilder(), // required only for query operations
+    new SchemaBuilder() // required only for schema operations
+);
+
+$storage = new Storage($driver, $builders);
+$storage->register('\some\cms\Article', 'article');
+
+$articles = $storage->read('article')->execute();
+```
+
+
+## Operations
+
+In fact, `Storage` is just a facade do simplify creation of `Query` (read, write and delete data from tables) or `Schema` (responsible for creating, altering and dropping tables) instances.
+
+If one of below methods is called, `Storage` will return `Schema` instance, configured for set operation and entity type:
 
  * `::check($entityClass = null)`
  * `::create($entityClass = null)`
  * `::alter($entityClass = null)`
  * `::drop($entityClass = null)`
 
-Those will return `Query` used to read, write and delete data from data containers (tables) :
+Those will return `Query` instance, also ready to use:
 
  * `::count($entityClass)`
  * `::readOne($entityClass)`

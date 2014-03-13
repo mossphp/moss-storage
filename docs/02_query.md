@@ -1,8 +1,6 @@
 # Query
 
 `Query` should be sufficient to handle all _CRUD_ operations.
-If something more sophisticated is needed, you can access driver directly and write queries by hand.
-
 Operations described below assume that entity classes, models and tables exist.
 
 ## Execute and queryString
@@ -10,7 +8,7 @@ Operations described below assume that entity classes, models and tables exist.
 When `::execute()` method is called, build query is sent to database and executed.
 But in any moment you can call `::queryString()` method to retrieve array with build query string and all bind values.
 
-## Count
+## Num
 
 Returns number of entities that will be read by query (reads only primary keys).
 
@@ -18,7 +16,8 @@ Returns number of entities that will be read by query (reads only primary keys).
 SELECT ... FROM ...
 ```
 ```php
-$count = $storage->count('entity')
+$count = $storage
+	->num('entity')
 	->execute();
 ```
 
@@ -30,7 +29,8 @@ Reads entities matching conditions, returns array of read entities
 SELECT ... FROM ...
 ```
 ```php
-$result = $storage->read('entity')
+$result = $storage
+	->read('entity')
 	->execute();
 ```
 
@@ -40,7 +40,8 @@ Reads only first matching entity, will throw exception if none found.
 SELECT ... FROM ... LIMIT 1
 ```
 ```php
-$entity = $storage->readOne('entity')
+$entity = $storage
+	->readOne('entity')
 	->execute();
 ```
 
@@ -53,7 +54,8 @@ INSERT INTO ... VALUES ...
 ```
 ```php
 $entity = new Entity();
-$bool = $storage->insert($entity)
+$bool = $storage
+	->insert($entity)
 	->execute();
 ```
 
@@ -66,7 +68,8 @@ UPDATE ... SET ...
 ```
 ```php
 $entity = new Entity();
-$entity = $storage->update($entity)
+$entity = $storage
+	->update($entity)
 	->execute();
 ```
 
@@ -77,7 +80,8 @@ Returns entity with updated primary fields
 
 ```php
 $entity = new Entity();
-$entity = $storage->write($entity)
+$entity = $storage
+	->write($entity)
 	->execute();
 ```
 
@@ -90,7 +94,8 @@ DELETE FROM ... WHERE
 ```
 ```php
 	$entity = new Entity();
-	$entity = $storage->delete($entity)
+	$entity = $storage
+		->delete($entity)
 		->execute();
 ```
 ## Clear
@@ -102,7 +107,8 @@ TRUNCATE TABLE ...
 ```
 ```php
 $entity = new Entity();
-$bool = $storage->clear('entity)
+$bool = $storage
+	->clear('entity)
 	->execute();
 ```
 
