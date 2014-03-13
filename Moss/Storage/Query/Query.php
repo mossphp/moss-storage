@@ -109,9 +109,9 @@ class Query implements QueryInterface
      *
      * @return $this
      */
-    public function number($entity)
+    public function num($entity)
     {
-        return $this->operation('number', $entity);
+        return $this->operation('num', $entity);
     }
 
     /**
@@ -239,7 +239,7 @@ class Query implements QueryInterface
         }
 
         switch ($this->operation) {
-            case 'number':
+            case 'num':
                 foreach ($this->model->primaryFields() as $field) {
                     $this->assignField($field);
                 }
@@ -293,7 +293,7 @@ class Query implements QueryInterface
         $this->assertEntity($instance);
 
         $query = new self($this->driver, $this->builder, $this->models);
-        $query->operation('number', $entity, $instance);
+        $query->operation('num', $entity, $instance);
 
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->accessProperty($instance, $field->name());
@@ -970,7 +970,7 @@ class Query implements QueryInterface
     public function execute()
     {
         switch ($this->operation) {
-            case 'number':
+            case 'num':
                 $result = $this->executeNumber();
                 break;
             case 'readOne':
@@ -1284,7 +1284,7 @@ class Query implements QueryInterface
     public function queryString()
     {
         switch ($this->operation) {
-            case 'number':
+            case 'num':
                 $queryString = $this->buildNumber();
                 break;
             case 'readOne':

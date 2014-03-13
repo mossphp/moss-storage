@@ -92,7 +92,7 @@ interface StorageInterface
      *
      * @return QueryInterface
      */
-    public function count($entityClass);
+    public function num($entityClass);
 
     /**
      * Returns read single entity for passed entity class

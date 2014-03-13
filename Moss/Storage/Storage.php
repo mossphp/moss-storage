@@ -175,10 +175,10 @@ class Storage implements StorageInterface
      *
      * @return Query
      */
-    public function count($entity)
+    public function num($entity)
     {
         return $this->query()
-            ->number($entity);
+            ->num($entity);
     }
 
     /**

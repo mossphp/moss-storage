@@ -437,6 +437,8 @@ class Schema implements SchemaInterface
             case 'create':
             case 'alter':
             case 'drop':
+                var_dump($queries);
+
                 foreach ($queries as $query) {
                     $this->driver
                         ->prepare($query)

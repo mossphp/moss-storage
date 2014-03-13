@@ -43,7 +43,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function number($entity);
+    public function num($entity);
 
     /**
      * Sets read operation

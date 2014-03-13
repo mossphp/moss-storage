@@ -57,7 +57,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
-            ->number('table');
+            ->num('table');
 
         $expected = array(
             'SELECT `table`.`id` FROM `table`',
