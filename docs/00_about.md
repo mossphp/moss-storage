@@ -5,7 +5,7 @@
 `Storage` is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss).
 In philosophy similar to _Data Mapper_ pattern, that moves data between objects and database and tries to keep them independent of each other.
 
-In _Active Record_ pattern, entities (objects with data) often extend some base class.
+_Active Record_ brakes single responsibility principle. Entities in _Active Record_ often extend some base class.
 That base class adds functionality to read from / write into database but also bloats entire design... and adds unnecessary tight coupling.
 
 `Storage` approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by database (repository).
@@ -50,7 +50,7 @@ $articles = $storage->read('article')->execute();
 
 ## Operations
 
-In fact, `Storage` is just a facade do simplify creation of `Query` (read, write and delete data from tables) or `Schema` (responsible for creating, altering and dropping tables) instances.
+In fact, `Storage` is just a proxy do simplify creation of `Query` (read, write and delete data from tables) or `Schema` (responsible for creating, altering and dropping tables) instances.
 
 If one of below methods is called, `Storage` will return `Schema` instance, configured for set operation and entity type:
 
