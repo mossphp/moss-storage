@@ -28,7 +28,7 @@ abstract class Field implements FieldInterface
     protected $mapping;
     protected $attributes;
 
-    protected function prepareAttributes($attributes)
+    protected function prepareAttributes(array $attributes)
     {
         foreach ($attributes as $key => $value) {
             if (!is_numeric($key)) {
