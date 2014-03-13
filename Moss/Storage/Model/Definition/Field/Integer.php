@@ -19,7 +19,7 @@ namespace Moss\Storage\Model\Definition\Field;
  */
 class Integer extends Field
 {
-    public function __construct($field, $attributes = array('length' => 10), $mapping = null)
+    public function __construct($field, $attributes = array('length' => 11), $mapping = null)
     {
         $this->name = $field;
         $this->type = 'integer';
