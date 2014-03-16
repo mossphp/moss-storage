@@ -31,17 +31,14 @@ class PDO implements DriverInterface
     /**
      * Constructor
      *
-     * @param string $driver
-     * @param string $database
+     * @param string $dsn
      * @param string $username
      * @param string $password
-     * @param string $hostname
-     * @param int    $port
      * @param string $prefix
      *
      * @throws DriverException
      */
-    public function __construct($driver, $database, $username, $password, $hostname = 'localhost', $port = 3306, $prefix = null)
+    public function __construct($dsn, $username, $password, $prefix = null)
     {
         $initCmd = array(
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
@@ -49,7 +46,6 @@ class PDO implements DriverInterface
             \PDO::ATTR_EMULATE_PREPARES => 1,
         );
 
-        $dsn = sprintf('%s:dbname=%s;host=%s;port=%u', $driver, $database, $hostname, $port);
         if (!$this->pdo = new \PDO($dsn, $username, $password, $initCmd)) {
             throw new DriverException('Database adapter error!');
         }
