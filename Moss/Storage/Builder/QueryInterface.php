@@ -14,7 +14,7 @@ namespace Moss\Storage\Builder;
 /**
  * MySQL query builder interface
  *
- * @author Michal Wachowski <wachowski.michal@gmail.com>
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Builder\MySQL
  */
 interface QueryInterface extends BuilderInterface
@@ -204,41 +204,45 @@ interface QueryInterface extends BuilderInterface
      *
      * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function innerJoin($table, array $joins);
+    public function innerJoin($table, array $joins, $alias = null);
 
     /**
      * Adds left join with set table
      *
      * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function leftJoin($table, array $joins);
+    public function leftJoin($table, array $joins, $alias = null);
 
     /**
      * Adds right join with set table
      *
      * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function rightJoin($table, array $joins);
+    public function rightJoin($table, array $joins, $alias = null);
 
     /**
      * Adds join to query
      *
      * @param string $type
-     * @param array  $table
+     * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function join($type, $table, array $joins);
+    public function join($type, $table, array $joins, $alias = null);
 
     /**
      * Adds where condition to builder

@@ -17,7 +17,7 @@ use Moss\Storage\Builder\QueryInterface;
 /**
  * MySQL query builder - builds CRUD queries
  *
- * @author Michal Wachowski <wachowski.michal@gmail.com>
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Builder\MySQL
  */
 class Query implements QueryInterface
@@ -97,7 +97,7 @@ class Query implements QueryInterface
 
     /**
      * @param string $string
-     * @param null $table
+     * @param null   $table
      *
      * @return string
      */
@@ -410,10 +410,12 @@ class Query implements QueryInterface
             throw new BuilderException(sprintf('Query builder does not supports aggregation method "%s"', $method));
         }
 
-        $this->aggregates[] = array(
+        $alias = $alias ? $alias : strtolower($method);
+
+        $this->aggregates[$alias] = array(
             $method,
             $this->quote($field, $this->mapping()),
-            $this->quote($alias ? $alias : strtolower($method)),
+            $this->quote($alias),
         );
 
         return $this;
@@ -569,12 +571,13 @@ class Query implements QueryInterface
      *
      * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function innerJoin($table, array $joins)
+    public function innerJoin($table, array $joins, $alias = null)
     {
-        return $this->join('inner', $table, $joins);
+        return $this->join('inner', $table, $joins, $alias);
     }
 
     /**
@@ -582,12 +585,13 @@ class Query implements QueryInterface
      *
      * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function leftJoin($table, array $joins)
+    public function leftJoin($table, array $joins, $alias = null)
     {
-        return $this->join('left', $table, $joins);
+        return $this->join('left', $table, $joins, $alias);
     }
 
     /**
@@ -595,12 +599,13 @@ class Query implements QueryInterface
      *
      * @param string $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      */
-    public function rightJoin($table, array $joins)
+    public function rightJoin($table, array $joins, $alias = null)
     {
-        return $this->join('right', $table, $joins);
+        return $this->join('right', $table, $joins, $alias);
     }
 
     /**
@@ -609,11 +614,12 @@ class Query implements QueryInterface
      * @param string $type
      * @param array  $table
      * @param array  $joins
+     * @param string $alias
      *
      * @return $this
      * @throws BuilderException
      */
-    public function join($type, $table, array $joins)
+    public function join($type, $table, array $joins, $alias = null)
     {
         if (!isset($this->joinTypes[$type])) {
             throw new BuilderException(sprintf('Query builder does not supports join type "%s"', $type));
@@ -623,26 +629,16 @@ class Query implements QueryInterface
             throw new BuilderException(sprintf('Empty join array for join type "%s"', $type));
         }
 
-        if (is_array($table) && !is_numeric(key($table))) {
-            $table = array(key($table), reset($table));
-        } elseif (is_array($table) && count($table) == 2) {
-            $table = array(reset($table), end($table));
-        } else {
-            $table = array($table, null);
-        }
-
-        $table = array(
-            $this->quote($table[0]),
-            $table[1] ? $this->quote($table[1]) : null
-        );
-
         $join = array(
             $type,
-            $table,
+            array(
+                $this->quote($table),
+                $alias ? $this->quote($alias) : null
+            ),
             array()
         );
 
-        $mapping = isset($table[1]) ? $table[1] : $table[0];
+        $mapping = isset($alias) ? $alias : $table;
         foreach ($joins as $local => $foreign) {
             $join[2][] = array(
                 $this->quote($local, $this->mapping()),
@@ -672,9 +668,9 @@ class Query implements QueryInterface
         $this->assertLogicalOperator($logical);
 
         if (is_array($field)) {
-            array_walk_recursive($field, array($this, 'quoteCallback'));
+            array_walk_recursive($field, array($this, 'quoteWhereCallback'));
         } else {
-            $field = $this->quote($field, $this->mapping());
+            $this->quoteWhereCallback($field);
         }
 
         $this->where[] = array(
@@ -704,9 +700,9 @@ class Query implements QueryInterface
         $this->assertLogicalOperator($logical);
 
         if (is_array($field)) {
-            array_walk_recursive($field, array($this, 'quoteCallback'));
+            array_walk_recursive($field, array($this, 'quoteHavingCallback'));
         } else {
-            $field = $this->quote($field, $this->mapping());
+            $this->quoteHavingCallback($field);
         }
 
         $this->having[] = array(
@@ -733,9 +729,15 @@ class Query implements QueryInterface
         }
     }
 
-    protected function quoteCallback(&$field)
+    protected function quoteWhereCallback(&$field)
     {
         $field = $this->quote($field, $this->mapping());
+    }
+
+    protected function quoteHavingCallback(&$field)
+    {
+        $table = isset($this->aggregates[$field]) ? null : $this->mapping();
+        $field = $this->quote($field, $table);
     }
 
     protected function buildWhere()
