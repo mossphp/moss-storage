@@ -406,24 +406,24 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider joinProvider
      */
-    public function testSelectWithJoin($join, $table, $joins, $expected)
+    public function testSelectWithJoin($join, $table, $joins, $alias, $expected)
     {
         $query = new Query('table', 't', 'select');
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
-        $query->join($join, $table, $joins);
+        $query->join($join, $table, $joins, $alias);
         $this->assertEquals($expected, $query->build());
     }
 
     /**
      * @dataProvider joinProvider
      */
-    public function testSelectWithJoinAliases($join, $table, $joins, $expected)
+    public function testSelectWithJoinAliases($join, $table, $joins, $alias, $expected)
     {
         $query = new Query('table', 't', 'select');
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
-        call_user_func(array($query, $join . 'Join'), $table, $joins);
+        call_user_func(array($query, $join . 'Join'), $table, $joins, $alias);
 
         $this->assertEquals($expected, $query->build());
     }
@@ -435,30 +435,35 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 'inner',
                 'bar',
                 array('foo' => 'bar'),
+                null,
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` INNER JOIN `bar` ON `t`.`foo` = `bar`.`bar`'
             ),
             array(
                 'inner',
-                array('bar', 'b'),
+                'bar',
                 array('foo' => 'bar'),
+                'b',
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` INNER JOIN `bar` AS `b` ON `t`.`foo` = `b`.`bar`'
             ),
             array(
                 'inner',
-                array('bar' => 'b'),
+                'bar',
                 array('foo' => 'bar'),
+                'b',
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` INNER JOIN `bar` AS `b` ON `t`.`foo` = `b`.`bar`'
             ),
             array(
                 'left',
                 'bar',
                 array('foo' => 'bar'),
+                null,
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` LEFT OUTER JOIN `bar` ON `t`.`foo` = `bar`.`bar`'
             ),
             array(
                 'right',
                 'bar',
                 array('foo' => 'bar'),
+                null,
                 'SELECT `t`.`foo`, `bar`.`bar` AS `barbar`, `b`.`bar` AS `bbar` FROM `table` AS `t` RIGHT OUTER JOIN `bar` ON `t`.`foo` = `bar`.`bar`'
             ),
         );
