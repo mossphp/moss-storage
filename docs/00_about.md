@@ -25,7 +25,14 @@ This simple code, will read one `article` with `id = 1` with any comments and ta
 
 ## Requirements
 
+Just PHP >= 5.3.7 and that's it.
+
 ## Installation
+
+Download from [github](https://github.com/potfur/moss-storage)
+
+Storage has no external dependencies.
+(Only PHPUnit for dev).
 
 ## Usage
 
@@ -33,20 +40,48 @@ This simple code, will read one `article` with `id = 1` with any comments and ta
 use Moss\Storage\Driver\PDO;
 use Moss\Storage\Builder\MySQL\QueryBuilder;
 use Moss\Storage\Builder\MySQL\SchemaBuilder;
+use Moss\Storage\Model\Model;
+use Moss\Storage\Model\Definition\Field\Integer;
+use Moss\Storage\Model\Definition\Field\String;
+use Moss\Storage\Model\Definition\Index\Primary;
 use Moss\Storage\Storage;
 
-$driver = new Driver\PDO('mysql', 'database', 'user', 'password');
+$dsn = sprintf('%s:dbname=%s;host=%s;port=%u', 'mysql', 'database', 'localhost', 3306);
+$driver = new Driver\PDO($dsn, 'user', 'password');
+
 $builders = array(
     new QueryBuilder(), // required only for query operations
     new SchemaBuilder() // required only for schema operations
 );
 
 $storage = new Storage($driver, $builders);
-$storage->register('\some\cms\Article', 'article');
 
-$articles = $storage->read('article')->execute();
+$articleModel = new Model(
+    '\stdClass',
+    'article',
+    array(
+        new Integer('id', array('unsigned', 'auto_increment')),
+        new String('text'),
+    ),
+    array(
+        new Primary(array('id')),
+    )
+);
+
+$storage->register($articleModel, 'article');
+$storage->create()
+	->execute();
+
+$article = new \stdClass();
+$article->text = 'Lorem ipsum';
+$storage->insert($article)
+	->execute();
+
+$articles = $storage->read('article')
+	->execute();
+
+var_dump($articles);
 ```
-
 
 ## Operations
 
