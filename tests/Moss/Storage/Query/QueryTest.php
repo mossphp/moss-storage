@@ -60,7 +60,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->num('table');
 
         $expected = array(
-            'SELECT `table`.`id` FROM `table`',
+            'SELECT `test_table`.`id` FROM `test_table`',
             array()
         );
 
@@ -74,7 +74,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->read('table');
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table`',
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table`',
             array()
         );
 
@@ -88,7 +88,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->readOne('table');
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table` LIMIT 1',
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` LIMIT 1',
             array()
         );
 
@@ -99,17 +99,17 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $bag = new ModelBag(
             array(
-                new Model(
-                    '\stdClass',
-                    'table',
-                    array(
-                        new Integer('id', array('unsigned', 'auto_increment')),
-                        new String('text', array('length' => '128', 'null'), 'mapping'),
-                    ),
-                    array(
-                        new Primary(array('id')),
+                'table' => new Model(
+                        '\stdClass',
+                        'test_table',
+                        array(
+                            new Integer('id', array('unsigned', 'auto_increment')),
+                            new String('text', array('length' => '128', 'null'), 'mapping'),
+                        ),
+                        array(
+                            new Primary(array('id')),
+                        )
                     )
-                )
             )
         );
 
@@ -118,7 +118,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->read('table');
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` AS `mapping` FROM `table`',
+            'SELECT `test_table`.`id`, `test_table`.`text` AS `mapping` FROM `test_table`',
             array()
         );
 
@@ -148,7 +148,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->fields($fields);
 
         $expected = array(
-            'SELECT ' . $queryPart . ' FROM `table`',
+            'SELECT ' . $queryPart . ' FROM `test_table`',
             array()
         );
 
@@ -158,17 +158,17 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function fieldsProvider()
     {
         return array(
-            array(array('id', 'text'), '`table`.`id`, `table`.`text`'),
-            array(array('id'), '`table`.`id`'),
-            array(array('text'), '`table`.`text`'),
+            array(array('id', 'text'), '`test_table`.`id`, `test_table`.`text`'),
+            array(array('id'), '`test_table`.`id`'),
+            array(array('text'), '`test_table`.`text`'),
 
-            array(array('table.id', 'table.text'), '`table`.`id`, `table`.`text`'),
-            array(array('table.id'), '`table`.`id`'),
-            array(array('table.text'), '`table`.`text`'),
+            array(array('table.id', 'table.text'), '`test_table`.`id`, `test_table`.`text`'),
+            array(array('table.id'), '`test_table`.`id`'),
+            array(array('table.text'), '`test_table`.`text`'),
 
-            array(array('other.id', 'other.text'), '`other`.`id`, `other`.`text`'),
-            array(array('other.id'), '`other`.`id`'),
-            array(array('other.text'), '`other`.`text`'),
+            array(array('other.id', 'other.text'), '`test_other`.`id`, `test_other`.`text`'),
+            array(array('other.id'), '`test_other`.`id`'),
+            array(array('other.text'), '`test_other`.`text`'),
         );
     }
 
@@ -195,7 +195,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->aggregate($method, 'id');
 
         $expected = array(
-            'SELECT ' . $queryPart . ', `table`.`id`, `table`.`text` FROM `table`',
+            'SELECT ' . $queryPart . ', `test_table`.`id`, `test_table`.`text` FROM `test_table`',
             array()
         );
 
@@ -214,7 +214,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         call_user_func(array($query, $method), 'id');
 
         $expected = array(
-            'SELECT ' . $queryPart . ', `table`.`id`, `table`.`text` FROM `table`',
+            'SELECT ' . $queryPart . ', `test_table`.`id`, `test_table`.`text` FROM `test_table`',
             array()
         );
 
@@ -224,12 +224,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function aggregateProvider()
     {
         return array(
-            array('distinct', 'DISTINCT(`table`.`id`) AS `distinct`'),
-            array('count', 'COUNT(`table`.`id`) AS `count`'),
-            array('average', 'AVERAGE(`table`.`id`) AS `average`'),
-            array('max', 'MAX(`table`.`id`) AS `max`'),
-            array('min', 'MIN(`table`.`id`) AS `min`'),
-            array('sum', 'SUM(`table`.`id`) AS `sum`'),
+            array('distinct', 'DISTINCT(`test_table`.`id`) AS `distinct`'),
+            array('count', 'COUNT(`test_table`.`id`) AS `count`'),
+            array('average', 'AVERAGE(`test_table`.`id`) AS `average`'),
+            array('max', 'MAX(`test_table`.`id`) AS `max`'),
+            array('min', 'MIN(`test_table`.`id`) AS `min`'),
+            array('sum', 'SUM(`test_table`.`id`) AS `sum`'),
         );
     }
 
@@ -237,7 +237,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Query does not supports comparison operator
      */
-    public function testInvalidConditionComparison()
+    public function testInvalidWhereComparison()
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
@@ -249,7 +249,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Query does not supports logical operator
      */
-    public function testInvalidConditionLogical()
+    public function testInvalidWhereLogical()
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
@@ -258,9 +258,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider conditionFieldValueProvider
+     * @dataProvider whereFieldValueProvider
      */
-    public function testReadConditionFieldValues($field, $value, $queryPart, $binds)
+    public function testReadWhereFieldValues($field, $value, $queryPart, $binds)
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
@@ -268,21 +268,76 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->where($field, $value);
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table` WHERE ' . $queryPart,
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` WHERE ' . $queryPart,
             $binds
         );
 
         $this->assertEquals($expected, $query->queryString());
     }
 
-    public function conditionFieldValueProvider()
+    public function whereFieldValueProvider()
     {
         return array(
-            array('id', 1, '(`table`.`id` = :condition_0_id)', array(':condition_0_id' => 1)),
-            array(array('id', 'text'), 1, '(`table`.`id` = :condition_0_id OR `table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
-            array('id', array(1, 2), '(`table`.`id` = :condition_0_id OR `table`.`id` = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
-            array(array('id', 'text'), array(1, 2), '(`table`.`id` = :condition_0_id OR `table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
-            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((`table`.`id` = :condition_0_id OR `table`.`id` = :condition_1_id) OR (`table`.`text` = :condition_2_text OR `table`.`text` = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+            array('id', 1, '(`test_table`.`id` = :condition_0_id)', array(':condition_0_id' => 1)),
+            array(array('id', 'text'), 1, '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
+            array('id', array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
+            array(array('id', 'text'), array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
+            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id) OR (`test_table`.`text` = :condition_2_text OR `test_table`.`text` = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+        );
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Query does not supports comparison operator
+     */
+    public function testInvalidHavingComparison()
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query->reset()
+            ->read('table')
+            ->having('id', 1, '!!');
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Query does not supports logical operator
+     */
+    public function testInvalidHavingLogical()
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query->reset()
+            ->read('table')
+            ->having('id', 1, '=', 'foo');
+    }
+
+    /**
+     * @dataProvider havingFieldValueProvider
+     */
+    public function testReadHavingFieldValues($field, $value, $queryPart, $binds)
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query->reset()
+            ->read('table')
+            ->count('id', 'count')
+            ->having($field, $value);
+
+        $expected = array(
+            'SELECT COUNT(`test_table`.`id`) AS `count`, `test_table`.`id`, `test_table`.`text` FROM `test_table` HAVING ' . $queryPart,
+            $binds
+        );
+
+        $this->assertEquals($expected, $query->queryString());
+    }
+
+    public function havingFieldValueProvider()
+    {
+        return array(
+            array('id', 1, '(`test_table`.`id` = :condition_0_id)', array(':condition_0_id' => 1)),
+            array(array('id', 'text'), 1, '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
+            array('id', array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
+            array(array('id', 'text'), array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
+            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id) OR (`test_table`.`text` = :condition_2_text OR `test_table`.`text` = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+            array('count', 2, '(`count` = :condition_0_count)', array(':condition_0_count' => 2)),
         );
     }
 
@@ -299,7 +354,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->field('other.id');
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text`, `table`.`id`, `other`.`id` FROM `table` ' . $queryPart . ' `other` ON `table`.`id` = `other`.`id`',
+            'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` ' . $queryPart . ' `test_other` ON `test_table`.`id` = `test_other`.`id`',
             array()
         );
 
@@ -320,7 +375,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         call_user_func(array($query, $join . 'Join'), 'other');
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text`, `table`.`id`, `other`.`id` FROM `table` ' . $queryPart . ' `other` ON `table`.`id` = `other`.`id`',
+            'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` ' . $queryPart . ' `test_other` ON `test_table`.`id` = `test_other`.`id`',
             array()
         );
 
@@ -347,7 +402,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->where('id', 1, $operator);
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table` WHERE ' . $queryPart,
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` WHERE ' . $queryPart,
             array(':condition_0_id' => 1)
         );
 
@@ -357,14 +412,14 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function conditionComparisonProvider()
     {
         return array(
-            array('=', '(`table`.`id` = :condition_0_id)'),
-            array('!=', '(`table`.`id` != :condition_0_id)'),
-            array('>', '(`table`.`id` > :condition_0_id)'),
-            array('>=', '(`table`.`id` >= :condition_0_id)'),
-            array('<', '(`table`.`id` < :condition_0_id)'),
-            array('<=', '(`table`.`id` <= :condition_0_id)'),
-            array('like', '(`table`.`id` LIKE :condition_0_id)'),
-            array('regex', '(LOWER(`table`.`id`) REGEX LOWER(:condition_0_id))'),
+            array('=', '(`test_table`.`id` = :condition_0_id)'),
+            array('!=', '(`test_table`.`id` != :condition_0_id)'),
+            array('>', '(`test_table`.`id` > :condition_0_id)'),
+            array('>=', '(`test_table`.`id` >= :condition_0_id)'),
+            array('<', '(`test_table`.`id` < :condition_0_id)'),
+            array('<=', '(`test_table`.`id` <= :condition_0_id)'),
+            array('like', '(`test_table`.`id` LIKE :condition_0_id)'),
+            array('regex', '(LOWER(`test_table`.`id`) REGEX LOWER(:condition_0_id))'),
         );
     }
 
@@ -380,7 +435,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->where('id', 2, '=', $operator);
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table` WHERE ' . $queryPart,
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` WHERE ' . $queryPart,
             array(':condition_0_id' => 1, ':condition_1_id' => 2)
         );
 
@@ -390,8 +445,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function conditionLogicalProvider()
     {
         return array(
-            array('and', '(`table`.`id` = :condition_0_id) AND (`table`.`id` = :condition_1_id)'),
-            array('or', '(`table`.`id` = :condition_0_id) OR (`table`.`id` = :condition_1_id)'),
+            array('and', '(`test_table`.`id` = :condition_0_id) AND (`test_table`.`id` = :condition_1_id)'),
+            array('or', '(`test_table`.`id` = :condition_0_id) OR (`test_table`.`id` = :condition_1_id)'),
         );
     }
 
@@ -403,7 +458,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->group('id');
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table` GROUP BY `table`.`id`',
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` GROUP BY `test_table`.`id`',
             array()
         );
 
@@ -433,7 +488,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->order('id', $order);
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table` ORDER BY ' . $queryPart,
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` ORDER BY ' . $queryPart,
             $binds
         );
 
@@ -443,9 +498,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function orderProvider()
     {
         return array(
-            array('asc', '`table`.`id` ASC'),
-            array('desc', '`table`.`id` DESC'),
-            array(array(1, 2), '`table`.`id` = :order_0_id DESC, `table`.`id` = :order_1_id DESC', array(':order_0_id' => 1, ':order_1_id' => 2))
+            array('asc', '`test_table`.`id` ASC'),
+            array('desc', '`test_table`.`id` DESC'),
+            array(array(1, 2), '`test_table`.`id` = :order_0_id DESC, `test_table`.`id` = :order_1_id DESC', array(':order_0_id' => 1, ':order_1_id' => 2))
         );
     }
 
@@ -460,7 +515,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->limit($limit, $offset);
 
         $expected = array(
-            'SELECT `table`.`id`, `table`.`text` FROM `table`' . $queryPart,
+            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table`' . $queryPart,
             array()
         );
 
@@ -489,7 +544,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->write('table', $entity);
 
         $expected = array(
-            'INSERT INTO `table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
+            'INSERT INTO `test_table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar')
         );
 
@@ -507,7 +562,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->write('table', $entity);
 
         $expected = array(
-            'UPDATE `table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
+            'UPDATE `test_table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar', ':condition_2_id' => 1)
         );
 
@@ -525,7 +580,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->insert('table', $entity);
 
         $expected = array(
-            'INSERT INTO `table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
+            'INSERT INTO `test_table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar')
         );
 
@@ -543,7 +598,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->update('table', $entity);
 
         $expected = array(
-            'UPDATE `table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
+            'UPDATE `test_table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar', ':condition_2_id' => 1)
         );
 
@@ -561,7 +616,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->delete('table', $entity);
 
         $expected = array(
-            'DELETE FROM `table` WHERE `id` = :condition_0_id',
+            'DELETE FROM `test_table` WHERE `id` = :condition_0_id',
             array(':condition_0_id' => 1)
         );
 
@@ -575,7 +630,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->clear('table');
 
         $expected = array(
-            'TRUNCATE TABLE `table`',
+            'TRUNCATE TABLE `test_table`',
             array()
         );
 
@@ -620,7 +675,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $table = new Model(
             '\stdClass',
-            'table',
+            'test_table',
             array(
                 new Integer('id', array('unsigned', 'auto_increment')),
                 new String('text', array('length' => '128', 'null')),
@@ -635,7 +690,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $other = new Model(
             '\altClass',
-            'other',
+            'test_other',
             array(
                 new Integer('id', array('unsigned', 'auto_increment')),
                 new String('text', array('length' => '128', 'null')),

@@ -23,8 +23,13 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->check($table);
-        $this->assertEquals(array($table => 'SHOW TABLES LIKE \'' . $table . '\''), $schema->queryString());
+            ->check($table);
+
+        $tableName = $this->mockModelBag()
+            ->get($table)
+            ->table();
+
+        $this->assertEquals(array($tableName => 'SHOW TABLES LIKE \'' . $tableName . '\''), $schema->queryString());
     }
 
     /**
@@ -34,8 +39,13 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->drop($table);
-        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $table . '`'), $schema->queryString());
+            ->drop($table);
+
+        $tableName = $this->mockModelBag()
+            ->get($table)
+            ->table();
+
+        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $tableName . '`'), $schema->queryString());
     }
 
     public function tableProvider()
@@ -53,15 +63,15 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->create($table);
+            ->create($table);
         $this->assertEquals(array(0 => $expected), $schema->queryString());
     }
 
     public function createProvider()
     {
         return array(
-            array('table', 'CREATE TABLE `table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
-            array('other', 'CREATE TABLE `other` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
+            array('table', 'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
+            array('other', 'CREATE TABLE `test_other` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
         );
     }
 
@@ -72,7 +82,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new Schema($this->mockDriver($current), $this->mockBuilder(), $this->mockModelBag());
         $schema->reset()
-               ->alter('table');
+            ->alter('table');
         $this->assertEquals($expected, $schema->queryString());
     }
 
@@ -80,21 +90,21 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                'CREATE TABLE `table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array()
             ),
             array(
-                'CREATE TABLE `table` ( `id` CHAR(10) NOT NULL, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                'CREATE TABLE `test_table` ( `id` CHAR(10) NOT NULL, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array(
-                    'ALTER TABLE `table` DROP PRIMARY KEY',
-                    'ALTER TABLE `table` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL',
-                    'ALTER TABLE `table` ADD PRIMARY KEY (`id`)',
+                    'ALTER TABLE `test_table` DROP PRIMARY KEY',
+                    'ALTER TABLE `test_table` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL',
+                    'ALTER TABLE `test_table` ADD PRIMARY KEY (`id`)',
                 )
             ),
             array(
-                'CREATE TABLE `table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array(
-                    'ALTER TABLE `table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
+                    'ALTER TABLE `test_table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
                 )
             ),
         );
@@ -104,20 +114,20 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $driver = $this->getMock('\Moss\Storage\Driver\DriverInterface');
         $driver->expects($this->any())
-               ->method('prepare')
-               ->will($this->returnSelf());
+            ->method('prepare')
+            ->will($this->returnSelf());
 
         $driver->expects($this->any())
-               ->method('execute')
-               ->will($this->returnSelf());
+            ->method('execute')
+            ->will($this->returnSelf());
 
         $driver->expects($this->any())
-               ->method('fetchField')
-               ->will($this->returnValue($queryString));
+            ->method('fetchField')
+            ->will($this->returnValue($queryString));
 
         $driver->expects($this->any())
-               ->method('affectedRows')
-               ->will($this->returnValue($this->queryString || $queryString  ? 1 : 0));
+            ->method('affectedRows')
+            ->will($this->returnValue($this->queryString || $queryString ? 1 : 0));
 
         return $driver;
     }
@@ -134,7 +144,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $table = new Model(
             '\stdClass',
-            'table',
+            'test_table',
             array(
                 new Integer('id', array('unsigned', 'auto_increment')),
                 new String('text', array('length' => '128', 'null')),
@@ -149,7 +159,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
         $other = new Model(
             '\altClass',
-            'other',
+            'test_other',
             array(
                 new Integer('id', array('unsigned', 'auto_increment')),
                 new String('text', array('length' => '128', 'null')),
