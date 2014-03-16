@@ -78,6 +78,10 @@ class ManyTrough extends Relation
                 continue;
             }
             foreach ($mediator[$key] as $mkey) {
+                if (!isset($relations[$mkey])) {
+                    continue;
+                }
+
                 foreach ($relations[$mkey] as &$entity) {
                     $value = $this->accessProperty($entity, $this->relation->container());
                     $value[] = $relEntity;
