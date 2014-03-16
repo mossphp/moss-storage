@@ -28,6 +28,9 @@ class ModelBag
     /** @var array|ModelInterface */
     protected $byEntity = array();
 
+    /** @var array|ModelInterface */
+    protected $byTable = array();
+
     /**
      * Construct
      *
@@ -58,6 +61,10 @@ class ModelBag
             return $this->byEntity[$alias];
         }
 
+        if (isset($this->byTable[$alias])) {
+            return $this->byTable[$alias];
+        }
+
         throw new ModelException(sprintf('Model for entity "%s" does not exists', $alias));
     }
 
@@ -82,6 +89,9 @@ class ModelBag
 
         $entity = $model->entity() ? ltrim($model->entity(), '\\') : $key;
         $this->byEntity[$entity] = & $this->collection[$hash];
+
+        $entity = $model->table();
+        $this->byTable[$entity] = & $this->collection[$hash];
 
         return $this;
     }
