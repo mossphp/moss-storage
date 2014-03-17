@@ -723,15 +723,14 @@ class Query implements QueryInterface
                     $this->fillKeys($relation->foreignKeys(), $mediator, $entity)
                 );
 
-                var_dump($this->joins);
+                foreach ($relation->localValues() as $field => $value) {
+                    $this->where($this->buildField($entity, $field), $value);
+                }
 
-//                foreach ($relation->localValues() as $field => $value) {
-//                    $this->where($field, $value);
-//                }
-//
-//                foreach ($relation->foreignValues() as $field => $value) {
-//                    $this->where($this->buildField($relation->container(), $field), $value);
-//                }
+                foreach ($relation->foreignValues() as $field => $value) {
+                    $this->where($this->buildField($relation->container(), $field), $value);
+                }
+
                 break;
         }
 
