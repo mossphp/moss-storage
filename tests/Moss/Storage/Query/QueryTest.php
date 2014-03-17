@@ -6,7 +6,9 @@ use Moss\Storage\Model\Definition\Field\Integer;
 use Moss\Storage\Model\Definition\Field\String;
 use Moss\Storage\Model\Definition\Index\Primary;
 use Moss\Storage\Model\Definition\Relation\One;
-use Moss\Storage\Model\Definition\Relation\Relation;
+use Moss\Storage\Model\Definition\Relation\Many;
+use Moss\Storage\Model\Definition\Relation\OneTrough;
+use Moss\Storage\Model\Definition\Relation\ManyTrough;
 use Moss\Storage\Model\Model;
 use Moss\Storage\Model\ModelBag;
 
@@ -344,29 +346,29 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider joinProvider
      */
-    public function testJoin($join, $queryPart)
+    public function testJoin($type, $join, $queryString)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag($type));
         $query->reset()
             ->read('table')
             ->join($join, 'other')
             ->field('table.id')
             ->field('other.id');
 
-        $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` ' . $queryPart . ' `test_other` ON `test_table`.`id` = `test_other`.`id`',
+        $queryString = array(
+            $queryString,
             array()
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $this->assertEquals($queryString, $query->queryString());
     }
 
     /**
      * @dataProvider joinProvider
      */
-    public function testJoinAliases($join, $queryPart)
+    public function testJoinAliases($type, $join, $queryString)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag($type));
         $query->reset()
             ->read('table')
             ->field('table.id')
@@ -375,7 +377,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         call_user_func(array($query, $join . 'Join'), 'other');
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` ' . $queryPart . ' `test_other` ON `test_table`.`id` = `test_other`.`id`',
+            $queryString,
             array()
         );
 
@@ -385,9 +387,20 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function joinProvider()
     {
         return array(
-            array('inner', 'INNER JOIN'),
-            array('left', 'LEFT OUTER JOIN'),
-            array('right', 'RIGHT OUTER JOIN')
+            array('one', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
+            array('many', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
+            array('oneTrough', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` INNER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+            array('manyTrough', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` INNER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+
+            array('one', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
+            array('many', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
+            array('oneTrough', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` LEFT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+            array('manyTrough', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` LEFT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+
+            array('one', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
+            array('many', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
+            array('oneTrough', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` RIGHT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+            array('manyTrough', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` RIGHT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
         );
     }
 
@@ -419,7 +432,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             array('<', '(`test_table`.`id` < :condition_0_id)'),
             array('<=', '(`test_table`.`id` <= :condition_0_id)'),
             array('like', '(`test_table`.`id` LIKE :condition_0_id)'),
-            array('regex', '(LOWER(`test_table`.`id`) REGEX LOWER(:condition_0_id))'),
+            array('regex', '(LOWER(`test_table`.`id`) REGEXP LOWER(:condition_0_id))'),
         );
     }
 
@@ -671,7 +684,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         return $builder;
     }
 
-    protected function mockModelBag()
+    protected function mockModelBag($relType = 'one')
     {
         $table = new Model(
             '\stdClass',
@@ -684,7 +697,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 new Primary(array('id')),
             ),
             array(
-                new One('\altClass', array('id' => 'id'), 'other')
+                $this->mockRelation($relType)
             )
         );
 
@@ -700,11 +713,39 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             )
         );
 
+        $mediator = new Model(
+            null,
+            'test_mediator',
+            array(
+                new Integer('in', array('unsigned')),
+                new Integer('out', array('unsigned')),
+            ),
+            array(
+                new Primary(array('in', 'out')),
+            )
+        );
+
         $bag = new ModelBag();
         $bag->set($table, 'table');
         $bag->set($other, 'other');
+        $bag->set($mediator, 'mediator');
 
         return $bag;
+    }
+
+    protected function mockRelation($relType)
+    {
+        switch ($relType) {
+            case 'one':
+            default:
+                return new One('\altClass', array('id' => 'id'), 'other');
+            case 'many':
+                return new Many('\altClass', array('id' => 'id'), 'other');
+            case 'oneTrough':
+                return new OneTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
+            case 'manyTrough':
+                return new ManyTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
+        }
     }
 }
  

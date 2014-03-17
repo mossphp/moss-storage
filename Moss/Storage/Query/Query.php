@@ -684,22 +684,68 @@ class Query implements QueryInterface
         }
 
         $relation = $this->model->relation($entity);
-        $this->joins[] = array(
-            $type,
-            $this->models->get($entity)
-                ->table(),
-            $relation->keys()
-        );
 
-        foreach ($relation->localValues() as $field => $value) {
-            $this->where($field, $value);
-        }
+        switch ($relation->type()) {
+            case 'one':
+            case 'many':
+                $this->joins[] = array(
+                    $type,
+                    $this->models->get($entity)
+                        ->table(),
+                    $relation->keys()
+                );
 
-        foreach ($relation->foreignValues() as $field => $value) {
-            $this->where($this->buildField($relation->container(), $field), $value);
+                foreach ($relation->localValues() as $field => $value) {
+                    $this->where($field, $value);
+                }
+
+                foreach ($relation->foreignValues() as $field => $value) {
+                    $this->where($this->buildField($relation->container(), $field), $value);
+                }
+                break;
+            case 'oneTrough':
+            case 'manyTrough':
+                $mediator = $this->models->get($relation->mediator())
+                    ->table();
+
+                $entity = $this->models->get($relation->entity())
+                    ->table();
+
+                $this->joins[] = array(
+                    $type,
+                    $mediator,
+                    $this->fillKeys($relation->localKeys(), $this->model->table(), $mediator)
+                );
+
+                $this->joins[] = array(
+                    $type,
+                    $entity,
+                    $this->fillKeys($relation->foreignKeys(), $mediator, $entity)
+                );
+
+                var_dump($this->joins);
+
+//                foreach ($relation->localValues() as $field => $value) {
+//                    $this->where($field, $value);
+//                }
+//
+//                foreach ($relation->foreignValues() as $field => $value) {
+//                    $this->where($this->buildField($relation->container(), $field), $value);
+//                }
+                break;
         }
 
         return $this;
+    }
+
+    private function fillKeys(array $keys, $localPrefix, $foreignPrefix)
+    {
+        $result = array();
+        foreach ($keys as $local => $foreign) {
+            $result[$this->buildField($localPrefix, $local)] = $this->buildField($foreignPrefix, $foreign);
+        }
+
+        return $result;
     }
 
     /**
