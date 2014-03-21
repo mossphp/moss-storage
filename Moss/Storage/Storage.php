@@ -160,9 +160,14 @@ class Storage implements StorageInterface
 
     /**
      * @return Schema
+     * @throws StorageException
      */
     protected function schema()
     {
+        if (!$this->builders['schema']) {
+            throw new StorageException('Unable to create schema, missing schema builder');
+        }
+
         $schema = new Schema($this->driver, $this->builders['schema'], $this->models);
 
         return $schema;
@@ -274,9 +279,14 @@ class Storage implements StorageInterface
 
     /**
      * @return Query
+     * @throws StorageException
      */
     protected function query()
     {
+        if (!$this->builders['query']) {
+            throw new StorageException('Unable to create query, missing query builder');
+        }
+
         $query = new Query($this->driver, $this->builders['query'], $this->models);
 
         return $query;
