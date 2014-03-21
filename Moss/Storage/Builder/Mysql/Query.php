@@ -47,7 +47,7 @@ class Query implements QueryInterface
         '<=' => '<=',
         '>=' => '>=',
         'like' => 'LIKE',
-        'regex' => 'REGEX'
+        'regex' => 'REGEXP'
     );
 
     protected $logicalOperators = array(
@@ -808,8 +808,8 @@ class Query implements QueryInterface
             return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
         }
 
-        if ($operator === 'REGEX') {
-            return sprintf('LOWER(%s) REGEX LOWER(%s)', $field, $bind);
+        if ($operator === 'REGEXP') {
+            return sprintf('LOWER(%s) REGEXP LOWER(%s)', $field, $bind);
         }
 
         return $field . ' ' . $operator . ' ' . $bind;

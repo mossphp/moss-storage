@@ -235,7 +235,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', 'regex')
                 ),
-                'LOWER(`t`.`foo`) REGEX LOWER(:bind)'
+                'LOWER(`t`.`foo`) REGEXP LOWER(:bind)'
             ),
             array(
                 array(
@@ -650,7 +650,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', 'regex')
                 ),
-                'WHERE LOWER(`foo`) REGEX LOWER(:bind)'
+                'WHERE LOWER(`foo`) REGEXP LOWER(:bind)'
             ),
             array(
                 array(
