@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Moss\Storage\Query;
+namespace Moss\Storage\Schema;
 
 use Moss\Storage\Builder\SchemaInterface as BuilderInterface;
 use Moss\Storage\Driver\DriverInterface;

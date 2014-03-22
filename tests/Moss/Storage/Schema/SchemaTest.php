@@ -1,5 +1,5 @@
 <?php
-namespace Moss\Storage\Query;
+namespace Moss\Storage\Schema;
 
 use Moss\Storage\Builder\MySQL\Schema as Builder;
 use Moss\Storage\Model\Definition\Field\Integer;
