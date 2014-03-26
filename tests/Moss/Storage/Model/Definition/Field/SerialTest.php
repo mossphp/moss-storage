@@ -64,7 +64,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttribute($attribute, $key, $value = true)
+    public function testAttribute($attribute, $key, $value)
     {
         $field = new Serial('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
@@ -73,17 +73,17 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttributes($attribute, $key, $value = true)
+    public function testAttributes($attribute, $key, $value, $expected)
     {
         $field = new Serial('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
+        $this->assertEquals($expected, $field->attributes($key));
     }
 
     public function attributeProvider()
     {
         return array(
-            array(array('null'), 'null'),
-            array(array('length' => 4), 'length', 4),
+            array(array('null'), 'null', true, array('null' => true)),
+            array(array('length' => 4), 'length', 4, array('null' => true, 'length' => 4)),
         );
     }
 

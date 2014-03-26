@@ -64,7 +64,7 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttribute($attribute, $key, $value = true)
+    public function testAttribute($attribute, $key, $value)
     {
         $field = new Decimal('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
@@ -73,28 +73,28 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttributes($attribute, $key, $value = true)
+    public function testAttributes($attribute, $key, $value, $expected = array())
     {
         $field = new Decimal('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
+        $this->assertEquals($expected, $field->attributes());
     }
 
     public function attributeProvider()
     {
         return array(
-            array(array('length' => 10), 'length', 10),
-            array(array('precision' => 4), 'precision', 4),
-            array(array('null'), 'null'),
-            array(array('unsigned'), 'unsigned'),
-            array(array('default' => 12.34), 'default', 12.34),
-            array(array('comment'), 'comment')
+            array(array('length' => 10), 'length', 10, array('length' => 10, 'precision' => 4)),
+            array(array('precision' => 2), 'precision', 2, array('length' => 11, 'precision' => 2)),
+            array(array('null'), 'null', true, array('length' => 11, 'precision' => 4, 'null' => true)),
+            array(array('unsigned'), 'unsigned', true, array('length' => 11, 'precision' => 4, 'unsigned' => true)),
+            array(array('default' => 12.34), 'default', 12.34, array('length' => 11, 'precision' => 4, 'default' => 12.34)),
+            array(array('comment' => 'Foo'), 'comment', 'Foo', array('length' => 11, 'precision' => 4, 'comment' => 'Foo'))
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {

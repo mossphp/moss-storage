@@ -19,13 +19,14 @@ namespace Moss\Storage\Model\Definition\Field;
  */
 class String extends Field
 {
-    public function __construct($field, $attributes = array('length' => null), $mapping = null)
+    public function __construct($field, $attributes = array(), $mapping = null)
     {
         $this->name = $field;
         $this->type = 'string';
         $this->mapping = $mapping;
 
-        $this->attributes = $this->prepareAttributes($attributes);
+        $default = array('length' => null);
+        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
         $this->verifyAttribute(array('length', 'null', 'default', 'comment'));
     }
 }

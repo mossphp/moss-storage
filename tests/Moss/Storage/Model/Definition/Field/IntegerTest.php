@@ -64,7 +64,7 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttribute($attribute, $key, $value = true)
+    public function testAttribute($attribute, $key, $value)
     {
         $field = new Integer('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
@@ -73,28 +73,28 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttributes($attribute, $key, $value = true)
+    public function testAttributes($attribute, $key, $value, $expected)
     {
         $field = new Integer('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
+        $this->assertEquals($expected, $field->attributes($key));
     }
 
     public function attributeProvider()
     {
         return array(
-            array(array('length' => 10), 'length', 10),
-            array(array('null'), 'null'),
-            array(array('unsigned'), 'unsigned'),
-            array(array('auto_increment'), 'auto_increment'),
-            array(array('default' => 123), 'default', 123),
-            array(array('comment'), 'comment')
+            array(array('length' => 10), 'length', 10, array('length' => 10)),
+            array(array('null'), 'null', true, array('length' => 11, 'null' => true)),
+            array(array('unsigned'), 'unsigned', true, array('length' => 11, 'unsigned' => true)),
+            array(array('auto_increment'), 'auto_increment', true, array('length' => 11, 'auto_increment' => true)),
+            array(array('default' => 123), 'default', 123, array('length' => 11, 'default' => 123)),
+            array(array('comment' => 'Foo'), 'comment', 'Foo', array('length' => 11, 'comment' => 'Foo'))
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {

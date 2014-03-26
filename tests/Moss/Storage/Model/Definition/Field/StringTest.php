@@ -64,7 +64,7 @@ class StringTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttribute($attribute, $key, $value = true)
+    public function testAttribute($attribute, $key, $value)
     {
         $field = new String('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
@@ -73,26 +73,26 @@ class StringTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider attributeProvider
      */
-    public function testAttributes($attribute, $key, $value = true)
+    public function testAttributes($attribute, $key, $value, $expected)
     {
         $field = new String('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
+        $this->assertEquals($expected, $field->attributes($key));
     }
 
     public function attributeProvider()
     {
         return array(
-            array(array('length' => 4), 'length', 4),
-            array(array('null'), 'null'),
-            array(array('comment' => 'foo'), 'comment', 'foo'),
-            array(array('default' => 1), 'default', 1),
+            array(array('length' => 4), 'length', 4, array('length' => 4)),
+            array(array('null'), 'null', true, array('length' => null, 'null' => true)),
+            array(array('comment' => 'foo'), 'comment', 'foo', array('length' => null, 'comment' => 'foo')),
+            array(array('default' => 1), 'default', 1, array('length' => null, 'default' => 1)),
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {
