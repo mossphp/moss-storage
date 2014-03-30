@@ -17,7 +17,7 @@ namespace Moss\Storage\Builder;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Builder\MySQL
  */
-interface SchemaInterface extends BuilderInterface
+interface SchemaBuilderInterface extends BuilderInterface
 {
     /**
      * Sets check operation on table

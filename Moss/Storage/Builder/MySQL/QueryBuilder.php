@@ -12,7 +12,7 @@
 namespace Moss\Storage\Builder\MySQL;
 
 use Moss\Storage\Builder\BuilderException;
-use Moss\Storage\Builder\QueryInterface;
+use Moss\Storage\Builder\QueryBuilderInterface;
 
 /**
  * MySQL query builder - builds CRUD queries
@@ -20,7 +20,7 @@ use Moss\Storage\Builder\QueryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Builder\MySQL
  */
-class Query implements QueryInterface
+class QueryBuilder implements QueryBuilderInterface
 {
     const QUOTE = '`';
 
@@ -447,13 +447,15 @@ class Query implements QueryInterface
 
     /**
      * Adds sub query
+
      *
-     * @param QueryInterface $query
+*@param QueryBuilderInterface $query
      * @param string         $alias
+
      *
-     * @return $this
+*@return $this
      */
-    public function sub(QueryInterface $query, $alias)
+    public function sub(QueryBuilderInterface $query, $alias)
     {
         $this->subs[] = array($query, $this->quote($alias));
 

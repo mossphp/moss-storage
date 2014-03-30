@@ -12,7 +12,7 @@
 namespace Moss\Storage\Builder\MySQL;
 
 use Moss\Storage\Builder\BuilderException;
-use Moss\Storage\Builder\SchemaInterface;
+use Moss\Storage\Builder\SchemaBuilderInterface;
 
 /**
  * MySQL schema builder - builds queries managing tables (create, alter, drop)
@@ -20,7 +20,7 @@ use Moss\Storage\Builder\SchemaInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage\Builder\MySQL
  */
-class Schema implements SchemaInterface
+class SchemaBuilder implements SchemaBuilderInterface
 {
     const QUOTE = '`';
 
