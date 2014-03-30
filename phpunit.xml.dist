@@ -2,10 +2,13 @@
 
 <phpunit colors="true" bootstrap="./vendor/autoload.php">
 	<testsuites>
-		<testsuite name="Storage tests">
-			<directory>./tests/Moss/Storage/Builder/MySQL/</directory>
+		<testsuite name="Storage">
 			<directory>./tests/Moss/Storage/Model/</directory>
 			<directory>./tests/Moss/Storage/Query/</directory>
+			<directory>./tests/Moss/Storage/Schema/</directory>
+		</testsuite>
+		<testsuite name="MySQL">
+			<directory>./tests/Moss/Storage/Builder/MySQL/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

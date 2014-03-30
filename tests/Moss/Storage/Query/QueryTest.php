@@ -1,7 +1,7 @@
 <?php
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Builder\MySQL\Query as Builder;
+use Moss\Storage\Builder\MySQL\QueryBuilder as Builder;
 use Moss\Storage\Model\Definition\Field\Integer;
 use Moss\Storage\Model\Definition\Field\String;
 use Moss\Storage\Model\Definition\Index\Primary;
@@ -23,7 +23,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function testGetBuilder()
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $this->assertInstanceOf('\Moss\Storage\Builder\QueryInterface', $query->builder());
+        $this->assertInstanceOf('\Moss\Storage\Builder\QueryBuilderInterface', $query->builder());
     }
 
     /**

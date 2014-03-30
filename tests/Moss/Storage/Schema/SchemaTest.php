@@ -1,7 +1,7 @@
 <?php
 namespace Moss\Storage\Schema;
 
-use Moss\Storage\Builder\MySQL\Schema as Builder;
+use Moss\Storage\Builder\MySQL\SchemaBuilder as Builder;
 use Moss\Storage\Model\Definition\Field\Integer;
 use Moss\Storage\Model\Definition\Field\String;
 use Moss\Storage\Model\Definition\Index\Primary;
@@ -70,8 +70,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     public function createProvider()
     {
         return array(
-            array('table', 'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
-            array('other', 'CREATE TABLE `test_other` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
+            array('table', 'CREATE TABLE `test_table` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
+            array('other', 'CREATE TABLE `test_other` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
         );
     }
 
@@ -90,7 +90,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                'CREATE TABLE `test_table` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array()
             ),
             array(
@@ -102,7 +102,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
-                'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                'CREATE TABLE `test_table` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array(
                     'ALTER TABLE `test_table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
                 )

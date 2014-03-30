@@ -9,13 +9,13 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testMissingTable()
     {
-        $schema = new Schema(null);
+        $schema = new SchemaBuilder(null);
         $schema->build();
     }
 
     public function testTable()
     {
-        $schema = new Schema('table', 'add');
+        $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo');
         $this->assertEquals('ALTER TABLE `table` ADD `foo` TEXT NOT NULL', $schema->build());
     }
@@ -26,7 +26,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testTableWithEmptyString()
     {
-        $query = new Schema('table', 'check');
+        $query = new SchemaBuilder('table', 'check');
         $query->reset()
             ->table('');
     }
@@ -37,7 +37,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidOperation()
     {
-        new Schema('table', 'foo');
+        new SchemaBuilder('table', 'foo');
     }
 
     /**
@@ -45,7 +45,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperation($operation, $expected)
     {
-        $schema = new Schema('table', 'check');
+        $schema = new SchemaBuilder('table', 'check');
         $schema
             ->operation($operation)
             ->column('foo')
@@ -58,7 +58,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperationAliases($operation, $expected)
     {
-        $schema = new Schema('foo', 'check');
+        $schema = new SchemaBuilder('foo', 'check');
         $schema->{$operation}('table')
                 ->column('foo')
                ->index('idx', array('foo'), 'index');
@@ -88,7 +88,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateColumn($actual, $expected)
     {
-        $schema = new Schema('table', 'create');
+        $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', $actual);
         $this->assertEquals('CREATE TABLE `table` ( `foo` ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
@@ -98,7 +98,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddColumn($actual, $expected)
     {
-        $schema = new Schema('table', 'add');
+        $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo', $actual);
         $this->assertEquals('ALTER TABLE `table` ADD `foo` ' . $expected . '', $schema->build());
     }
@@ -108,7 +108,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testChangeColumn($actual, $expected)
     {
-        $schema = new Schema('table', 'change');
+        $schema = new SchemaBuilder('table', 'change');
         $schema->column('foo', $actual);
         $this->assertEquals('ALTER TABLE `table` CHANGE `foo` `foo` ' . $expected . '', $schema->build());
     }
@@ -118,7 +118,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveColumn($actual, $expected)
     {
-        $schema = new Schema('table', 'remove');
+        $schema = new SchemaBuilder('table', 'remove');
         $schema->column('foo', $actual);
         $this->assertEquals('ALTER TABLE `table` DROP `foo`', $schema->build());
     }
@@ -159,7 +159,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testColumnAttributes($type, $attributes, $expected)
     {
-        $schema = new Schema('table', 'add');
+        $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo', $type, $attributes);
         $this->assertEquals('ALTER TABLE `table` ADD `foo` ' . $expected . '', $schema->build());
     }
@@ -235,7 +235,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreateIndex($type, $fields, $table, $expected)
     {
-        $schema = new Schema('table', 'create');
+        $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', 'integer')
                ->index('foo', $fields, $type, $table);
         $this->assertEquals('CREATE TABLE `table` ( `foo` INT(10) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
@@ -246,7 +246,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddIndex($type, $fields, $table, $expected)
     {
-        $schema = new Schema('table', 'add');
+        $schema = new SchemaBuilder('table', 'add');
         $schema->index('foo', $fields, $type, $table);
         $this->assertEquals('ALTER TABLE `table` ADD ' . $expected . '', $schema->build());
     }
@@ -287,7 +287,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveIndex($type, $fields, $table, $expected)
     {
-        $schema = new Schema('table', 'remove');
+        $schema = new SchemaBuilder('table', 'remove');
         $schema->index('foo', $fields, $type, $table);
         $this->assertEquals('ALTER TABLE `table` DROP ' . $expected, $schema->build());
     }
@@ -333,7 +333,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'indexes' => $indexes,
         );
 
-        $schema = new Schema();
+        $schema = new SchemaBuilder();
         $result = $schema->parse($stmt);
         $this->assertEquals($expected, $result);
     }

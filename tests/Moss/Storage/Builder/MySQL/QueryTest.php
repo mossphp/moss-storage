@@ -9,7 +9,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testMissingTable()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->reset()
             ->operation('select')
             ->fields(array('foo', 'bar'))
@@ -18,7 +18,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testTable()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->reset()
             ->table('foobar', 'fb')
             ->operation('select')
@@ -34,7 +34,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testTableWithEmptyString()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->reset()
             ->table('', 'fb');
     }
@@ -55,7 +55,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperation($expected, $operation)
     {
-        $query = new Query();
+        $query = new QueryBuilder();
         $query->table('table')
             ->operation($operation)
             ->fields(array('foo', 'bar'))
@@ -71,7 +71,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testOperationAliases($expected, $operation)
     {
-        $query = new Query();
+        $query = new QueryBuilder();
 
         call_user_func(array($query, $operation), 'table');
 
@@ -89,7 +89,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidOperation()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->reset()
             ->table('table')
             ->operation('foo')
@@ -101,13 +101,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testSelectWithoutFields()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $this->assertEquals('SELECT * FROM `table` AS `t`', $query->build());
     }
 
     public function testSelect()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo', 'bar', 'yada_yada' => 'yada'));
         $this->assertEquals('SELECT `t`.`foo`, `t`.`bar`, `t`.`yada_yada` AS `yada` FROM `table` AS `t`', $query->build());
     }
@@ -118,7 +118,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidComparison()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'))
             ->where('foo', ':bind', '!!');
     }
@@ -129,17 +129,17 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidLogical()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'))
             ->where('foo', ':bind', '=', 'BOO');
     }
 
     public function testSelectWithSubQuery()
     {
-        $sub = new Query('bar', 'b');
+        $sub = new QueryBuilder('bar', 'b');
         $sub->fields(array('bar'));
 
-        $query = new Query('foo', 'f', 'select');
+        $query = new QueryBuilder('foo', 'f', 'select');
         $query->fields(array('foo'))
             ->sub($sub, 'b');
 
@@ -151,7 +151,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithWhere($conditions, $expected)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
 
         foreach ($conditions as $condition) {
@@ -171,7 +171,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithHaving($conditions, $expected)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
 
         foreach ($conditions as $condition) {
@@ -278,7 +278,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidAggregate()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->aggregate('foo', 'bar');
     }
 
@@ -287,7 +287,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithAggregate($expected, $method)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'))
             ->aggregate($method, 'bar');
 
@@ -299,7 +299,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithAggregateAliases($expected, $method)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
 
         call_user_func(array($query, $method), 'bar');
@@ -321,7 +321,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testSelectWithGroup()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'))
             ->group('bar');
 
@@ -334,7 +334,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidOrder()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->order('foo', 'bar');
     }
 
@@ -343,7 +343,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithOrder($field, $order, $expected)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
         $query->order($field, $order);
         $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` ' . $expected, $query->build());
@@ -363,7 +363,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithLimit($limit, $offset, $expected)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
         $query->limit($limit, $offset);
         $this->assertEquals('SELECT `t`.`foo` FROM `table` AS `t` ' . $expected, $query->build());
@@ -385,7 +385,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidJoin()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
         $query->join('foo', 'bar', array('f' => 'b'));
@@ -397,7 +397,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithInvalidJoinsArray()
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
         $query->join('inner', 'bar', array());
@@ -408,7 +408,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithJoin($join, $table, $joins, $alias, $expected)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
         $query->join($join, $table, $joins, $alias);
@@ -420,7 +420,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testSelectWithJoinAliases($join, $table, $joins, $alias, $expected)
     {
-        $query = new Query('table', 't', 'select');
+        $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo', 'bar.bar' => 'barbar', 'b.bar' => 'bbar'));
 
         call_user_func(array($query, $join . 'Join'), $table, $joins, $alias);
@@ -476,20 +476,20 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testInsertWithoutValues()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->build();
     }
 
     public function testInsertSingleValue()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->value('foo', ':bind');
         $this->assertEquals('INSERT INTO `table` (`foo`) VALUE (:bind)', $query->build());
     }
 
     public function testInsertMultipleValues()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->value('foo', ':bind1');
         $query->value('bar', ':bind2');
         $this->assertEquals('INSERT INTO `table` (`foo`, `bar`) VALUES (:bind1, :bind2)', $query->build());
@@ -497,7 +497,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testInsertValuesArray()
     {
-        $query = new Query('table', 't', 'insert');
+        $query = new QueryBuilder('table', 't', 'insert');
         $query->values(
             array(
                 'foo' => ':bind1',
@@ -515,13 +515,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateWithoutValues()
     {
-        $query = new Query('table', 't', 'update');
+        $query = new QueryBuilder('table', 't', 'update');
         $query->build();
     }
 
     public function testUpdate()
     {
-        $query = new Query('table', 't', 'update');
+        $query = new QueryBuilder('table', 't', 'update');
         $query->value('foo', ':bind');
         $this->assertEquals('UPDATE `table` SET `foo` = :bind', $query->build());
     }
@@ -531,7 +531,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateWithConditions($conditions, $expected)
     {
-        $query = new Query('table', 't', 'update');
+        $query = new QueryBuilder('table', 't', 'update');
         $query->value('foo', ':bind');
 
         foreach ($conditions as $condition) {
@@ -551,7 +551,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateWithLimit($limit, $offset, $expected)
     {
-        $query = new Query('table', 't', 'update');
+        $query = new QueryBuilder('table', 't', 'update');
         $query->value('foo', ':bind');
         $query->limit($limit, $offset);
         $this->assertEquals('UPDATE `table` SET `foo` = :bind ' . $expected, $query->build());
@@ -560,7 +560,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     // DELETE
     public function testDelete()
     {
-        $query = new Query('table', 't', 'delete');
+        $query = new QueryBuilder('table', 't', 'delete');
         $this->assertEquals('DELETE FROM `table`', $query->build());
     }
 
@@ -569,7 +569,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testDeleteWithConditions($conditions, $expected)
     {
-        $query = new Query('table', 't', 'delete');
+        $query = new QueryBuilder('table', 't', 'delete');
 
         foreach ($conditions as $condition) {
             $query->where(
@@ -588,7 +588,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testDeleteWithLimit($limit, $offset, $expected)
     {
-        $query = new Query('table', 't', 'delete');
+        $query = new QueryBuilder('table', 't', 'delete');
         $query->fields(array('foo'));
         $query->limit($limit, $offset);
         $this->assertEquals('DELETE FROM `table` ' . $expected, $query->build());
@@ -597,7 +597,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     // TRUNCATE
     public function testTruncate()
     {
-        $query = new Query('table', 't', 'clear');
+        $query = new QueryBuilder('table', 't', 'clear');
         $this->assertEquals('TRUNCATE TABLE `table`', $query->build());
     }
 
