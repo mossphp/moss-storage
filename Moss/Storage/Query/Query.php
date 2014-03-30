@@ -11,15 +11,15 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Builder\QueryInterface as BuilderInterface;
+use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Relation\Many;
-use Moss\Storage\Query\Relation\ManyTrough;
-use Moss\Storage\Query\Relation\One;
-use Moss\Storage\Query\Relation\OneTrough;
+use Moss\Storage\Query\Relation\ManyRelation;
+use Moss\Storage\Query\Relation\ManyTroughRelation;
+use Moss\Storage\Query\Relation\OneRelation;
+use Moss\Storage\Query\Relation\OneTroughRelation;
 use Moss\Storage\Query\Relation\RelationInterface;
 
 /**
@@ -987,16 +987,16 @@ class Query implements QueryInterface
 
         switch ($definition->type()) {
             case 'one':
-                $instance = new One($query, $definition, $this->models);
+                $instance = new OneRelation($query, $definition, $this->models);
                 break;
             case 'many':
-                $instance = new Many($query, $definition, $this->models);
+                $instance = new ManyRelation($query, $definition, $this->models);
                 break;
             case 'oneTrough':
-                $instance = new OneTrough($query, $definition, $this->models);
+                $instance = new OneTroughRelation($query, $definition, $this->models);
                 break;
             case 'manyTrough':
-                $instance = new ManyTrough($query, $definition, $this->models);
+                $instance = new ManyTroughRelation($query, $definition, $this->models);
                 break;
             default:
                 throw new QueryException(sprintf('Invalid relation type "%s" in relation "%s" for "%s"', $definition->type(), $relation, $this->model->entity()));
