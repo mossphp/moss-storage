@@ -12,7 +12,7 @@
 namespace Moss\Storage\Schema;
 
 use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryInterface as BuilderInterface;
+use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
 
 /**
  * Schema interface

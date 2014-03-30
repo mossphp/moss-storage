@@ -11,7 +11,7 @@
 
 namespace Moss\Storage\Schema;
 
-use Moss\Storage\Builder\SchemaInterface as BuilderInterface;
+use Moss\Storage\Builder\SchemaBuilderInterface as BuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelBag;
