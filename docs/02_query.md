@@ -1,7 +1,22 @@
-# Query
+# StorageQuery
 
-`Query` should be sufficient to handle all _CRUD_ operations.
+`StorageQuery` should be sufficient to handle all _CRUD_ operations.
 Operations described below assume that entity classes, models and tables exist.
+
+## Create instance
+
+`StorageQuery` instance is dependant on `DriverInterface` and `QueryBuilderInterface`.
+First one grants access to database engine, second one - builds queries in databases language.
+
+```php
+$dsn = sprintf('%s:dbname=%s;host=%s;port=%u', 'mysql', 'database', 'localhost', 3306);
+$driver = new \Moss\Storage\Driver\PDO($dsn, 'user', 'password');
+
+$builder = new \Moss\Storage\Builder\MySQL\QueryBuilder();
+
+$storage = new \Moss\Storage\StorageQuery($driver, $builder);
+$storage->register('...'); // register models
+```
 
 ## Execute and queryString
 
@@ -360,23 +375,23 @@ The `::where()` method has third argument used to sort entities in relation.
 If there's a need for more complicated conditions, calling the `::relation($relation)` method will return `Relation` representing `$relation`, that can be accessed for `Query`
 
 ```php
-	$query = $storage->read('article');
-	$query->with(array('comment', 'author', 'tag'));
+	$storage = $storage->read('article');
+	$storage->with(array('comment', 'author', 'tag'));
 
-	$commentRelation = $query->relation('comment');
+	$commentRelation = $storage->relation('comment');
 	$commentQuery = $commentRelation->query();
 
 	$commentQuery->condition(....);
 
-	$result = $query->execute();
+	$result = $storage->execute();
 ```
 
 Or simpler way:
 
 ```php
-	$query = $storage->read('article')->with(array('comment', 'author', 'tag'));
-	$query->relation('comment')->query()->condition(....);
-	$result = $query->execute();
+	$storage = $storage->read('article')->with(array('comment', 'author', 'tag'));
+	$storage->relation('comment')->query()->condition(....);
+	$result = $storage->execute();
 ```
 
 ### Join
