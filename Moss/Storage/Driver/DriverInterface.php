@@ -79,53 +79,57 @@ interface DriverInterface
     /**
      * Returns last inserted id
      *
-     * @return string
+     * @return int
      * @throws DriverException
      */
     public function lastInsertId();
 
     /**
      * Retches result element as object
+
      *
-     * @param string $className
-     * @param array  $reCast
+*@param string $className
+     * @param array $restore
      *
-     * @return bool|mixed
+*@return bool|mixed
      * @throws DriverException
      */
-    public function fetchObject($className, $reCast = array());
+    public function fetchObject($className, $restore = array());
 
     /**
      * Fetches result element as associative array
+
      *
-     * @param array $reCast
+*@param array $restore
      *
-     * @return bool|mixed
+*@return bool|mixed
      * @throws DriverException
      */
-    public function fetchAssoc($reCast = array());
+    public function fetchAssoc($restore = array());
 
     /**
      * Fetches field from result element
+
      *
-     * @param int  $fieldNum
-     * @param null $reCast
+*@param int  $fieldNum
+     * @param null $restore
      *
-     * @return bool|mixed|string
+*@return bool|mixed|string
      * @throws DriverException
      */
-    public function fetchField($fieldNum = 0, $reCast = null);
+    public function fetchField($fieldNum = 0, $restore = null);
 
     /**
      * Fetches all results as objects or associative array
+
      *
-     * @param string $className
-     * @param array $unbind
+*@param string $className
+     * @param array $restore
      *
-     * @return array
+*@return array
      * @throws DriverException
      */
-    public function fetchAll($className = null, $unbind = array());
+    public function fetchAll($className = null, $restore = array());
 
     /**
      * Starts transaction

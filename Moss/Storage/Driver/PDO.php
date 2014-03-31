@@ -223,7 +223,7 @@ class PDO implements DriverInterface
     /**
      * Returns last inserted id
      *
-     * @return string
+     * @return int
      * @throws DriverException
      */
     public function lastInsertId()
@@ -237,14 +237,15 @@ class PDO implements DriverInterface
 
     /**
      * Retches result element as object
+
      *
-     * @param string $className
-     * @param array  $reCast
+*@param string $className
+     * @param array $restore
      *
-     * @return bool|mixed
+*@return bool|mixed
      * @throws DriverException
      */
-    public function fetchObject($className, $reCast = array())
+    public function fetchObject($className, $restore = array())
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -254,12 +255,12 @@ class PDO implements DriverInterface
             return false;
         }
 
-        if (empty($reCast)) {
+        if (empty($restore)) {
             return $row;
         }
 
         $ref = new \ReflectionObject($row);
-        foreach ($reCast as $field => $type) {
+        foreach ($restore as $field => $type) {
             $prop = $ref->getProperty($field);
             $prop->setAccessible(true);
 
@@ -273,13 +274,14 @@ class PDO implements DriverInterface
 
     /**
      * Fetches result element as associative array
+
      *
-     * @param array $reCast
+*@param array $restore
      *
-     * @return bool|mixed
+*@return bool|mixed
      * @throws DriverException
      */
-    public function fetchAssoc($reCast = array())
+    public function fetchAssoc($restore = array())
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -289,11 +291,11 @@ class PDO implements DriverInterface
             return false;
         }
 
-        if (empty($reCast)) {
+        if (empty($restore)) {
             return $row;
         }
 
-        foreach ($reCast as $field => $type) {
+        foreach ($restore as $field => $type) {
             $row[$field] = $this->restore($row[$field], $type);
         }
 
@@ -302,14 +304,15 @@ class PDO implements DriverInterface
 
     /**
      * Fetches field from result element
+
      *
-     * @param int  $fieldNum
-     * @param null $reCast
+*@param int  $fieldNum
+     * @param null $restore
      *
-     * @return bool|mixed|string
+*@return bool|mixed|string
      * @throws DriverException
      */
-    public function fetchField($fieldNum = 0, $reCast = null)
+    public function fetchField($fieldNum = 0, $restore = null)
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -319,12 +322,12 @@ class PDO implements DriverInterface
             return false;
         }
 
-        if (empty($reCast)) {
+        if (empty($restore)) {
             return $value;
         }
 
-        if ($reCast) {
-            $value = $this->restore($value, $reCast);
+        if ($restore) {
+            $value = $this->restore($value, $restore);
         }
 
         return $value;
@@ -332,14 +335,15 @@ class PDO implements DriverInterface
 
     /**
      * Fetches all results as objects or associative array
+
      *
-     * @param string $className
-     * @param array  $unbind
+*@param string $className
+     * @param array $restore
      *
-     * @return array
+*@return array
      * @throws DriverException
      */
-    public function fetchAll($className = null, $unbind = array())
+    public function fetchAll($className = null, $restore = array())
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -347,14 +351,14 @@ class PDO implements DriverInterface
 
         $result = array();
         if ($className === null) {
-            while ($row = $this->fetchAssoc($unbind)) {
+            while ($row = $this->fetchAssoc($restore)) {
                 $result[] = $row;
             }
 
             return $result;
         }
 
-        if (empty($unbind)) {
+        if (empty($restore)) {
             while ($row = $this->fetchObject($className)) {
                 $result[] = $row;
             }
@@ -364,7 +368,7 @@ class PDO implements DriverInterface
 
         $ref = new \ReflectionClass($className);
         while ($row = $this->fetchObject($className)) {
-            foreach ($unbind as $field => $type) {
+            foreach ($restore as $field => $type) {
                 if (!$ref->hasProperty($field)) {
                     $row->$field = $this->restore($row->$field, $type);
                     continue;
