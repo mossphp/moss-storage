@@ -465,7 +465,8 @@ class SchemaBuilder implements SchemaBuilderInterface
         $self = & $this;
 
         array_walk(
-            $fields, function (&$field) use ($self) {
+            $fields,
+            function (&$field) use ($self) {
                 $field = $this->quote($field);
             }
         );
