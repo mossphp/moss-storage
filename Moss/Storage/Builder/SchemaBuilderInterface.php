@@ -137,11 +137,11 @@ interface SchemaBuilderInterface extends BuilderInterface
     public function index($name, array $fields, $type = 'index', $table = null);
 
     /**
-     * Parsers create table statement into array
+     * Parsers read table structure into model-like array
      *
-     * @param string $statement
+     * @param array $struct
      *
      * @return array
      */
-    public function parse($statement);
+    public function parse(array $struct);
 }

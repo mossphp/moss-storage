@@ -123,7 +123,7 @@ class Schema implements SchemaInterface
      * @param array  $entity
      *
      * @return $this
-     * @throws QueryException
+     * @throws SchemaException
      */
     public function operation($operation, array $entity = array())
     {
@@ -160,7 +160,7 @@ class Schema implements SchemaInterface
                 }
                 break;
             default:
-                throw new QueryException(sprintf('Unknown operation "%s" in schema query', $this->operation));
+                throw new SchemaException(sprintf('Unknown operation "%s" in schema query', $this->operation));
         }
 
         return $this;
@@ -176,7 +176,7 @@ class Schema implements SchemaInterface
     protected function buildCreate(ModelInterface $model)
     {
         if ($this->checkIfSchemaExists($model)) {
-            throw new QueryException(sprintf('Unable to create table, table "%s" already exists', $model->table()));
+            throw new SchemaException(sprintf('Unable to create table, table "%s" already exists', $model->table()));
         }
 
         $this->builder->reset()
@@ -206,7 +206,7 @@ class Schema implements SchemaInterface
     protected function buildAlter(ModelInterface $model)
     {
         if (!$this->checkIfSchemaExists($model)) {
-            throw new QueryException(sprintf('Unable to alter table, table "%s" does not exists', $model->table()));
+            throw new SchemaException(sprintf('Unable to alter table, table "%s" does not exists', $model->table()));
         }
 
         $current = $this->getCurrentSchema($model);
@@ -312,7 +312,7 @@ class Schema implements SchemaInterface
 
         $result = $this->driver->prepare($query)
             ->execute()
-            ->fetchField(1);
+            ->fetchAll();
 
         $array = $this->builder->parse($result);
 
@@ -423,7 +423,7 @@ class Schema implements SchemaInterface
     public function execute()
     {
         $queries = array_merge($this->before, $this->queries, $this->after);
-
+var_dump($queries);
         $result = array();
         switch ($this->operation) {
             case 'check':

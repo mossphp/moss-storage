@@ -494,8 +494,7 @@ class SchemaBuilder implements SchemaBuilderInterface
                 $stmt[] = '\'' . $this->table . '\'';
                 break;
             case 'info':
-                $stmt[] = 'SHOW CREATE TABLE';
-                $stmt[] = $this->quote($this->table);
+                $stmt[] = 'SELECT c.ORDINAL_POSITION AS `pos`, c.TABLE_SCHEMA AS `schema`, c.TABLE_NAME AS `table`, c.COLUMN_NAME AS `column_name`, c.DATA_TYPE AS `column_type`, CASE WHEN LOCATE(\'(\', c.NUMERIC_PRECISION) > 0 IS NOT NULL THEN c.NUMERIC_PRECISION ELSE c.CHARACTER_MAXIMUM_LENGTH END AS `column_length`, c.NUMERIC_SCALE AS `column_precision`, CASE WHEN INSTR(LOWER(c.COLUMN_TYPE), \'unsigned\') > 0 THEN \'YES\' ELSE \'NO\' END AS `column_unsigned`, c.IS_NULLABLE AS `column_nullable`, CASE WHEN INSTR(LOWER(c.EXTRA), \'auto_increment\') > 0 THEN \'YES\' ELSE \'NO\' END AS `column_auto_increment`, c.COLUMN_DEFAULT AS `column_default`, c.COLUMN_COMMENT AS `column_comment`, k.CONSTRAINT_NAME AS `index_name`, CASE WHEN (i.CONSTRAINT_TYPE IS NULL AND k.CONSTRAINT_NAME IS NOT NULL) THEN \'INDEX\' ELSE i.CONSTRAINT_TYPE END AS `index_type`, k.ORDINAL_POSITION AS `index_pos`, k.REFERENCED_TABLE_SCHEMA AS `ref_schema`, k.REFERENCED_TABLE_NAME AS `ref_table`, k.REFERENCED_COLUMN_NAME AS `ref_column` FROM information_schema.COLUMNS AS c LEFT JOIN information_schema.KEY_COLUMN_USAGE AS k ON c.TABLE_SCHEMA = k.TABLE_SCHEMA AND c.TABLE_NAME = k.TABLE_NAME AND c.COLUMN_NAME = k.COLUMN_NAME LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME WHERE c.TABLE_NAME = \''.$this->table.'\' ORDER BY `pos`';
                 break;
             case 'create':
                 $stmt[] = 'CREATE TABLE';
@@ -578,127 +577,131 @@ class SchemaBuilder implements SchemaBuilderInterface
     }
 
     /**
-     * Parsers create statement into array
+     * Parsers read table structure into model-like array
      *
-     * @param string $statement
+     * @param array $struct
      *
      * @return array
-     * @throws BuilderException
      */
-    public function parse($statement)
+    public function parse(array $struct)
     {
-        $statement = str_replace(array("\n", "\r", "\t", '  '), ' ', $statement);
-
-        $content = preg_replace('/CREATE TABLE `?[^` (]+`? +\((.+)\).*/i', '$1', $statement);
-
         $result = array(
-            'table' => preg_replace('/CREATE TABLE `?([^` (]+)`? +\(.*/i', '$1', $statement),
-            'fields' => $this->parseColumns($content),
-            'indexes' => $this->parseIndexes($content)
+            'table' => $struct[0]['table'],
+            'fields' => array(),
+            'indexes' => array()
         );
+
+        $fields = array();
+        $indexes = array();
+        foreach ($struct as $node) {
+            if (!isset($fields[$node['column_name']])) {
+                $fields[$node['column_name']] = $this->parseColumn($node);
+            }
+
+            if (empty($node['index_name'])) {
+                continue;
+            }
+
+            if (!isset($indexes[$node['index_name']])) {
+                $indexes[$node['index_name']] = $this->parseIndex($node);
+            }
+
+            if (isset($indexes[$node['index_name']])) {
+                if (!in_array($node['column_name'], $indexes[$node['index_name']]['fields'])) {
+                    $indexes[$node['index_name']]['fields'][] = $node['column_name'];
+                }
+
+                if (!in_array($node['ref_column'], $indexes[$node['index_name']]['foreign'])) {
+                    $indexes[$node['index_name']]['foreign'][] = $node['ref_column'];
+                }
+            }
+        }
+
+        $result['fields'] = array_values($fields);
+        $result['indexes'] = array_values($indexes);
 
         return $result;
     }
 
-    protected function parseColumns($statement)
+    protected function parseColumn($node)
     {
-        preg_match_all('/`?(?P<name>[^` ]+)`? (?P<type>((tiny|small|medium|big)?int|integer|decimal|(var)?char|(tiny|medium|long)?text|(date)?time(stamp)?|year))(\((?P<length>[\d]+)(\,(?P<precision>[\d]+))?\))?(?P<attributes>[^,)]+)?,?/i', $statement, $matches, \PREG_SET_ORDER);
+        $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['column_type']));
+        $comm = strtolower($node['column_comment']);
 
-        $columns = array();
-        foreach ($matches as $match) {
-            $match = array_merge($this->defaults, $match);
+        $result = array(
+            'name' => $node['column_name'],
+            'type' => $node['column_type'],
+            'attributes' => array(
+                'length' => (int) $node['column_length'],
+                'precision' => (int) $node['column_type'],
+                'null' => $node['column_nullable'] == 'YES',
+                'unsigned' => $node['column_unsigned'] === 'YES',
+                'auto_increment' => $node['column_auto_increment'] === 'YES',
+                'default' => $node['column_default'],
+                'comment' => $node['column_comment']
+            )
+        );
 
-            $node = array(
-                'name' => $match['name'],
-                'type' => $match['type'],
-                'attributes' => array(
-                    'length' => (int) $match['length'],
-                    'precision' => (int) $match['precision'],
-                    'null' => stripos($match['attributes'], 'not null') === false || stripos($match['attributes'], 'default null') !== false,
-                    'unsigned' => stripos($match['attributes'], 'unsigned') !== false,
-                    'auto_increment' => stripos($match['attributes'], 'auto_increment') !== false,
-                    'default' => stripos($match['attributes'], 'default') !== false ? preg_replace('/.*DEFAULT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null,
-                    'comment' => stripos($match['attributes'], 'comment') !== false ? preg_replace('/.*COMMENT \'([^\']+)\'.*/i', '$1', $match['attributes']) : null
-                )
-            );
-
-            $type = strtolower($node['type']);
-            $comm = strtolower($node['attributes']['comment']);
-            switch ($type) {
-                case in_array($type . ':' . $comm, $this->fieldTypes['boolean']):
-                    $node['type'] = 'boolean';
-                    break;
-                case in_array($type . ':' . $comm, $this->fieldTypes['serial']):
-                    $node['type'] = 'serial';
-                    break;
-                case in_array($type, $this->fieldTypes['integer']):
-                    $node['type'] = 'integer';
-                    break;
-                case in_array($type, $this->fieldTypes['decimal']):
-                    $node['type'] = 'decimal';
-                    break;
-                case in_array($type, $this->fieldTypes['string']):
-                    $node['type'] = 'string';
-                    break;
-                case in_array($type, $this->fieldTypes['datetime']):
-                    $node['type'] = 'datetime';
-                    break;
-                default:
-                    throw new BuilderException(sprintf('Invalid or unsupported field type "%s" in table "%s"', $type, $this->table));
-            }
-
-            foreach ($node['attributes'] as $i => $attr) {
-                if (!$attr) {
-                    unset($node['attributes'][$i]);
-                }
-            }
-
-            $columns[] = $node;
+        switch ($type) {
+            case in_array($type . ':' . $comm, $this->fieldTypes['boolean']):
+                $result['type'] = 'boolean';
+                break;
+            case in_array($type . ':' . $comm, $this->fieldTypes['serial']):
+                $result['type'] = 'serial';
+                break;
+            case in_array($type, $this->fieldTypes['integer']):
+                $result['type'] = 'integer';
+                break;
+            case in_array($type, $this->fieldTypes['decimal']):
+                $result['type'] = 'decimal';
+                break;
+            case in_array($type, $this->fieldTypes['string']):
+                $result['type'] = 'string';
+                break;
+            case in_array($type, $this->fieldTypes['datetime']):
+                $result['type'] = 'datetime';
+                break;
+            default:
+                throw new BuilderException(sprintf('Invalid or unsupported field type "%s" in table "%s"', $type, $this->table));
         }
 
-        return $columns;
+        return $result;
     }
 
-    protected function parseIndexes($statement)
+    protected function parseIndex($node)
     {
-        preg_match_all('/(?P<fname>`?[^` ,]+`?)? ?(?P<type>PRIMARY KEY|FOREIGN KEY|UNIQUE KEY|KEY) (?P<name>`?[^` (,]+`?)? ?\((?P<fields>[^)]+)\)( REFERENCES `?(?P<table>[^` (]+)`? ?\((?P<foreign>[^)]+)\))?/i', $statement, $matches, \PREG_SET_ORDER);
+        $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['index_type']));
 
-        $indexes = array();
-        foreach ($matches as $match) {
-            $node = array(
-                'name' => trim($match['fname'] ? $match['fname'] : $match['name'], '`'),
-                'type' => trim($match['type']),
-                'fields' => explode(',', str_replace(array('`', ' '), null, $match['fields'])),
-                'table' => isset($match['table']) ? trim($match['table'], '`') : null,
-                'foreign' => isset($match['foreign']) ? explode(',', str_replace(array('`', ' '), null, $match['foreign'])) : array()
-            );
+        $result = array(
+            'name' => $node['index_name'],
+            'type' => $node['index_type'],
+            'fields' => array($node['column_name']),
+            'table' => $node['ref_table'],
+            'foreign' => array($node['ref_column'])
+        );
 
-            switch ($node['type']) {
-                case 'PRIMARY KEY':
-                    $node['name'] = 'primary';
-                    $node['type'] = 'primary';
-                    break;
-                case 'FOREIGN KEY':
-                    $node['type'] = 'foreign';
-                    break;
-                case 'UNIQUE KEY':
-                    $node['type'] = 'unique';
-                    break;
-                default:
-                    $node['type'] = 'index';
-            }
-
-            if ($node['type'] === 'foreign') {
-                $node['fields'] = array_combine($node['fields'], $node['foreign']);
-                unset($node['foreign']);
-            } else {
-                unset($node['table'], $node['foreign']);
-            }
-
-            $indexes[] = $node;
+        switch ($type) {
+            case 'PRIMARY':
+            case 'primary':
+                $result['type'] = 'primary';
+                break;
+            case 'UNIQUE':
+            case 'unique':
+                $result['type'] = 'unique';
+                break;
+            case 'INDEX':
+            case 'index':
+                $result['type'] = 'index';
+                break;
+            case 'FOREIGN':
+            case 'foreign':
+                $result['type'] = 'foreign';
+                break;
+            default:
+                throw new BuilderException(sprintf('Invalid or unsupported index type "%s" in table "%s"', $type, $this->table));
         }
 
-        return $indexes;
+        return $result;
     }
 
     /**
