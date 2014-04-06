@@ -447,13 +447,11 @@ class QueryBuilder implements QueryBuilderInterface
 
     /**
      * Adds sub query
-
      *
-*@param QueryBuilderInterface $query
-     * @param string         $alias
-
+     * @param QueryBuilderInterface $query
+     * @param string                $alias
      *
-*@return $this
+     * @return $this
      */
     public function sub(QueryBuilderInterface $query, $alias)
     {

@@ -90,11 +90,17 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                'CREATE TABLE `test_table` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array(
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
+                ),
                 array()
             ),
             array(
-                'CREATE TABLE `test_table` ( `id` CHAR(10) NOT NULL, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array(
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
+                ),
                 array(
                     'ALTER TABLE `test_table` DROP PRIMARY KEY',
                     'ALTER TABLE `test_table` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL',
@@ -102,7 +108,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 )
             ),
             array(
-                'CREATE TABLE `test_table` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array(
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('text', 'char', array('length' => 1024, 'null' => 'YES')),
+                ),
                 array(
                     'ALTER TABLE `test_table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
                 )
@@ -110,7 +119,36 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    protected function mockDriver($queryString = null)
+    protected function createInputColumn($name, $type, $attributes = array(), $index = array(), $ref = array())
+    {
+        return array(
+            'pos' => 1,
+            'schema' => 'test',
+            'table' => 'test_table',
+            'column_name' => $name,
+            'column_type' => $type,
+            'column_length' => $this->get($attributes, 'length'),
+            'column_precision' => $this->get($attributes, 'precision', 0),
+            'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
+            'column_nullable' => $this->get($attributes, 'nullable', 'NO'),
+            'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
+            'column_default' => $this->get($attributes, 'default', null),
+            'column_comment' => $this->get($attributes, 'comment', ''),
+            'index_name' => $this->get($index, 'name', null),
+            'index_type' => $this->get($index, 'type', null),
+            'index_pos' => $this->get($index, 'pos', null),
+            'ref_schema' => $this->get($ref, 'schema', null),
+            'ref_table' => $this->get($ref, 'table', null),
+            'ref_column' => $this->get($ref, 'column', null),
+        );
+    }
+
+    protected function get($array, $offset, $default = null)
+    {
+        return array_key_exists($offset, $array) ? $array[$offset] : $default;
+    }
+
+    protected function mockDriver($result = null)
     {
         $driver = $this->getMock('\Moss\Storage\Driver\DriverInterface');
         $driver->expects($this->any())
@@ -123,11 +161,15 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
         $driver->expects($this->any())
             ->method('fetchField')
-            ->will($this->returnValue($queryString));
+            ->will($this->returnValue($result));
+
+        $driver->expects($this->any())
+            ->method('fetchAll')
+            ->will($this->returnValue($result));
 
         $driver->expects($this->any())
             ->method('affectedRows')
-            ->will($this->returnValue($this->queryString || $queryString ? 1 : 0));
+            ->will($this->returnValue($this->queryString || $result ? 1 : 0));
 
         return $driver;
     }

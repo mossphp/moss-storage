@@ -60,8 +60,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('foo', 'check');
         $schema->{$operation}('table')
-                ->column('foo')
-               ->index('idx', array('foo'), 'index');
+            ->column('foo')
+            ->index('idx', array('foo'), 'index');
         $this->assertEquals($expected, $schema->build());
     }
 
@@ -74,7 +74,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'info',
-                'SHOW CREATE TABLE `table`'
+                'SELECT c.ORDINAL_POSITION AS `pos`, c.TABLE_SCHEMA AS `schema`, c.TABLE_NAME AS `table`, c.COLUMN_NAME AS `column_name`, c.DATA_TYPE AS `column_type`, CASE WHEN LOCATE(\'(\', c.NUMERIC_PRECISION) > 0 IS NOT NULL THEN c.NUMERIC_PRECISION ELSE c.CHARACTER_MAXIMUM_LENGTH END AS `column_length`, c.NUMERIC_SCALE AS `column_precision`, CASE WHEN INSTR(LOWER(c.COLUMN_TYPE), \'unsigned\') > 0 THEN \'YES\' ELSE \'NO\' END AS `column_unsigned`, c.IS_NULLABLE AS `column_nullable`, CASE WHEN INSTR(LOWER(c.EXTRA), \'auto_increment\') > 0 THEN \'YES\' ELSE \'NO\' END AS `column_auto_increment`, c.COLUMN_DEFAULT AS `column_default`, c.COLUMN_COMMENT AS `column_comment`, k.CONSTRAINT_NAME AS `index_name`, CASE WHEN (i.CONSTRAINT_TYPE IS NULL AND k.CONSTRAINT_NAME IS NOT NULL) THEN \'INDEX\' ELSE i.CONSTRAINT_TYPE END AS `index_type`, k.ORDINAL_POSITION AS `index_pos`, k.REFERENCED_TABLE_SCHEMA AS `ref_schema`, k.REFERENCED_TABLE_NAME AS `ref_table`, k.REFERENCED_COLUMN_NAME AS `ref_column` FROM information_schema.COLUMNS AS c LEFT JOIN information_schema.KEY_COLUMN_USAGE AS k ON c.TABLE_SCHEMA = k.TABLE_SCHEMA AND c.TABLE_NAME = k.TABLE_NAME AND c.COLUMN_NAME = k.COLUMN_NAME LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME WHERE c.TABLE_NAME = \'table\' ORDER BY `pos`'
             ),
             array(
                 'drop',
@@ -237,7 +237,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', 'integer')
-               ->index('foo', $fields, $type, $table);
+            ->index('foo', $fields, $type, $table);
         $this->assertEquals('CREATE TABLE `table` ( `foo` INT(10) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
 
@@ -325,7 +325,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider parseProvider
      */
-    public function testParse($stmt, $fields, $indexes)
+    public function testParse($array, $fields, $indexes = array())
     {
         $expected = array(
             'table' => 'table',
@@ -334,7 +334,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         );
 
         $schema = new SchemaBuilder();
-        $result = $schema->parse($stmt);
+        $result = $schema->parse($array);
         $this->assertEquals($expected, $result);
     }
 
@@ -342,150 +342,183 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                'CREATE TABLE `table` (`int` int(10) unsigned NOT NULL AUTO_INCREMENT,) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                ),
-                array()
+                array($this->createInputColumn('column', 'tinyint', array('comment' => 'boolean'))),
+                array($this->createOutputColumn('column', 'boolean', array('comment' => 'boolean'))),
             ),
             array(
-                'CREATE TABLE `table` (`int` int(10) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
-                ),
-                array()
+                array($this->createInputColumn('column', 'tinyint', array('comment' => 'boolean', 'default' => 0))),
+                array($this->createOutputColumn('column', 'boolean', array('comment' => 'boolean', 'default' => 0))),
             ),
             array(
-                'CREATE TABLE `table` (`string` char(10) NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
-                ),
-                array()
+                array($this->createInputColumn('column', 'int')),
+                array($this->createOutputColumn('column', 'integer')),
             ),
             array(
-                'CREATE TABLE `table` (`decimal` decimal(10,2) unsigned NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                ),
-                array()
+                array($this->createInputColumn('column', 'int', array('length' => 5))),
+                array($this->createOutputColumn('column', 'integer', array('length' => 5))),
             ),
             array(
-                'CREATE TABLE `table` (`boolean` tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\') ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => 1, 'comment' => 'boolean')),
-                ),
-                array()
+                array($this->createInputColumn('column', 'int', array('unsigned' => 'YES'))),
+                array($this->createOutputColumn('column', 'integer', array('unsigned' => true))),
             ),
             array(
-                'CREATE TABLE `table` (`datetime` datetime NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
-                ),
-                array()
+                array($this->createInputColumn('column', 'int', array('auto_increment' => 'YES'))),
+                array($this->createOutputColumn('column', 'integer', array('auto_increment' => true))),
             ),
             array(
-                'CREATE TABLE `table` (`serial` text COMMENT \'serial\') ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
-                ),
-                array()
+                array($this->createInputColumn('column', 'int', array('default' => 10))),
+                array($this->createOutputColumn('column', 'integer', array('default' => 10))),
             ),
             array(
-                'CREATE TABLE `table` (
-`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-`int` int(10) NOT NULL,
-`string` char(10) NOT NULL,
-`decimal` decimal(10,2) unsigned NOT NULL,
-`boolean` tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\',
-`datetime` datetime NOT NULL,
-`serial` text COMMENT \'serial\',
-PRIMARY KEY (`id`),
-UNIQUE KEY `uni` (`int`),
-KEY `ind` (`string`),
-CONSTRAINT `fk` FOREIGN KEY (`id`) REFERENCES `rm_rel` (`src_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
-                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
-                ),
-                'indexes' => array(
-                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
-                )
+                array($this->createInputColumn('column', 'int', array('null' => 'YES'))),
+                array($this->createOutputColumn('column', 'integer', array('null' => true))),
             ),
             array(
-                'CREATE TABLE `table` ( `id` int(10) unsigned NOT NULL AUTO_INCREMENT, `int` int(10) NOT NULL, `string` char(10) NOT NULL, `decimal` decimal(10,2) unsigned NOT NULL, `boolean` tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\', `datetime` datetime NOT NULL, `serial` text COMMENT \'serial\', PRIMARY KEY (`id`), UNIQUE KEY `uni` (`int`), KEY `ind` (`string`), CONSTRAINT `fk` FOREIGN KEY (`id`) REFERENCES `rm_rel` (`src_id`) ON UPDATE CASCADE ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
-                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
-                ),
-                'indexes' => array(
-                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
-                )
+                array($this->createInputColumn('column', 'decimal')),
+                array($this->createOutputColumn('column', 'decimal')),
             ),
             array(
-                'CREATE TABLE table (
-id int(10) unsigned NOT NULL AUTO_INCREMENT,
-int int(10) NOT NULL,
-string char(10) NOT NULL,
-decimal decimal(10,2) unsigned NOT NULL,
-boolean tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\',
-datetime datetime NOT NULL,
-serial text COMMENT \'serial\',
-PRIMARY KEY (id),
-UNIQUE KEY uni (int),
-KEY ind (string),
-CONSTRAINT fk FOREIGN KEY (id) REFERENCES rm_rel (src_id) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-                array(
-                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
-                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
-                ),
-                'indexes' => array(
-                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
-                )
+                array($this->createInputColumn('column', 'decimal', array('unsigned' => 'YES'))),
+                array($this->createOutputColumn('column', 'decimal', array('unsigned' => true))),
             ),
             array(
-                'CREATE TABLE table ( id int(10) unsigned NOT NULL AUTO_INCREMENT, int int(10) NOT NULL, string char(10) NOT NULL, decimal decimal(10,2) unsigned NOT NULL, boolean tinyint(1) unsigned NOT NULL DEFAULT \'1\' COMMENT \'boolean\', datetime datetime NOT NULL, serial text COMMENT \'serial\', PRIMARY KEY (id), UNIQUE KEY uni (int), KEY ind (string), CONSTRAINT fk FOREIGN KEY (id) REFERENCES rm_rel (src_id) ON UPDATE CASCADE ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
+                array($this->createInputColumn('column', 'decimal', array('length' => 4, 'precision' => 2))),
+                array($this->createOutputColumn('column', 'decimal', array('length' => 4, 'precision' => 2))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'decimal', array('default' => 10.2))),
+                array($this->createOutputColumn('column', 'decimal', array('default' => 10.2))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'decimal', array('null' => 'YES'))),
+                array($this->createOutputColumn('column', 'decimal', array('null' => true))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'text')),
+                array($this->createOutputColumn('column', 'string')),
+            ),
+            array(
+                array($this->createInputColumn('column', 'char', array('length' => 100))),
+                array($this->createOutputColumn('column', 'string', array('length' => 100))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'varchar', array('length' => 300))),
+                array($this->createOutputColumn('column', 'string', array('length' => 300))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'text', array('length' => 2000))),
+                array($this->createOutputColumn('column', 'string', array('length' => 2000))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'text', array('null' => 'YES'))),
+                array($this->createOutputColumn('column', 'string', array('null' => true))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'datetime')),
+                array($this->createOutputColumn('column', 'datetime')),
+            ),
+            array(
+                array($this->createInputColumn('column', 'datetime', array('null' => 'YES'))),
+                array($this->createOutputColumn('column', 'datetime', array('null' => true))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'text', array('comment' => 'serial'))),
+                array($this->createOutputColumn('column', 'serial', array('comment' => 'serial'))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'text', array('comment' => 'serial', 'null' => 'YES'))),
+                array($this->createOutputColumn('column', 'serial', array('comment' => 'serial', 'null' => false))),
+            ),
+            array(
+                array($this->createInputColumn('column', 'int', array(), array('name' => 'primary', 'type' => 'primary', 'pos' => 1))),
+                array($this->createOutputColumn('column', 'integer', array('length' => 0))),
+                array($this->createOutputIndex('primary', 'primary', array('column')))
+            ),
+            array(
+                array($this->createInputColumn('column', 'int', array(), array('name' => 'idx', 'type' => 'unique', 'pos' => 1))),
+                array($this->createOutputColumn('column', 'integer', array('length' => 0))),
+                array($this->createOutputIndex('idx', 'unique', array('column')))
+            ),
+            array(
+                array($this->createInputColumn('column', 'int', array(), array('name' => 'idx', 'type' => 'index', 'pos' => 1))),
+                array($this->createOutputColumn('column', 'integer', array('length' => 0))),
+                array($this->createOutputIndex('idx', 'index', array('column')))
+            ),
+            array(
+                array($this->createInputColumn('column', 'int', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 1), array('table' => 'other', 'column' => 'ref'))),
+                array($this->createOutputColumn('column', 'integer', array('length' => 0))),
+                array($this->createOutputIndex('idx', 'foreign', array('column'), array('table' => 'other', 'fields' => array('ref'))))
+            ),
+            array(
                 array(
-                    array('name' => 'id', 'type' => 'integer', 'attributes' => array('length' => 10, 'unsigned' => true, 'auto_increment' => true)),
-                    array('name' => 'int', 'type' => 'integer', 'attributes' => array('length' => 10)),
-                    array('name' => 'string', 'type' => 'string', 'attributes' => array('length' => 10)),
-                    array('name' => 'decimal', 'type' => 'decimal', 'attributes' => array('length' => 10, 'precision' => 2, 'unsigned' => true)),
-                    array('name' => 'boolean', 'type' => 'boolean', 'attributes' => array('length' => 1, 'unsigned' => true, 'default' => '1', 'comment' => 'boolean')),
-                    array('name' => 'datetime', 'type' => 'datetime', 'attributes' => array()),
-                    array('name' => 'serial', 'type' => 'serial', 'attributes' => array('null' => true, 'comment' => 'serial')),
+                    $this->createInputColumn('columnA', 'int', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 1), array('table' => 'other', 'column' => 'refA')),
+                    $this->createInputColumn('columnB', 'int', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 2), array('table' => 'other', 'column' => 'refB'))
                 ),
-                'indexes' => array(
-                    array('name' => 'primary', 'type' => 'primary', 'fields' => array('id')),
-                    array('name' => 'uni', 'type' => 'unique', 'fields' => array('int')),
-                    array('name' => 'ind', 'type' => 'index', 'fields' => array('string')),
-                    array('name' => 'fk', 'type' => 'foreign', 'fields' => array('id' => 'src_id'), 'table' => 'rm_rel')
+                array(
+                    $this->createOutputColumn('columnA', 'integer', array('length' => 0)),
+                    $this->createOutputColumn('columnB', 'integer', array('length' => 0))
+                ),
+                array(
+                    $this->createOutputIndex('idx', 'foreign', array('columnA', 'columnB'), array('table' => 'other', 'fields' => array('refA', 'refB')))
                 )
             ),
         );
+    }
+
+    protected function createInputColumn($name, $type, $attributes = array(), $index = array(), $ref = array())
+    {
+        return array(
+            'pos' => 1,
+            'schema' => 'test',
+            'table' => 'table',
+            'column_name' => $name,
+            'column_type' => $type,
+            'column_length' => $this->get($attributes, 'length'),
+            'column_precision' => $this->get($attributes, 'precision', 0),
+            'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
+            'column_nullable' => $this->get($attributes, 'nullable', 'NO'),
+            'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
+            'column_default' => $this->get($attributes, 'default', null),
+            'column_comment' => $this->get($attributes, 'comment', ''),
+            'index_name' => $this->get($index, 'name', null),
+            'index_type' => $this->get($index, 'type', null),
+            'index_pos' => $this->get($index, 'pos', null),
+            'ref_schema' => $this->get($ref, 'schema', null),
+            'ref_table' => $this->get($ref, 'table', null),
+            'ref_column' => $this->get($ref, 'column', null),
+        );
+    }
+
+    protected function createOutputColumn($name, $type, $attributes = array())
+    {
+        return array(
+            'name' => $name,
+            'type' => $type,
+            'attributes' => array(
+                'length' => $this->get($attributes, 'length'),
+                'precision' => $this->get($attributes, 'precision', 0),
+                'null' => $this->get($attributes, 'nullable', false),
+                'unsigned' => $this->get($attributes, 'unsigned', false),
+                'auto_increment' => $this->get($attributes, 'auto_increment', false),
+                'default' => $this->get($attributes, 'default', null),
+                'comment' => $this->get($attributes, 'comment', null),
+            )
+        );
+    }
+
+    protected function createOutputIndex($name, $type, array $fields, $ref = array())
+    {
+        return array(
+            'name' => $name,
+            'type' => $type,
+            'fields' => $fields,
+            'table' => $this->get($ref, 'table'),
+            'foreign' => $this->get($ref, 'fields', array())
+        );
+    }
+
+    protected function get($array, $offset, $default = null)
+    {
+        return array_key_exists($offset, $array) ? $array[$offset] : $default;
     }
 }
