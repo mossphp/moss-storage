@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Moss\Storage\Builder\Postgres;
+namespace Moss\Storage\Builder\PgSQL;
 
 use Moss\Storage\Builder\BuilderException;
 use Moss\Storage\Builder\SchemaBuilderInterface;
@@ -30,20 +30,7 @@ class SchemaBuilder implements SchemaBuilderInterface
         'decimal' => array('decimal', 'numeric', 'real', 'double precision'),
         'string' => array('character', 'varchar', 'char', 'text'),
         'datetime' => array('timestamp', 'date', 'time'),
-        'serial' => array('text:serial') // todo - check this
-    );
-
-    private $defaults = array(
-        'name' => null,
-        'type' => 'string',
-        'attributes' => 'null',
-        'length' => null,
-        'precision' => null,
-        'null' => false,
-        'unsigned' => false,
-        'auto' => false,
-        'default' => null,
-        'comment' => null
+        'serial' => array('bytea')
     );
 
     protected $operation;
@@ -288,7 +275,7 @@ class SchemaBuilder implements SchemaBuilderInterface
                 return 'TIMESTAMP WITHOUT TIME ZONE';
                 break;
             case 'serial':
-                return 'TEXT';
+                return 'BYTEA';
                 break;
             case 'string':
                 $len = isset($attributes['length']) ? $attributes['length'] : null;
@@ -305,15 +292,9 @@ class SchemaBuilder implements SchemaBuilderInterface
     {
         $node = array();
 
-// todo - add comments to fields
-//        if (isset($attributes['comment']) && $type != 'boolean' && $type != 'serial') {
-//            $node[] = 'COMMENT \'' . $attributes['comment'] . '\'';
-//        }
-
-// todo - add unsigned if it can be done?
-//        if (isset($attributes['unsigned']) && in_array($type, array('integer', 'decimal'))) {
-//            $node[] = 'UNSIGNED';
-//        }
+        if (isset($attributes['comment'])) {
+            $node[] = 'COMMENT \'' . $attributes['comment'] . '\'';
+        }
 
         if (isset($attributes['default'])) {
             if (!in_array($type, array('boolean', 'integer', 'decimal'))) {
@@ -437,13 +418,13 @@ class SchemaBuilder implements SchemaBuilderInterface
                 return 'CONSTRAINT ' . $this->quote($this->table . '_pk') . ' PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
                 break;
             case 'foreign':
-                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT';
+                return 'CONSTRAINT ' . $this->quote($this->table . '_' . $name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
             case 'unique':
-                return 'CONSTRAINT ' . $this->quote($name) . ' UNIQUE (' . $this->buildIndexFields($fields) . ')';
+                return 'CONSTRAINT ' . $this->quote($this->table . '_' . $name) . ' UNIQUE (' . $this->buildIndexFields($fields) . ')';
                 break;
             case 'index':
-                return null; // TODO
+                return 'CREATE INDEX ' . $this->quote($this->table . '_' . $name) . ' ON ' . $this->quote($this->table) . ' ( ' . $this->buildIndexFields($fields) . ' )';
                 break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
@@ -485,7 +466,7 @@ class SchemaBuilder implements SchemaBuilderInterface
                 break;
             case 'info':
                 // todo - read comments
-                $stmt[] = 'SELECT c.ordinal_position AS "pos", c.table_schema AS "schema", c.table_name AS "table", c.column_name AS "column_name", c.data_type AS "column_type", CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS "column_length", c.numeric_scale AS "column_precision", \'TODO\' AS "column_unsigned", c.is_nullable AS "column_nullable", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS "column_auto_increment", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS "column_default", \'\' AS "column_comment", k.constraint_name AS "index_name", i.constraint_type AS "index_type", k.ordinal_position AS "index_pos", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS "ref_schema", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS "ref_table", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS "ref_column" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \''.$this->table.'\' ORDER BY "pos"';
+                $stmt[] = 'SELECT c.ordinal_position AS "pos", c.table_schema AS "schema", c.table_name AS "table", c.column_name AS "column_name", c.data_type AS "column_type", CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS "column_length", c.numeric_scale AS "column_precision", \'TODO\' AS "column_unsigned", c.is_nullable AS "column_nullable", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS "column_auto_increment", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS "column_default", \'\' AS "column_comment", k.constraint_name AS "index_name", i.constraint_type AS "index_type", k.ordinal_position AS "index_pos", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS "ref_schema", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS "ref_table", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS "ref_column" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'' . $this->table . '\' ORDER BY "pos"';
                 break;
             case 'create':
                 $stmt[] = 'CREATE TABLE';
@@ -499,7 +480,7 @@ class SchemaBuilder implements SchemaBuilderInterface
 
                 $indexes = array();
                 foreach ($this->indexes as $node) {
-                    if ($node[2] == 'index') {
+                    if ($node[2] === 'index') {
                         $indexes[] = $node;
                         continue;
                     }
@@ -510,10 +491,17 @@ class SchemaBuilder implements SchemaBuilderInterface
                 $stmt[] = implode(', ', $nodes);
                 $stmt[] = ')';
 
-// todo - indexes as separate queries
-//                foreach($indexes as $node) {
-//                    $nodes[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
-//                }
+                foreach ($this->indexes as $node) {
+                    if ($node[2] !== 'index') {
+                        continue;
+                    }
+
+                    if (!empty($stmt)) {
+                        $stmt[] = ';';
+                    }
+
+                    $stmt[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
+                }
 
                 break;
             case 'add':
@@ -529,10 +517,29 @@ class SchemaBuilder implements SchemaBuilderInterface
 
                     $nodes[] = $str;
                 }
+
                 foreach ($this->indexes as $node) {
+                    if ($node[2] === 'index') {
+                        continue;
+                    }
+
                     $nodes[] = 'ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
                 }
+
                 $stmt[] = implode(', ', $nodes);
+
+                foreach ($this->indexes as $node) {
+                    if ($node[2] !== 'index') {
+                        continue;
+                    }
+
+                    if (!empty($stmt)) {
+                        $stmt[] = ';';
+                    }
+
+                    $stmt[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
+                }
+
                 break;
             case 'change':
                 $stmt[] = 'ALTER TABLE';
@@ -560,7 +567,7 @@ class SchemaBuilder implements SchemaBuilderInterface
                             $nodes[] = 'DROP CONSTRAINT ' . $this->quote($node[0]);
                             break;
                         default:
-                            $nodes[] = 'DROP KEY ' . $this->quote($node[0]); // TODO - drop index
+                            $nodes[] = 'DROP INDEX ' . $this->quote($node[0]);
                     }
                 }
                 $stmt[] = implode(', ', $nodes);
@@ -604,14 +611,12 @@ class SchemaBuilder implements SchemaBuilderInterface
 
             if (!isset($indexes[$node['index_name']])) {
                 $indexes[$node['index_name']] = $this->parseIndex($node);
-            }
-
-            if (isset($indexes[$node['index_name']])) {
+            } else {
                 if (!in_array($node['column_name'], $indexes[$node['index_name']]['fields'])) {
                     $indexes[$node['index_name']]['fields'][] = $node['column_name'];
                 }
 
-                if (!in_array($node['ref_column'], $indexes[$node['index_name']]['foreign'])) {
+                if (!empty($node['ref_column']) && !in_array($node['ref_column'], $indexes[$node['index_name']]['foreign'])) {
                     $indexes[$node['index_name']]['foreign'][] = $node['ref_column'];
                 }
             }
@@ -627,19 +632,17 @@ class SchemaBuilder implements SchemaBuilderInterface
     {
         $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['column_type']));
 
-        $comm = strtolower($node['column_comment']);
-
         $result = array(
             'name' => $node['column_name'],
             'type' => $node['column_type'],
             'attributes' => array(
                 'length' => (int) $node['column_length'],
-                'precision' => (int) $node['column_type'],
+                'precision' => (int) $node['column_precision'],
                 'null' => $node['column_nullable'] == 'YES',
                 'unsigned' => $node['column_unsigned'] === 'YES',
                 'auto_increment' => $node['column_auto_increment'] === 'YES',
-                'default' => $node['column_default'],
-                'comment' => $node['column_comment']
+                'default' => empty($node['column_default']) ? null : $node['column_default'],
+                'comment' => empty($node['column_comment']) ? null : $node['column_comment']
             )
         );
 
@@ -647,7 +650,7 @@ class SchemaBuilder implements SchemaBuilderInterface
             case in_array($type, $this->fieldTypes['boolean']):
                 $result['type'] = 'boolean';
                 break;
-            case in_array($type . ':' . $comm, $this->fieldTypes['serial']):
+            case in_array($type, $this->fieldTypes['serial']):
                 $result['type'] = 'serial';
                 break;
             case in_array($type, $this->fieldTypes['integer']):
@@ -678,23 +681,19 @@ class SchemaBuilder implements SchemaBuilderInterface
             'type' => $node['index_type'],
             'fields' => array($node['column_name']),
             'table' => $node['ref_table'],
-            'foreign' => array($node['ref_column'])
+            'foreign' => empty($node['ref_column']) ? array() : array($node['ref_column'])
         );
 
         switch ($type) {
-            case 'PRIMARY':
             case 'primary':
                 $result['type'] = 'primary';
                 break;
-            case 'UNIQUE':
             case 'unique':
                 $result['type'] = 'unique';
                 break;
-            case 'INDEX':
             case 'index':
                 $result['type'] = 'index';
                 break;
-            case 'FOREIGN':
             case 'foreign':
                 $result['type'] = 'foreign';
                 break;
