@@ -25,25 +25,12 @@ class SchemaBuilder implements SchemaBuilderInterface
     const QUOTE = '`';
 
     private $fieldTypes = array(
-        'boolean' => array('tinyint:boolean'), // tinyint with "bool" in comment
-        'integer' => array('tinyint', 'smallint', 'mediumint', 'int', 'integer', 'bigint'),
+        'boolean' => array('tinyint'),
+        'integer' => array('smallint', 'mediumint', 'int', 'integer', 'bigint'),
         'decimal' => array('decimal'),
         'string' => array('char', 'varchar', 'tinytext', 'mediumtext', 'text', 'longtext'),
         'datetime' => array('time', 'date', 'datetime', 'timestamp', 'year'),
-        'serial' => array('text:serial') // text with "serial" in comment
-    );
-
-    private $defaults = array(
-        'name' => null,
-        'type' => 'string',
-        'attributes' => 'null',
-        'length' => null,
-        'precision' => null,
-        'null' => false,
-        'unsigned' => false,
-        'auto' => false,
-        'default' => null,
-        'comment' => null
+        'serial' => array('blob')
     );
 
     protected $operation;
@@ -275,7 +262,7 @@ class SchemaBuilder implements SchemaBuilderInterface
     {
         switch ($type) {
             case 'boolean':
-                return 'TINYINT(1) COMMENT \'boolean\'';
+                return 'TINYINT(1)';
                 break;
             case 'integer':
                 $len = isset($attributes['length']) ? $attributes['length'] : 10;
@@ -292,7 +279,7 @@ class SchemaBuilder implements SchemaBuilderInterface
                 return 'DATETIME';
                 break;
             case 'serial':
-                return 'TEXT COMMENT \'serial\'';
+                return 'BLOB';
                 break;
             case 'string':
                 $len = isset($attributes['length']) ? $attributes['length'] : null;
@@ -314,7 +301,7 @@ class SchemaBuilder implements SchemaBuilderInterface
     {
         $node = array();
 
-        if (isset($attributes['comment']) && $type != 'boolean' && $type != 'serial') {
+        if (isset($attributes['comment'])) {
             $node[] = 'COMMENT \'' . $attributes['comment'] . '\'';
         }
 
@@ -490,8 +477,7 @@ class SchemaBuilder implements SchemaBuilderInterface
 
         switch ($this->operation) {
             case 'check':
-                $stmt[] = 'SHOW TABLES LIKE';
-                $stmt[] = '\'' . $this->table . '\'';
+                $stmt[] = 'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = \''.$this->table.'\'';
                 break;
             case 'info':
                 $stmt[] = 'SELECT c.ORDINAL_POSITION AS `pos`, c.TABLE_SCHEMA AS `schema`, c.TABLE_NAME AS `table`, c.COLUMN_NAME AS `column_name`, c.DATA_TYPE AS `column_type`, CASE WHEN LOCATE(\'(\', c.NUMERIC_PRECISION) > 0 IS NOT NULL THEN c.NUMERIC_PRECISION ELSE c.CHARACTER_MAXIMUM_LENGTH END AS `column_length`, c.NUMERIC_SCALE AS `column_precision`, CASE WHEN INSTR(LOWER(c.COLUMN_TYPE), \'unsigned\') > 0 THEN \'YES\' ELSE \'NO\' END AS `column_unsigned`, c.IS_NULLABLE AS `column_nullable`, CASE WHEN INSTR(LOWER(c.EXTRA), \'auto_increment\') > 0 THEN \'YES\' ELSE \'NO\' END AS `column_auto_increment`, c.COLUMN_DEFAULT AS `column_default`, c.COLUMN_COMMENT AS `column_comment`, k.CONSTRAINT_NAME AS `index_name`, CASE WHEN (i.CONSTRAINT_TYPE IS NULL AND k.CONSTRAINT_NAME IS NOT NULL) THEN \'INDEX\' ELSE i.CONSTRAINT_TYPE END AS `index_type`, k.ORDINAL_POSITION AS `index_pos`, k.REFERENCED_TABLE_SCHEMA AS `ref_schema`, k.REFERENCED_TABLE_NAME AS `ref_table`, k.REFERENCED_COLUMN_NAME AS `ref_column` FROM information_schema.COLUMNS AS c LEFT JOIN information_schema.KEY_COLUMN_USAGE AS k ON c.TABLE_SCHEMA = k.TABLE_SCHEMA AND c.TABLE_NAME = k.TABLE_NAME AND c.COLUMN_NAME = k.COLUMN_NAME LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME WHERE c.TABLE_NAME = \'' . $this->table . '\' ORDER BY `pos`';
@@ -624,7 +610,6 @@ class SchemaBuilder implements SchemaBuilderInterface
     protected function parseColumn($node)
     {
         $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['column_type']));
-        $comm = strtolower($node['column_comment']);
 
         $result = array(
             'name' => $node['column_name'],
@@ -641,10 +626,10 @@ class SchemaBuilder implements SchemaBuilderInterface
         );
 
         switch ($type) {
-            case in_array($type . ':' . $comm, $this->fieldTypes['boolean']):
+            case in_array($type, $this->fieldTypes['boolean']):
                 $result['type'] = 'boolean';
                 break;
-            case in_array($type . ':' . $comm, $this->fieldTypes['serial']):
+            case in_array($type, $this->fieldTypes['serial']):
                 $result['type'] = 'serial';
                 break;
             case in_array($type, $this->fieldTypes['integer']):

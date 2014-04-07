@@ -70,7 +70,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 'check',
-                'SHOW TABLES LIKE \'table\''
+                'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = \'table\''
             ),
             array(
                 'info',
@@ -128,7 +128,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 'boolean',
-                'TINYINT(1) COMMENT \'boolean\' NOT NULL'
+                'TINYINT(1) NOT NULL'
             ),
             array(
                 'integer',
@@ -148,7 +148,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'serial',
-                'TEXT COMMENT \'serial\' NOT NULL'
+                'BLOB NOT NULL'
             ),
 
         );
@@ -342,8 +342,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                array($this->createInputColumn('column', 'tinyint', array('comment' => 'boolean'))),
-                array($this->createOutputColumn('column', 'boolean', array('comment' => 'boolean'))),
+                array($this->createInputColumn('column', 'tinyint', array())),
+                array($this->createOutputColumn('column', 'boolean', array())),
             ),
             array(
                 array($this->createInputColumn('column', 'tinyint', array('comment' => 'boolean', 'default' => 0))),
@@ -422,12 +422,12 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 array($this->createOutputColumn('column', 'datetime', array('null' => true))),
             ),
             array(
-                array($this->createInputColumn('column', 'text', array('comment' => 'serial'))),
-                array($this->createOutputColumn('column', 'serial', array('comment' => 'serial'))),
+                array($this->createInputColumn('column', 'blob', array())),
+                array($this->createOutputColumn('column', 'serial', array())),
             ),
             array(
-                array($this->createInputColumn('column', 'text', array('comment' => 'serial', 'null' => 'YES'))),
-                array($this->createOutputColumn('column', 'serial', array('comment' => 'serial', 'null' => false))),
+                array($this->createInputColumn('column', 'blob', array('null' => 'YES'))),
+                array($this->createOutputColumn('column', 'serial', array('null' => true))),
             ),
             array(
                 array($this->createInputColumn('column', 'int', array(), array('name' => 'primary', 'type' => 'primary', 'pos' => 1))),
