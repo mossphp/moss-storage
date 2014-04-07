@@ -10,5 +10,8 @@
 		<testsuite name="MySQL">
 			<directory>./tests/Moss/Storage/Builder/MySQL/</directory>
 		</testsuite>
+		<testsuite name="PgSQL">
+			<directory>./tests/Moss/Storage/Builder/PgSQL/</directory>
+		</testsuite>
 	</testsuites>
 </phpunit>
