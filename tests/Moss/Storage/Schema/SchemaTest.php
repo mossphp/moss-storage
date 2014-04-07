@@ -29,7 +29,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ->get($table)
             ->table();
 
-        $this->assertEquals(array($tableName => 'SHOW TABLES LIKE \'' . $tableName . '\''), $schema->queryString());
+        $this->assertEquals(array($tableName => 'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = \'' . $tableName . '\''), $schema->queryString());
     }
 
     /**
