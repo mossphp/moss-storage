@@ -19,8 +19,6 @@ namespace Moss\Storage\Driver;
  */
 interface DriverInterface
 {
-    // todo - add method returning database type
-
     /**
      * Returns current statements query string
      *
