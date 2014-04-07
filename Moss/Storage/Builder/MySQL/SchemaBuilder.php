@@ -664,19 +664,15 @@ class SchemaBuilder implements SchemaBuilderInterface
         );
 
         switch ($type) {
-            case 'PRIMARY':
             case 'primary':
                 $result['type'] = 'primary';
                 break;
-            case 'UNIQUE':
             case 'unique':
                 $result['type'] = 'unique';
                 break;
-            case 'INDEX':
             case 'index':
                 $result['type'] = 'index';
                 break;
-            case 'FOREIGN':
             case 'foreign':
                 $result['type'] = 'foreign';
                 break;
