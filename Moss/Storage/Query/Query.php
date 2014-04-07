@@ -1003,13 +1003,19 @@ class Query implements QueryInterface
         }
 
         foreach ($conditions as $node) {
-            // todo - check if node is array
+            if(!is_array($node)) {
+                throw new QueryException(sprintf('Invalid condition, must be an array, got %s', gettype($node)));
+            }
+
             $instance->query()
                 ->where($node[0], $node[1], isset($node[2]) ? $node[2] : '=', isset($node[3]) ? $node[3] : 'and');
         }
 
         foreach ($order as $node) {
-            // todo - check if node is array
+            if(!is_array($node)) {
+                throw new QueryException(sprintf('Invalid order, must be an array, got %s', gettype($node)));
+            }
+
             $instance->query()
                 ->order($node[0], isset($node[1]) ? $node[1] : 'desc');
         }
