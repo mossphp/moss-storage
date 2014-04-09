@@ -809,7 +809,7 @@ class QueryBuilder implements QueryBuilderInterface
         }
 
         if ($operator === '~') {
-            return sprintf('LOWER(%s) ~ LOWER(%s)', $field, $bind);
+            return sprintf('%s ~* %s', $field, $bind);
         }
 
         return $field . ' ' . $operator . ' ' . $bind;
