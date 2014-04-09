@@ -433,13 +433,13 @@ class SchemaBuilder implements SchemaBuilderInterface
                 return 'PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
                 break;
             case 'foreign':
-                return 'CONSTRAINT ' . $this->quote($name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
+                return 'CONSTRAINT ' . $this->quote($this->table . '_' . $name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
             case 'unique':
-                return 'UNIQUE KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
+                return 'UNIQUE KEY ' . $this->quote($this->table . '_' . $name) . ' (' . $this->buildIndexFields($fields) . ')';
                 break;
             case 'index':
-                return 'KEY ' . $this->quote($name) . ' (' . $this->buildIndexFields($fields) . ')';
+                return 'KEY ' . $this->quote($this->table . '_' . $name) . ' (' . $this->buildIndexFields($fields) . ')';
                 break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
