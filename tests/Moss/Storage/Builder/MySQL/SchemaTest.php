@@ -265,19 +265,19 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'unique',
                 array('foo'),
                 null,
-                'UNIQUE KEY `foo` (`foo`)'
+                'UNIQUE KEY `table_foo` (`foo`)'
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'KEY `foo` (`foo`)'
+                'KEY `table_foo` (`foo`)'
             ),
             array(
                 'foreign',
                 array('foo' => 'bar'),
                 'yada',
-                'CONSTRAINT `foo` FOREIGN KEY (`foo`) REFERENCES `yada` (`bar`) ON UPDATE CASCADE ON DELETE RESTRICT'
+                'CONSTRAINT `table_foo` FOREIGN KEY (`foo`) REFERENCES `yada` (`bar`) ON UPDATE CASCADE ON DELETE RESTRICT'
             ),
         );
     }
