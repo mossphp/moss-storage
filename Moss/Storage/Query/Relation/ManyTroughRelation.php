@@ -15,7 +15,7 @@ namespace Moss\Storage\Query\Relation;
  * Many to many relation handler with mediator (pivot) table
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 class ManyTroughRelation extends Relation
 {

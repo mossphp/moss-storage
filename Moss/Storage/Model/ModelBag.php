@@ -15,7 +15,7 @@ namespace Moss\Storage\Model;
  * Registry containing models
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class ModelBag
 {

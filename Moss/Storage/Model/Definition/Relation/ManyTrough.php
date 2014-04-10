@@ -17,7 +17,7 @@ use Moss\Storage\Model\Definition\DefinitionException;
  * Many to many trough mediator table (with pivot table)
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class ManyTrough extends Relation
 {

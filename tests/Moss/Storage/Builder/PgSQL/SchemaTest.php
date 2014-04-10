@@ -17,7 +17,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo');
-        $this->assertEquals('ALTER TABLE "table" ADD "foo" TEXT NOT NULL', $schema->build());
+        $this->assertEquals('ALTER TABLE table ADD foo TEXT NOT NULL', $schema->build());
     }
 
     /**
@@ -74,11 +74,11 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'info',
-                'SELECT c.ordinal_position AS "pos", c.table_schema AS "schema", c.table_name AS "table", c.column_name AS "column_name", c.data_type AS "column_type", CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS "column_length", c.numeric_scale AS "column_precision", \'TODO\' AS "column_unsigned", c.is_nullable AS "column_nullable", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS "column_auto_increment", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS "column_default", \'\' AS "column_comment", k.constraint_name AS "index_name", i.constraint_type AS "index_type", k.ordinal_position AS "index_pos", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS "ref_schema", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS "ref_table", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS "ref_column" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'table\' ORDER BY "pos"'
+                'SELECT c.ordinal_position AS pos, c.table_schema AS table_schema, c.table_name AS table_name, c.column_name AS column_name, c.data_type AS column_type, CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length, c.numeric_scale AS column_precision, \'TODO\' AS column_unsigned, c.is_nullable AS column_nullable, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default, \'\' AS column_comment, k.constraint_name AS index_name, i.constraint_type AS index_type, k.ordinal_position AS index_pos, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS ref_schema, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS ref_table, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS ref_column FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'table\' ORDER BY pos'
             ),
             array(
                 'drop',
-                'DROP TABLE IF EXISTS "table"'
+                'DROP TABLE IF EXISTS table'
             )
         );
     }
@@ -90,7 +90,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', $actual);
-        $this->assertEquals('CREATE TABLE "table" ( "foo" ' . $expected . ' )', $schema->build());
+        $this->assertEquals('CREATE TABLE table ( foo ' . $expected . ' )', $schema->build());
     }
 
     /**
@@ -100,7 +100,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE "table" ADD "foo" ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table ADD foo ' . $expected . '', $schema->build());
     }
 
     /**
@@ -110,7 +110,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'change');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE "table" CHANGE "foo" "foo" ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table CHANGE foo foo ' . $expected . '', $schema->build());
     }
 
     /**
@@ -120,7 +120,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'remove');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE "table" DROP "foo"', $schema->build());
+        $this->assertEquals('ALTER TABLE table DROP foo', $schema->build());
     }
 
     public function columnProvider()
@@ -161,7 +161,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo', $type, $attributes);
-        $this->assertEquals('ALTER TABLE "table" ADD "foo" ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table ADD foo ' . $expected . '', $schema->build());
     }
 
     public function attributeProvider()
@@ -248,25 +248,25 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'primary',
                 array('foo'),
                 null,
-                'CREATE TABLE "table" ( "foo" INTEGER NOT NULL, CONSTRAINT "table_pk" PRIMARY KEY ("foo") )'
+                'CREATE TABLE table ( foo INTEGER NOT NULL, CONSTRAINT table_pk PRIMARY KEY (foo) )'
             ),
             array(
                 'unique',
                 array('foo'),
                 null,
-                'CREATE TABLE "table" ( "foo" INTEGER NOT NULL, CONSTRAINT "table_foo" UNIQUE ("foo") )'
+                'CREATE TABLE table ( foo INTEGER NOT NULL, CONSTRAINT table_foo UNIQUE (foo) )'
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'CREATE TABLE "table" ( "foo" INTEGER NOT NULL ) ; CREATE INDEX "table_foo" ON "table" ( "foo" )'
+                'CREATE TABLE table ( foo INTEGER NOT NULL ) ; CREATE INDEX table_foo ON table ( foo )'
             ),
             array(
                 'foreign',
                 array('foo' => 'bar'),
                 'yada',
-                'CREATE TABLE "table" ( "foo" INTEGER NOT NULL, CONSTRAINT "table_foo" FOREIGN KEY ("foo") REFERENCES "yada" ("bar") MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT )'
+                'CREATE TABLE table ( foo INTEGER NOT NULL, CONSTRAINT table_foo FOREIGN KEY (foo) REFERENCES yada (bar) MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT )'
             ),
         );
     }
@@ -289,25 +289,25 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'primary',
                 array('foo'),
                 null,
-                'ALTER TABLE "table" ADD CONSTRAINT "table_pk" PRIMARY KEY ("foo")'
+                'ALTER TABLE table ADD CONSTRAINT table_pk PRIMARY KEY (foo)'
             ),
             array(
                 'unique',
                 array('foo'),
                 null,
-                'ALTER TABLE "table" ADD CONSTRAINT "table_foo" UNIQUE ("foo")'
+                'ALTER TABLE table ADD CONSTRAINT table_foo UNIQUE (foo)'
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'ALTER TABLE "table" ; CREATE INDEX "table_foo" ON "table" ( "foo" )'
+                'ALTER TABLE table ; CREATE INDEX table_foo ON table ( foo )'
             ),
             array(
                 'foreign',
                 array('foo' => 'bar'),
                 'yada',
-                'ALTER TABLE "table" ADD CONSTRAINT "table_foo" FOREIGN KEY ("foo") REFERENCES "yada" ("bar") MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT'
+                'ALTER TABLE table ADD CONSTRAINT table_foo FOREIGN KEY (foo) REFERENCES yada (bar) MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT'
             ),
         );
     }
@@ -329,25 +329,25 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'primary',
                 array('foo'),
                 null,
-                'ALTER TABLE "table" DROP PRIMARY KEY'
+                'ALTER TABLE table DROP PRIMARY KEY'
             ),
             array(
                 'unique',
                 array('foo'),
                 null,
-                'ALTER TABLE "table" DROP INDEX "foo"',
+                'ALTER TABLE table DROP INDEX foo',
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'ALTER TABLE "table" DROP INDEX "foo"',
+                'ALTER TABLE table DROP INDEX foo',
             ),
             array(
                 'foreign',
                 array('bar'),
                 'yada',
-                'ALTER TABLE "table" DROP CONSTRAINT "foo"',
+                'ALTER TABLE table DROP CONSTRAINT foo',
             ),
         );
     }
@@ -499,8 +499,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             'pos' => 1,
-            'schema' => 'test',
-            'table' => 'table',
+            'table_schema' => 'test',
+            'table_name' => 'table',
             'column_name' => $name,
             'column_type' => $type,
             'column_length' => $this->get($attributes, 'length'),

@@ -17,7 +17,7 @@ use Moss\Storage\StorageException;
  * Exception thrown by builders
  *
  * @author Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\MySQL
+ * @package Moss\Storage
  */
 class BuilderException extends StorageException
 {

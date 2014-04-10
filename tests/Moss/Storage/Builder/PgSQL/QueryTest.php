@@ -25,7 +25,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->fields(array('foo', 'bar'))
             ->build();
 
-        $this->assertEquals('SELECT "fb"."foo", "fb"."bar" FROM "foobar" AS "fb"', $query->build());
+        $this->assertEquals('SELECT fb.foo, fb.bar FROM foobar AS fb', $query->build());
     }
 
     /**
@@ -42,11 +42,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function operationProvider()
     {
         return array(
-            array('SELECT "table"."foo", "table"."bar" FROM "table"', 'select'),
-            array('INSERT INTO "table" ("foo", "bar") VALUES (:bind1, :bind2)', 'insert'),
-            array('UPDATE "table" SET "foo" = :bind1, "bar" = :bind2', 'update'),
-            array('DELETE FROM "table"', 'delete'),
-            array('TRUNCATE TABLE "table"', 'clear'),
+            array('SELECT table.foo, table.bar FROM table', 'select'),
+            array('INSERT INTO table (foo, bar) VALUES (:bind1, :bind2)', 'insert'),
+            array('UPDATE table SET foo = :bind1, bar = :bind2', 'update'),
+            array('DELETE FROM table', 'delete'),
+            array('TRUNCATE TABLE table', 'clear'),
         );
     }
 
@@ -102,14 +102,14 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function testSelectWithoutFields()
     {
         $query = new QueryBuilder('table', 't', 'select');
-        $this->assertEquals('SELECT * FROM "table" AS "t"', $query->build());
+        $this->assertEquals('SELECT * FROM table AS t', $query->build());
     }
 
     public function testSelect()
     {
         $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo', 'bar', 'yada_yada' => 'yada'));
-        $this->assertEquals('SELECT "t"."foo", "t"."bar", "t"."yada_yada" AS "yada" FROM "table" AS "t"', $query->build());
+        $this->assertEquals('SELECT t.foo, t.bar, t.yada_yada AS yada FROM table AS t', $query->build());
     }
 
     /**
@@ -143,7 +143,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query->fields(array('foo'))
             ->sub($sub, 'b');
 
-        $this->assertEquals('SELECT "f"."foo", ( SELECT "b"."bar" FROM "bar" AS "b" ) AS "b" FROM "foo" AS "f"', $query->build());
+        $this->assertEquals('SELECT f.foo, ( SELECT b.bar FROM bar AS b ) AS b FROM foo AS f', $query->build());
     }
 
     /**
@@ -163,7 +163,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        $this->assertEquals('SELECT "t"."foo" FROM "table" AS "t" WHERE ' . $expected, $query->build());
+        $this->assertEquals('SELECT t.foo FROM table AS t WHERE ' . $expected, $query->build());
     }
 
     /**
@@ -183,7 +183,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        $this->assertEquals('SELECT "t"."foo" FROM "table" AS "t" HAVING ' . $expected, $query->build());
+        $this->assertEquals('SELECT t.foo FROM table AS t HAVING ' . $expected, $query->build());
     }
 
     public function aliasedConditionProvider()
@@ -193,81 +193,81 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', '=')
                 ),
-                '"t"."foo" = :bind'
+                't.foo = :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '!=')
                 ),
-                '"t"."foo" != :bind'
+                't.foo != :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '<')
                 ),
-                '"t"."foo" < :bind'
+                't.foo < :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '<=')
                 ),
-                '"t"."foo" <= :bind'
+                't.foo <= :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '>')
                 ),
-                '"t"."foo" > :bind'
+                't.foo > :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '>=')
                 ),
-                '"t"."foo" >= :bind'
+                't.foo >= :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', 'like')
                 ),
-                '"t"."foo" LIKE :bind'
+                't.foo LIKE :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', 'regex')
                 ),
-                '"t"."foo" ~* :bind'
+                't.foo ~* :bind'
             ),
             array(
                 array(
                     array('foo', array(':bind1', ':bind2'))
                 ),
-                '("t"."foo" = :bind1 OR "t"."foo" = :bind2)'
+                '(t.foo = :bind1 OR t.foo = :bind2)'
             ),
             array(
                 array(
                     array(array('foo', 'bar'), ':bind')
                 ),
-                '("t"."foo" = :bind OR "t"."bar" = :bind)'
+                '(t.foo = :bind OR t.bar = :bind)'
             ),
             array(
                 array(
                     array(array('foo', 'bar'), array(':bind1', ':bind2'))
                 ),
-                '("t"."foo" = :bind1 OR "t"."bar" = :bind2)'
+                '(t.foo = :bind1 OR t.bar = :bind2)'
             ),
             array(
                 array(
                     array('foo', ':bindFoo', null, 'and'),
                     array('bar', ':bindBar', null, 'and')
                 ),
-                '"t"."foo" = :bindFoo AND "t"."bar" = :bindBar'
+                't.foo = :bindFoo AND t.bar = :bindBar'
             ),
             array(
                 array(
                     array('foo', ':bindFoo', null, 'or'),
                     array('bar', ':bindBar', null, 'or')
                 ),
-                '"t"."foo" = :bindFoo OR "t"."bar" = :bindBar'
+                't.foo = :bindFoo OR t.bar = :bindBar'
             )
         );
     }
@@ -291,7 +291,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query->fields(array('foo'))
             ->aggregate($method, 'bar');
 
-        $this->assertEquals('SELECT ' . $expected . ', "t"."foo" FROM "table" AS "t"', $query->build());
+        $this->assertEquals('SELECT ' . $expected . ', t.foo FROM table AS t', $query->build());
     }
 
     /**
@@ -304,18 +304,18 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         call_user_func(array($query, $method), 'bar');
 
-        $this->assertEquals('SELECT ' . $expected . ', "t"."foo" FROM "table" AS "t"', $query->build());
+        $this->assertEquals('SELECT ' . $expected . ', t.foo FROM table AS t', $query->build());
     }
 
     public function aggregateProvider()
     {
         return array(
-            array('DISTINCT("t"."bar") AS "distinct"', 'distinct'),
-            array('COUNT("t"."bar") AS "count"', 'count'),
-            array('AVERAGE("t"."bar") AS "average"', 'average'),
-            array('MIN("t"."bar") AS "min"', 'min'),
-            array('MAX("t"."bar") AS "max"', 'max'),
-            array('SUM("t"."bar") AS "sum"', 'sum')
+            array('DISTINCT t.bar AS distinct', 'distinct'),
+            array('COUNT(t.bar) AS count', 'count'),
+            array('AVG(t.bar) AS average', 'average'),
+            array('MIN(t.bar) AS min', 'min'),
+            array('MAX(t.bar) AS max', 'max'),
+            array('SUM(t.bar) AS sum', 'sum')
         );
     }
 
@@ -325,7 +325,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query->fields(array('foo'))
             ->group('bar');
 
-        $this->assertEquals('SELECT "t"."foo" FROM "table" AS "t" GROUP BY "t"."bar"', $query->build());
+        $this->assertEquals('SELECT t.foo FROM table AS t GROUP BY t.bar', $query->build());
     }
 
     /**
@@ -346,15 +346,15 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
         $query->order($field, $order);
-        $this->assertEquals('SELECT "t"."foo" FROM "table" AS "t" ' . $expected, $query->build());
+        $this->assertEquals('SELECT t.foo FROM table AS t ' . $expected, $query->build());
     }
 
     public function orderProvider()
     {
         return array(
-            array('foo', 'asc', 'ORDER BY "t"."foo" ASC'),
-            array('foo', 'desc', 'ORDER BY "t"."foo" DESC'),
-            array('foo', array('one', 'two', 'three'), 'ORDER BY "t"."foo" = one DESC, "t"."foo" = two DESC, "t"."foo" = three DESC'),
+            array('foo', 'asc', 'ORDER BY t.foo ASC'),
+            array('foo', 'desc', 'ORDER BY t.foo DESC'),
+            array('foo', array('one', 'two', 'three'), 'ORDER BY t.foo = one DESC, t.foo = two DESC, t.foo = three DESC'),
         );
     }
 
@@ -366,7 +366,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new QueryBuilder('table', 't', 'select');
         $query->fields(array('foo'));
         $query->limit($limit, $offset);
-        $this->assertEquals('SELECT "t"."foo" FROM "table" AS "t" ' . $expected, $query->build());
+        $this->assertEquals('SELECT t.foo FROM table AS t ' . $expected, $query->build());
     }
 
     public function limitProvider()
@@ -436,35 +436,35 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 'bar',
                 array('foo' => 'bar'),
                 null,
-                'SELECT "t"."foo", "bar"."bar" AS "barbar", "b"."bar" AS "bbar" FROM "table" AS "t" INNER JOIN "bar" ON "t"."foo" = "bar"."bar"'
+                'SELECT t.foo, bar.bar AS barbar, b.bar AS bbar FROM table AS t INNER JOIN bar ON t.foo = bar.bar'
             ),
             array(
                 'inner',
                 'bar',
                 array('foo' => 'bar'),
                 'b',
-                'SELECT "t"."foo", "bar"."bar" AS "barbar", "b"."bar" AS "bbar" FROM "table" AS "t" INNER JOIN "bar" AS "b" ON "t"."foo" = "b"."bar"'
+                'SELECT t.foo, bar.bar AS barbar, b.bar AS bbar FROM table AS t INNER JOIN bar AS b ON t.foo = b.bar'
             ),
             array(
                 'inner',
                 'bar',
                 array('foo' => 'bar'),
                 'b',
-                'SELECT "t"."foo", "bar"."bar" AS "barbar", "b"."bar" AS "bbar" FROM "table" AS "t" INNER JOIN "bar" AS "b" ON "t"."foo" = "b"."bar"'
+                'SELECT t.foo, bar.bar AS barbar, b.bar AS bbar FROM table AS t INNER JOIN bar AS b ON t.foo = b.bar'
             ),
             array(
                 'left',
                 'bar',
                 array('foo' => 'bar'),
                 null,
-                'SELECT "t"."foo", "bar"."bar" AS "barbar", "b"."bar" AS "bbar" FROM "table" AS "t" LEFT OUTER JOIN "bar" ON "t"."foo" = "bar"."bar"'
+                'SELECT t.foo, bar.bar AS barbar, b.bar AS bbar FROM table AS t LEFT OUTER JOIN bar ON t.foo = bar.bar'
             ),
             array(
                 'right',
                 'bar',
                 array('foo' => 'bar'),
                 null,
-                'SELECT "t"."foo", "bar"."bar" AS "barbar", "b"."bar" AS "bbar" FROM "table" AS "t" RIGHT OUTER JOIN "bar" ON "t"."foo" = "bar"."bar"'
+                'SELECT t.foo, bar.bar AS barbar, b.bar AS bbar FROM table AS t RIGHT OUTER JOIN bar ON t.foo = bar.bar'
             ),
         );
     }
@@ -484,7 +484,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new QueryBuilder('table', 't', 'insert');
         $query->value('foo', ':bind');
-        $this->assertEquals('INSERT INTO "table" ("foo") VALUE (:bind)', $query->build());
+        $this->assertEquals('INSERT INTO table (foo) VALUE (:bind)', $query->build());
     }
 
     public function testInsertMultipleValues()
@@ -492,7 +492,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new QueryBuilder('table', 't', 'insert');
         $query->value('foo', ':bind1');
         $query->value('bar', ':bind2');
-        $this->assertEquals('INSERT INTO "table" ("foo", "bar") VALUES (:bind1, :bind2)', $query->build());
+        $this->assertEquals('INSERT INTO table (foo, bar) VALUES (:bind1, :bind2)', $query->build());
     }
 
     public function testInsertValuesArray()
@@ -504,7 +504,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 'bar' => ':bind2'
             )
         );
-        $this->assertEquals('INSERT INTO "table" ("foo", "bar") VALUES (:bind1, :bind2)', $query->build());
+        $this->assertEquals('INSERT INTO table (foo, bar) VALUES (:bind1, :bind2)', $query->build());
     }
 
     // UPDATE
@@ -523,7 +523,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new QueryBuilder('table', 't', 'update');
         $query->value('foo', ':bind');
-        $this->assertEquals('UPDATE "table" SET "foo" = :bind', $query->build());
+        $this->assertEquals('UPDATE table SET foo = :bind', $query->build());
     }
 
     /**
@@ -543,7 +543,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        $this->assertEquals('UPDATE "table" SET "foo" = :bind ' . $expected, $query->build());
+        $this->assertEquals('UPDATE table SET foo = :bind ' . $expected, $query->build());
     }
 
     /**
@@ -554,14 +554,14 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new QueryBuilder('table', 't', 'update');
         $query->value('foo', ':bind');
         $query->limit($limit, $offset);
-        $this->assertEquals('UPDATE "table" SET "foo" = :bind ' . $expected, $query->build());
+        $this->assertEquals('UPDATE table SET foo = :bind ' . $expected, $query->build());
     }
 
     // DELETE
     public function testDelete()
     {
         $query = new QueryBuilder('table', 't', 'delete');
-        $this->assertEquals('DELETE FROM "table"', $query->build());
+        $this->assertEquals('DELETE FROM table', $query->build());
     }
 
     /**
@@ -580,7 +580,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        $this->assertEquals('DELETE FROM "table" ' . $expected, $query->build());
+        $this->assertEquals('DELETE FROM table ' . $expected, $query->build());
     }
 
     /**
@@ -591,14 +591,14 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new QueryBuilder('table', 't', 'delete');
         $query->fields(array('foo'));
         $query->limit($limit, $offset);
-        $this->assertEquals('DELETE FROM "table" ' . $expected, $query->build());
+        $this->assertEquals('DELETE FROM table ' . $expected, $query->build());
     }
 
     // TRUNCATE
     public function testTruncate()
     {
         $query = new QueryBuilder('table', 't', 'clear');
-        $this->assertEquals('TRUNCATE TABLE "table"', $query->build());
+        $this->assertEquals('TRUNCATE TABLE table', $query->build());
     }
 
     public function conditionProvider()
@@ -608,81 +608,81 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', '=')
                 ),
-                'WHERE "foo" = :bind'
+                'WHERE foo = :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '!=')
                 ),
-                'WHERE "foo" != :bind'
+                'WHERE foo != :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '<')
                 ),
-                'WHERE "foo" < :bind'
+                'WHERE foo < :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '<=')
                 ),
-                'WHERE "foo" <= :bind'
+                'WHERE foo <= :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '>')
                 ),
-                'WHERE "foo" > :bind'
+                'WHERE foo > :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', '>=')
                 ),
-                'WHERE "foo" >= :bind'
+                'WHERE foo >= :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', 'like')
                 ),
-                'WHERE "foo" LIKE :bind'
+                'WHERE foo LIKE :bind'
             ),
             array(
                 array(
                     array('foo', ':bind', 'regex')
                 ),
-                'WHERE "foo" ~* :bind'
+                'WHERE foo ~* :bind'
             ),
             array(
                 array(
                     array('foo', array(':bind1', ':bind2'))
                 ),
-                'WHERE ("foo" = :bind1 OR "foo" = :bind2)'
+                'WHERE (foo = :bind1 OR foo = :bind2)'
             ),
             array(
                 array(
                     array(array('foo', 'bar'), ':bind')
                 ),
-                'WHERE ("foo" = :bind OR "bar" = :bind)'
+                'WHERE (foo = :bind OR bar = :bind)'
             ),
             array(
                 array(
                     array(array('foo', 'bar'), array(':bind1', ':bind2'))
                 ),
-                'WHERE ("foo" = :bind1 OR "bar" = :bind2)'
+                'WHERE (foo = :bind1 OR bar = :bind2)'
             ),
             array(
                 array(
                     array('foo', ':bindFoo', null, 'and'),
                     array('bar', ':bindBar', null, 'and')
                 ),
-                'WHERE "foo" = :bindFoo AND "bar" = :bindBar'
+                'WHERE foo = :bindFoo AND bar = :bindBar'
             ),
             array(
                 array(
                     array('foo', ':bindFoo', null, 'or'),
                     array('bar', ':bindBar', null, 'or')
                 ),
-                'WHERE "foo" = :bindFoo OR "bar" = :bindBar'
+                'WHERE foo = :bindFoo OR bar = :bindBar'
             )
         );
     }

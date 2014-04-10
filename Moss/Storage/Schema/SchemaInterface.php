@@ -18,7 +18,7 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
  * Schema interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 interface SchemaInterface
 {

@@ -17,7 +17,7 @@ use Moss\Storage\StorageException;
  * Exception thrown by schemas
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Schema
+ * @package Moss\Storage
  */
 class SchemaException extends StorageException
 {

@@ -19,7 +19,7 @@ use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterfa
  * Abstract class for basic relation methods
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 abstract class Relation implements RelationInterface
 {

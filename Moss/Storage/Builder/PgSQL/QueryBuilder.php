@@ -11,6 +11,7 @@
 
 namespace Moss\Storage\Builder\PgSQL;
 
+use Moss\Storage\Builder\AbstractQueryBuilder;
 use Moss\Storage\Builder\BuilderException;
 use Moss\Storage\Builder\QueryBuilderInterface;
 
@@ -18,19 +19,17 @@ use Moss\Storage\Builder\QueryBuilderInterface;
  * MySQL query builder - builds CRUD queries
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\MySQL
+ * @package Moss\Storage
  */
-class QueryBuilder implements QueryBuilderInterface
+class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
 {
-    const QUOTE = '"';
-
     protected $aggregateMethods = array(
-        'distinct' => 'DISTINCT',
-        'count' => 'COUNT',
-        'average' => 'AVERAGE',
-        'max' => 'MAX',
-        'min' => 'MIN',
-        'sum' => 'SUM'
+        'distinct' => 'DISTINCT %s',
+        'count' => 'COUNT(%s)',
+        'average' => 'AVG(%s)',
+        'max' => 'MAX(%s)',
+        'min' => 'MIN(%s)',
+        'sum' => 'SUM(%s)'
     );
 
     protected $joinTypes = array(
@@ -47,7 +46,7 @@ class QueryBuilder implements QueryBuilderInterface
         '<=' => '<=',
         '>=' => '>=',
         'like' => 'LIKE',
-        'regex' => '~'
+        'regex' => '~*'
     );
 
     protected $logicalOperators = array(
@@ -60,194 +59,11 @@ class QueryBuilder implements QueryBuilderInterface
         'desc' => 'DESC',
     );
 
-    protected $operation;
-
-    protected $table;
-    protected $joins = array();
-
-    protected $fields = array();
-    protected $aggregates = array();
-    protected $group = array();
-    protected $subs = array();
-
-    protected $values = array();
-
-    protected $where = array();
-    protected $having = array();
-
-    protected $order = array();
-
-    protected $limit = null;
-    protected $offset = null;
-
     /**
-     * Constructor
-     *
-     * @param string $table
-     * @param string $alias
-     * @param string $operation
-     */
-    public function __construct($table = null, $alias = null, $operation = 'select')
-    {
-        if ($table !== null) {
-            $this->table($table, $alias);
-            $this->operation($operation);
-        }
-    }
-
-    /**
-     * @param string $string
-     * @param null   $table
+     * Builds table with all required joins
      *
      * @return string
      */
-    protected function quote($string, $table = null)
-    {
-        $array = explode(self::SEPARATOR, $string, 2);
-
-        if ($this->operation !== 'select') {
-            return self::QUOTE . $string . self::QUOTE;
-        }
-
-        if (count($array) !== 2 && $table === null) {
-            return self::QUOTE . $string . self::QUOTE;
-        }
-
-        if (!isset($array[1])) {
-            array_unshift($array, $table);
-        }
-
-        if (strpos($array[0], self::QUOTE) !== 0) {
-            $array[0] = self::QUOTE . $array[0] . self::QUOTE;
-        }
-
-        return $array[0] . '.' . self::QUOTE . $array[1] . self::QUOTE;
-    }
-
-    /**
-     * Sets select operation on table
-     *
-     * @param string $table
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function select($table, $alias = null)
-    {
-        return $this->operation('select')
-            ->table($table, $alias);
-    }
-
-    /**
-     * Sets insert operation on table
-     *
-     * @param string $table
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function insert($table, $alias = null)
-    {
-        return $this->operation('insert')
-            ->table($table, $alias);
-    }
-
-    /**
-     * Sets update operation on table
-     *
-     * @param string $table
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function update($table, $alias = null)
-    {
-        return $this->operation('update')
-            ->table($table, $alias);
-    }
-
-    /**
-     * Sets delete operation on table
-     *
-     * @param string $table
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function delete($table, $alias = null)
-    {
-        return $this->operation('delete')
-            ->table($table, $alias);
-    }
-
-    /**
-     * Sets clear operation on table
-     *
-     * @param string $table
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function clear($table, $alias = null)
-    {
-        return $this->operation('clear')
-            ->table($table, $alias);
-    }
-
-    /**
-     * Sets table name
-     *
-     * @param string $table
-     * @param string $alias
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function table($table, $alias = null)
-    {
-        if (empty($table)) {
-            throw new BuilderException('Missing table name');
-        }
-
-        $this->table = array(
-            $this->quote($table),
-            $alias ? $this->quote($alias) : null
-        );
-
-        return $this;
-    }
-
-    protected function mapping()
-    {
-        return $this->table[1] ? $this->table[1] : $this->table[0];
-    }
-
-    /**
-     * Sets operation for builder
-     *
-     * @param string $operation
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function operation($operation)
-    {
-        switch ($operation) {
-            case 'select':
-            case 'insert':
-            case 'update':
-            case 'delete':
-            case 'clear':
-                break;
-            default:
-                throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
-        }
-
-        $this->operation = $operation;
-
-        return $this;
-    }
-
     protected function buildTable()
     {
         $result = array();
@@ -282,160 +98,10 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Adds fields to query
+     * Builds GROUP statement
      *
-     * @param array $fields
-     *
-     * @return $this
+     * @return string
      */
-    public function fields(array $fields)
-    {
-        $this->fields = array();
-        foreach ($fields as $key => $val) {
-            is_numeric($key) ? $this->field($val) : $this->field($key, $val);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Adds field to query
-     *
-     * @param string      $field
-     * @param null|string $alias
-     *
-     * @return $this
-     */
-    public function field($field, $alias = null)
-    {
-        $this->fields[] = array(
-            $this->quote($field, $this->mapping()),
-            $alias ? $this->quote($alias) : null
-        );
-
-        return $this;
-    }
-
-    /**
-     * Adds distinct method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function distinct($field, $alias = null)
-    {
-        return $this->aggregate('distinct', $field, $alias);
-    }
-
-    /**
-     * Adds count method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function count($field, $alias = null)
-    {
-        return $this->aggregate('count', $field, $alias);
-    }
-
-    /**
-     * Adds average method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function average($field, $alias = null)
-    {
-        return $this->aggregate('average', $field, $alias);
-    }
-
-    /**
-     * Adds max method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function max($field, $alias = null)
-    {
-        return $this->aggregate('max', $field, $alias);
-    }
-
-    /**
-     * Adds min method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function min($field, $alias = null)
-    {
-        return $this->aggregate('min', $field, $alias);
-    }
-
-    /**
-     * Adds sum method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function sum($field, $alias = null)
-    {
-        return $this->aggregate('sum', $field, $alias);
-    }
-
-    /**
-     * Adds aggregate method to query
-     *
-     * @param string $method
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function aggregate($method, $field, $alias = null)
-    {
-        if (!isset($this->aggregateMethods[$method])) {
-            throw new BuilderException(sprintf('Query builder does not supports aggregation method "%s"', $method));
-        }
-
-        $alias = $alias ? $alias : strtolower($method);
-
-        $this->aggregates[$alias] = array(
-            $method,
-            $this->quote($field, $this->mapping()),
-            $this->quote($alias),
-        );
-
-        return $this;
-    }
-
-
-    /**
-     * Adds grouping to query
-     *
-     * @param string $field
-     *
-     * @return $this
-     */
-    public function group($field)
-    {
-        $this->group[] = $this->quote($field, $this->mapping());
-
-        return $this;
-    }
-
     protected function buildGroup()
     {
         if (empty($this->group)) {
@@ -446,20 +112,10 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Adds sub query
+     * Builds field list with aggregation methods for SELECT statements
      *
-     * @param QueryBuilderInterface $query
-     * @param string                $alias
-     *
-     * @return $this
+     * @return string
      */
-    public function sub(QueryBuilderInterface $query, $alias)
-    {
-        $this->subs[] = array($query, $this->quote($alias));
-
-        return $this;
-    }
-
     protected function buildFields()
     {
         if (empty($this->fields)) {
@@ -470,8 +126,7 @@ class QueryBuilder implements QueryBuilderInterface
 
         foreach ($this->aggregates as $node) {
             $result[] = sprintF(
-                '%s(%s) AS %s',
-                $this->aggregateMethods[$node[0]],
+                $this->aggregateMethods[$node[0]] . ' AS %s',
                 $node[1],
                 $node[2]
             );
@@ -494,41 +149,11 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Adds values to query
+     * Builds field-value definition for INSERT statements
      *
-     * @param array $values
-     *
-     * @return $this
+     * @return string
+     * @throws BuilderException
      */
-    public function values(array $values)
-    {
-        $this->values = array();
-
-        foreach ($values as $col => $value) {
-            $this->value($col, $value);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Adds value to query
-     *
-     * @param string $col
-     * @param mixed  $value
-     *
-     * @return $this
-     */
-    public function value($col, $value)
-    {
-        $this->values[] = array(
-            $this->quote($col, $this->mapping()),
-            $value
-        );
-
-        return $this;
-    }
-
     protected function buildInsertValues()
     {
         if (empty($this->values)) {
@@ -551,6 +176,12 @@ class QueryBuilder implements QueryBuilderInterface
         );
     }
 
+    /**
+     * Builds field-value definition for UPDATE statements
+     *
+     * @return string
+     * @throws BuilderException
+     */
     protected function buildUpdateValues()
     {
         if (empty($this->values)) {
@@ -567,201 +198,12 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Adds inner join with set table
+     * Builds array of conditions
      *
-     * @param string $table
-     * @param array  $joins
-     * @param string $alias
+     * @param array $conditions
      *
-     * @return $this
+     * @return array
      */
-    public function innerJoin($table, array $joins, $alias = null)
-    {
-        return $this->join('inner', $table, $joins, $alias);
-    }
-
-    /**
-     * Adds left join with set table
-     *
-     * @param string $table
-     * @param array  $joins
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function leftJoin($table, array $joins, $alias = null)
-    {
-        return $this->join('left', $table, $joins, $alias);
-    }
-
-    /**
-     * Adds right join with set table
-     *
-     * @param string $table
-     * @param array  $joins
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function rightJoin($table, array $joins, $alias = null)
-    {
-        return $this->join('right', $table, $joins, $alias);
-    }
-
-    /**
-     * Adds join to query
-     *
-     * @param string $type
-     * @param array  $table
-     * @param array  $joins
-     * @param string $alias
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function join($type, $table, array $joins, $alias = null)
-    {
-        if (!isset($this->joinTypes[$type])) {
-            throw new BuilderException(sprintf('Query builder does not supports join type "%s"', $type));
-        }
-
-        if (empty($joins)) {
-            throw new BuilderException(sprintf('Empty join array for join type "%s"', $type));
-        }
-
-        $join = array(
-            $type,
-            array(
-                $this->quote($table),
-                $alias ? $this->quote($alias) : null
-            ),
-            array()
-        );
-
-        $mapping = isset($alias) ? $alias : $table;
-        foreach ($joins as $local => $foreign) {
-            $join[2][] = array(
-                $this->quote($local, $this->mapping()),
-                $this->quote($foreign, $mapping)
-            );
-        }
-
-        $this->joins[] = $join;
-
-        return $this;
-    }
-
-    /**
-     * Adds where condition to builder
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function where($field, $value, $comparison = '=', $logical = 'and')
-    {
-        $this->assertComparisonOperator($comparison);
-        $this->assertLogicalOperator($logical);
-
-        if (is_array($field)) {
-            array_walk_recursive($field, array($this, 'quoteWhereCallback'));
-        } else {
-            $this->quoteWhereCallback($field);
-        }
-
-        $this->where[] = array(
-            $field,
-            $value,
-            $this->comparisonOperators[$comparison],
-            $this->logicalOperators[$logical]
-        );
-
-        return $this;
-    }
-
-    /**
-     * Adds having condition to builder
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function having($field, $value, $comparison = '=', $logical = 'and')
-    {
-        $this->assertComparisonOperator($comparison);
-        $this->assertLogicalOperator($logical);
-
-        if (is_array($field)) {
-            array_walk_recursive($field, array($this, 'quoteHavingCallback'));
-        } else {
-            $this->quoteHavingCallback($field);
-        }
-
-        $this->having[] = array(
-            $field,
-            $value,
-            $this->comparisonOperators[$comparison],
-            $this->logicalOperators[$logical]
-        );
-
-        return $this;
-    }
-
-    protected function assertComparisonOperator($operator)
-    {
-        if (!isset($this->comparisonOperators[$operator])) {
-            throw new BuilderException(sprintf('Query builder does not supports comparison operator "%s"', $operator));
-        }
-    }
-
-    protected function assertLogicalOperator($operator)
-    {
-        if (!isset($this->logicalOperators[$operator])) {
-            throw new BuilderException(sprintf('Query builder does not supports logical operator "%s"', $operator));
-        }
-    }
-
-    protected function quoteWhereCallback(&$field)
-    {
-        $field = $this->quote($field, $this->mapping());
-    }
-
-    protected function quoteHavingCallback(&$field)
-    {
-        $table = isset($this->aggregates[$field]) ? null : $this->mapping();
-        $field = $this->quote($field, $table);
-    }
-
-    protected function buildWhere()
-    {
-        if (empty($this->where)) {
-            return null;
-        }
-
-        $result = $this->buildConditions($this->where);
-
-        return 'WHERE ' . implode(' ', $result);
-    }
-
-    protected function buildHaving()
-    {
-        if (empty($this->having)) {
-            return null;
-        }
-
-        $result = $this->buildConditions($this->having);
-
-        return 'HAVING ' . implode(' ', $result);
-    }
-
     protected function buildConditions(&$conditions)
     {
         if (empty($conditions)) {
@@ -791,7 +233,7 @@ class QueryBuilder implements QueryBuilderInterface
         return $result;
     }
 
-    protected function buildConditionString($field, $bind, $operator)
+    private function buildConditionString($field, $bind, $operator)
     {
         if (is_array($bind)) {
             foreach ($bind as &$val) {
@@ -816,39 +258,10 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Adds sorting to query
+     * Builds ORDER BY for query
      *
-     * @param string       $field
-     * @param string|array $order
-     *
-     * @return $this
-     * @throws BuilderException
+     * @return string
      */
-    public function order($field, $order = 'desc')
-    {
-        if (!is_array($order) && !isset($this->orderMethods[$order])) {
-            throw new BuilderException(sprintf('Query builder does not supports order method "%s"', $order));
-        }
-
-        $field = $this->quote($field, $this->mapping());
-
-        if (is_array($order)) {
-            $this->order[] = array(
-                $field,
-                $order
-            );
-
-            return $this;
-        }
-
-        $this->order[] = array(
-            $field,
-            $this->orderMethods[(string) $order]
-        );
-
-        return $this;
-    }
-
     protected function buildOrder()
     {
         if (empty($this->order)) {
@@ -871,21 +284,10 @@ class QueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * Sets limits to query
+     * Builds LIMIT part
      *
-     * @param int      $limit
-     * @param null|int $offset
-     *
-     * @return $this
+     * @return string
      */
-    public function limit($limit, $offset = null)
-    {
-        $this->limit = $limit > 0 ? (int) $limit : null;
-        $this->offset = $offset > 0 ? (int) $offset : null;
-
-        return $this;
-    }
-
     protected function buildLimit()
     {
         if ($this->limit <= 0) {
@@ -897,104 +299,5 @@ class QueryBuilder implements QueryBuilderInterface
         }
 
         return 'LIMIT ' . ($this->offset ? $this->offset . ',' : null) . ' ' . (int) $this->limit;
-    }
-
-    /**
-     * Builds query string
-     *
-     * @return string
-     * @throws BuilderException
-     */
-    public function build()
-    {
-        if (empty($this->table)) {
-            throw new BuilderException('Missing table name');
-        }
-
-        $stmt = array();
-
-        switch ($this->operation) {
-            case 'select':
-                $stmt[] = 'SELECT';
-                $stmt[] = $this->buildFields();
-                $stmt[] = 'FROM';
-                $stmt[] = $this->buildTable();
-                $stmt[] = $this->buildWhere();
-                $stmt[] = $this->buildGroup();
-                $stmt[] = $this->buildHaving();
-                $stmt[] = $this->buildOrder();
-                $stmt[] = $this->buildLimit();
-                break;
-            case 'insert':
-                $stmt[] = 'INSERT INTO';
-                $stmt[] = $this->buildTable();
-                $stmt[] = $this->buildInsertValues();
-                break;
-            case 'update':
-                $stmt[] = 'UPDATE';
-                $stmt[] = $this->buildTable();
-                $stmt[] = $this->buildUpdateValues();
-                $stmt[] = $this->buildWhere();
-                $stmt[] = $this->buildLimit();
-                break;
-            case 'delete':
-                $stmt[] = 'DELETE FROM';
-                $stmt[] = $this->buildTable();
-                $stmt[] = $this->buildWhere();
-                $stmt[] = $this->buildLimit();
-                break;
-            case 'clear':
-                $stmt[] = 'TRUNCATE TABLE';
-                $stmt[] = $this->buildTable();
-                break;
-        }
-
-        $stmt = array_filter($stmt);
-
-        return implode(' ', $stmt);
-    }
-
-    /**
-     * Resets builder
-     *
-     * @return $this
-     */
-    public function reset()
-    {
-        $this->operation = null;
-
-        $this->table = null;
-        $this->joins = array();
-
-        $this->fields = array();
-        $this->aggregates = array();
-        $this->group = array();
-        $this->subs = array();
-
-        $this->values = array();
-
-        $this->where = array();
-        $this->having = array();
-
-        $this->order = array();
-
-        $this->limit = null;
-        $this->offset = null;
-
-        return $this;
-    }
-
-    /**
-     * Casts query to string (builds it)
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        try {
-            return $this->build();
-        } catch (BuilderException $e) {
-            return get_class($e) . ' - ' . $e->getMessage();
-        }
     }
 }

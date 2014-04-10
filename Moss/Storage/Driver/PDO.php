@@ -15,7 +15,7 @@ namespace Moss\Storage\Driver;
  * PDO implementing driver interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Driver
+ * @package Moss\Storage
  */
 class PDO implements DriverInterface
 {

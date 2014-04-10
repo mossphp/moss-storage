@@ -15,7 +15,7 @@ namespace Moss\Storage\Builder;
  * MySQL schema builder interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\MySQL
+ * @package Moss\Storage
  */
 interface SchemaBuilderInterface extends BuilderInterface
 {

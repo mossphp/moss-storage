@@ -18,7 +18,7 @@ use Moss\Storage\Model\Definition\FieldInterface;
  * Field describes how entities property is mapped to field in database
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 abstract class Field implements FieldInterface
 {

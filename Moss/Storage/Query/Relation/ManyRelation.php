@@ -15,7 +15,7 @@ namespace Moss\Storage\Query\Relation;
  * One to many relation handler
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 class ManyRelation extends Relation
 {

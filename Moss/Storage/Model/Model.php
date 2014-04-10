@@ -19,7 +19,7 @@ use Moss\Storage\Model\Definition\RelationInterface;
  * Model describing entity and its relationship to other entities
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Model implements ModelInterface
 {

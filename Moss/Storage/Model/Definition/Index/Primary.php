@@ -17,7 +17,7 @@ use Moss\Storage\Model\Definition\DefinitionException;
  * Defines primary key
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Primary extends Index
 {

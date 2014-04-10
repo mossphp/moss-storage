@@ -15,7 +15,7 @@ namespace Moss\Storage\Model\Definition\Field;
  * Integer field
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Integer extends Field
 {

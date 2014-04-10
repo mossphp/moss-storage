@@ -17,7 +17,7 @@ use Moss\Storage\Query\QueryException;
  * Exception thrown by relations
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 class RelationException extends QueryException
 {

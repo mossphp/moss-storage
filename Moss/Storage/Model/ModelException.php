@@ -17,7 +17,7 @@ use Moss\Storage\StorageException;
  * Exception thrown by model
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class ModelException extends StorageException
 {

@@ -17,7 +17,7 @@ use Moss\Storage\Query\QueryInterface;
  * Relation interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 interface RelationInterface
 {

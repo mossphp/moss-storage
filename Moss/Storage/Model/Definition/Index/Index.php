@@ -18,7 +18,7 @@ use Moss\Storage\Model\Definition\IndexInterface;
  * Index definition describing ordinary index
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Index implements IndexInterface
 {

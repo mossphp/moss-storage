@@ -26,7 +26,7 @@ use Moss\Storage\Query\Relation\RelationInterface;
  * Query used to create and execute CRUD operations on entities
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 class Query implements QueryInterface
 {

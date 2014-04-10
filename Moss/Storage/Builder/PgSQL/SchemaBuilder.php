@@ -12,19 +12,18 @@
 namespace Moss\Storage\Builder\PgSQL;
 
 use Moss\Storage\Builder\BuilderException;
+use Moss\Storage\Builder\AbstractSchemaBuilder;
 use Moss\Storage\Builder\SchemaBuilderInterface;
 
 /**
  * Postgres schema builder - builds queries managing tables (create, alter, drop)
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\Postgres
+ * @package Moss\Storage
  */
-class SchemaBuilder implements SchemaBuilderInterface
+class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterface
 {
-    const QUOTE = '"';
-
-    private $fieldTypes = array(
+    protected $fieldTypes = array(
         'boolean' => array('boolean'),
         'integer' => array('smallint', 'integer', 'bigint'),
         'decimal' => array('decimal', 'numeric', 'real', 'double precision'),
@@ -33,230 +32,83 @@ class SchemaBuilder implements SchemaBuilderInterface
         'serial' => array('bytea')
     );
 
-    protected $operation;
-
-    protected $table;
-
-    protected $columns = array();
-    protected $indexes = array();
-
     /**
-     * Constructor
+     * Builds column definitions and return them as array
      *
-     * @param string $table
-     * @param string $operation
+     * @return array
      */
-    public function __construct($table = null, $operation = 'create')
+    protected function buildColumns()
     {
-        if ($table !== null) {
-            $this->table($table);
+        $nodes = array();
+
+        foreach ($this->columns as $node) {
+            $nodes[] = $this->buildColumn($node[0], $node[1], $node[2]);
         }
 
-        if ($operation !== null) {
-            $this->operation($operation);
-        }
-    }
-
-    protected function quote($string)
-    {
-        return self::QUOTE . $string . self::QUOTE;
+        return $nodes;
     }
 
     /**
-     * Sets check operation on table
+     * Builds column definitions for add alteration
      *
-     * @param string $table
-     *
-     * @return $this
+     * @return array
      */
-    public function check($table)
+    protected function buildAddColumns()
     {
-        return $this->operation('check')
-            ->table($table);
-    }
+        $nodes = array();
 
-    /**
-     * Sets info operation on table
-     *
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function info($table)
-    {
-        return $this->operation('info')
-            ->table($table);
-    }
+        foreach ($this->columns as $node) {
+            $str = 'ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
 
-    /**
-     * Sets create operation on table
-     *
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function create($table)
-    {
-        return $this->operation('create')
-            ->table($table);
-    }
-
-    /**
-     * Sets add operation on table
-     *
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function add($table)
-    {
-        return $this->operation('add')
-            ->table($table);
-    }
-
-    /**
-     * Sets change operation on table
-     *
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function change($table)
-    {
-        return $this->operation('change')
-            ->table($table);
-    }
-
-    /**
-     * Sets remove operation on table
-     *
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function remove($table)
-    {
-        return $this->operation('remove')
-            ->table($table);
-    }
-
-    /**
-     * Sets drop operation on table
-     *
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function drop($table)
-    {
-        return $this->operation('drop')
-            ->table($table);
-    }
-
-    /**
-     * Sets table name
-     *
-     * @param string $table
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function table($table)
-    {
-        if (empty($table)) {
-            throw new BuilderException('Missing table name');
-        }
-
-        $this->table = $table;
-
-        return $this;
-    }
-
-    /**
-     * Sets operation for builder
-     *
-     * @param string $operation
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function operation($operation)
-    {
-        switch ($operation) {
-            case 'check':
-            case 'info':
-            case 'create':
-            case 'add':
-            case 'change':
-            case 'remove':
-            case 'drop':
-                break;
-            default:
-                throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
-        }
-
-        $this->operation = $operation;
-
-        return $this;
-    }
-
-    /**
-     * Sets table column
-     *
-     * @param string      $name
-     * @param string      $type
-     * @param array       $attributes
-     * @param null|string $after
-     *
-     * @return $this
-     * @throws BuilderException
-     */
-    public function column($name, $type = 'string', $attributes = array(), $after = null)
-    {
-        $this->assertColumnType($type);
-
-        $this->columns[] = array(
-            $name,
-            $type,
-            $this->prepareAttributes($attributes),
-            $after
-        );
-
-        return $this;
-    }
-
-    protected function assertColumnType($type)
-    {
-        if (!isset($this->fieldTypes[$type])) {
-            throw new BuilderException(sprintf('Invalid column type "%s" in "%s"', $type, $this->table));
-        }
-    }
-
-    protected function prepareAttributes(array $attributes)
-    {
-        foreach ($attributes as $key => $value) {
-            if (is_numeric($key)) {
-                unset($attributes[$key]);
-                $key = $value;
-                $value = true;
+            if ($node[3] !== null) {
+                $str .= ' AFTER ' . $node[3];
             }
 
-            if ($key === 'length' || $key === 'precision') {
-                $value = (int) $value;
-            }
-
-            $attributes[$key] = $value;
+            $nodes[] = $str;
         }
 
-        return array_change_key_case($attributes, \CASE_LOWER);
+        return $nodes;
     }
 
-    protected function buildColumn($name, $type, array $attributes)
+    /**
+     * Builds column definitions for change
+     *
+     * @return array
+     */
+    protected function buildChangeColumns()
     {
-        return $this->quote($name) . ' ' . $this->buildColumnType($name, $type, $attributes) . ' ' . $this->buildColumnAttributes($type, $attributes);
+        $nodes = array();
+
+        foreach ($this->columns as $node) {
+            $nodes[] = 'CHANGE ' . ($node[3] ? $node[3] : $node[0]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
+        }
+
+        return $nodes;
     }
 
-    protected function buildColumnType($name, $type, array $attributes)
+    /**
+     * Builds columns list to drop
+     *
+     * @return array
+     */
+    protected function buildDropColumns()
+    {
+        $nodes = array();
+
+        foreach ($this->columns as $node) {
+            $nodes[] = 'DROP ' . $node[0];
+        }
+
+        return $nodes;
+    }
+
+
+    private function buildColumn($name, $type, array $attributes)
+    {
+        return $name . ' ' . $this->buildColumnType($name, $type, $attributes) . ' ' . $this->buildColumnAttributes($type, $attributes);
+    }
+
+    private function buildColumnType($name, $type, array $attributes)
     {
         switch ($type) {
             case 'boolean':
@@ -288,7 +140,7 @@ class SchemaBuilder implements SchemaBuilderInterface
         }
     }
 
-    protected function buildColumnAttributes($type, array $attributes)
+    private function buildColumnAttributes($type, array $attributes)
     {
         $node = array();
 
@@ -314,136 +166,89 @@ class SchemaBuilder implements SchemaBuilderInterface
     }
 
     /**
-     * Sets key/index to table
+     * Builds key/index definitions and returns them as array
      *
-     * @param array $localFields
+     * @param bool $index
      *
-     * @return $this
+     * @return array
      */
-    public function primary(array $localFields)
+    protected function buildIndexes($index = false)
     {
-        $this->assertIndexFields($localFields);
+        $nodes = array();
 
-        $this->index('primary', $localFields, 'primary');
-    }
-
-    /**
-     * Sets key/index to table
-     *
-     * @param string $name
-     * @param array  $fields
-     * @param string $table
-     *
-     * @return $this
-     */
-    public function foreign($name, array $fields, $table)
-    {
-        $this->assertIndexFields($fields);
-
-        $this->indexes[] = array(
-            $name,
-            (array) $fields,
-            'foreign',
-            $table,
-        );
-
-        return $this;
-    }
-
-    /**
-     * Sets key/index to table
-     *
-     * @param string $name
-     * @param array  $fields
-     *
-     * @return $this
-     */
-    public function unique($name, array $fields)
-    {
-        $this->assertIndexFields($fields);
-
-        $this->indexes[] = array(
-            $name,
-            (array) $fields,
-            'unique',
-            null
-        );
-
-        return $this;
-    }
-
-    /**
-     * Sets key/index to table
-     *
-     * @param string $name
-     * @param array  $fields
-     * @param string $type
-     * @param null   $table
-     *
-     * @return $this
-     */
-    public function index($name, array $fields, $type = 'index', $table = null)
-    {
-        $this->assertIndexType($type);
-        $this->assertIndexFields($fields);
-
-        $this->indexes[] = array(
-            $name,
-            (array) $fields,
-            $type,
-            $table,
-        );
-
-        return $this;
-    }
-
-    protected function assertIndexType($type)
-    {
-        if (!in_array($type, array('primary', 'index', 'unique', 'foreign'))) {
-            throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->table));
+        foreach ($this->indexes as $node) {
+            if (($node[2] === 'index' && $index === true) || ($node[2] !== 'index' && $index === false)) {
+                $nodes[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
+            }
         }
+
+        return $nodes;
     }
 
-    protected function assertIndexFields($fields)
+    /**
+     * Builds key/index definitions to add
+     *
+     * @return array
+     */
+    protected function buildAddIndex()
     {
-        if (empty($fields)) {
-            throw new BuilderException(sprintf('Missing fields for index in "%s"', $this->table));
+        $nodes = array();
+
+        foreach ($this->indexes as $node) {
+            if ($node[2] === 'index') {
+                continue;
+            }
+
+            $nodes[] = 'ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
         }
+
+        return $nodes;
     }
 
-    protected function buildIndex($name, array $fields, $type = 'index', $table = null)
+    /**
+     * Builds key/index definitions to add
+     *
+     * @return array
+     */
+    protected function buildDropIndex()
+    {
+        $nodes = array();
+
+        foreach ($this->indexes as $node) {
+            switch ($node[2]) {
+                case 'primary':
+                    $nodes[] = 'DROP PRIMARY KEY';
+                    break;
+                case 'foreign':
+                    $nodes[] = 'DROP CONSTRAINT ' . $node[0];
+                    break;
+                default:
+                    $nodes[] = 'DROP INDEX ' . $node[0];
+            }
+        }
+
+        return $nodes;
+    }
+
+    private function buildIndex($name, array $fields, $type = 'index', $table = null)
     {
         switch ($type) {
             case 'primary':
-                return 'CONSTRAINT ' . $this->quote($this->table . '_pk') . ' PRIMARY KEY (' . $this->buildIndexFields($fields) . ')';
+                return 'CONSTRAINT ' . $this->table . '_pk' . ' PRIMARY KEY (' . implode(', ', $fields) . ')';
                 break;
             case 'foreign':
-                return 'CONSTRAINT ' . $this->quote($this->table . '_' . $name) . ' FOREIGN KEY (' . $this->buildIndexFields(array_keys($fields)) . ') REFERENCES ' . $this->quote($table) . ' (' . $this->buildIndexFields(array_values($fields)) . ') MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT';
+                return 'CONSTRAINT ' . $this->table . '_' . $name . ' FOREIGN KEY (' . implode(', ', array_keys($fields)) . ') REFERENCES ' . $table . ' (' . implode(', ', array_values($fields)) . ') MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT';
                 break;
             case 'unique':
-                return 'CONSTRAINT ' . $this->quote($this->table . '_' . $name) . ' UNIQUE (' . $this->buildIndexFields($fields) . ')';
+                return 'CONSTRAINT ' . $this->table . '_' . $name . ' UNIQUE (' . implode(', ', $fields) . ')';
                 break;
             case 'index':
-                return 'CREATE INDEX ' . $this->quote($this->table . '_' . $name) . ' ON ' . $this->quote($this->table) . ' ( ' . $this->buildIndexFields($fields) . ' )';
+                return 'CREATE INDEX ' . $this->table . '_' . $name . ' ON ' . $this->table . ' ( ' . implode(', ', $fields) . ' )';
                 break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
                 break;
         }
-    }
-
-    protected function buildIndexFields(array $fields)
-    {
-        $self = & $this;
-
-        array_walk(
-            $fields,
-            function (&$field) use ($self) {
-                $field = $this->quote($field);
-            }
-        );
-
-        return implode(', ', $fields);
     }
 
     /**
@@ -465,116 +270,39 @@ class SchemaBuilder implements SchemaBuilderInterface
                 $stmt[] = 'SELECT table_name FROM information_schema.tables WHERE table_name = \'' . $this->table . '\'';
                 break;
             case 'info':
-                // todo - read comments
-                $stmt[] = 'SELECT c.ordinal_position AS "pos", c.table_schema AS "schema", c.table_name AS "table", c.column_name AS "column_name", c.data_type AS "column_type", CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS "column_length", c.numeric_scale AS "column_precision", \'TODO\' AS "column_unsigned", c.is_nullable AS "column_nullable", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS "column_auto_increment", CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS "column_default", \'\' AS "column_comment", k.constraint_name AS "index_name", i.constraint_type AS "index_type", k.ordinal_position AS "index_pos", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS "ref_schema", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS "ref_table", CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS "ref_column" FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'' . $this->table . '\' ORDER BY "pos"';
+                $stmt[] = 'SELECT c.ordinal_position AS pos, c.table_schema AS table_schema, c.table_name AS table_name, c.column_name AS column_name, c.data_type AS column_type, CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length, c.numeric_scale AS column_precision, \'TODO\' AS column_unsigned, c.is_nullable AS column_nullable, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default, \'\' AS column_comment, k.constraint_name AS index_name, i.constraint_type AS index_type, k.ordinal_position AS index_pos, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS ref_schema, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS ref_table, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS ref_column FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'' . $this->table . '\' ORDER BY pos';
                 break;
             case 'create':
                 $stmt[] = 'CREATE TABLE';
-                $stmt[] = $this->quote($this->table);
+                $stmt[] = $this->table;
                 $stmt[] = '(';
-
-                $nodes = array();
-                foreach ($this->columns as $node) {
-                    $nodes[] = $this->buildColumn($node[0], $node[1], $node[2]);
-                }
-
-                $indexes = array();
-                foreach ($this->indexes as $node) {
-                    if ($node[2] === 'index') {
-                        $indexes[] = $node;
-                        continue;
-                    }
-
-                    $nodes[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
-                }
-
-                $stmt[] = implode(', ', $nodes);
+                $stmt[] = implode(', ', array_merge($this->buildColumns(), $this->buildIndexes(false)));
                 $stmt[] = ')';
 
-                foreach ($this->indexes as $node) {
-                    if ($node[2] !== 'index') {
-                        continue;
-                    }
-
-                    if (!empty($stmt)) {
-                        $stmt[] = ';';
-                    }
-
-                    $stmt[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
-                }
-
+                $nodes = $this->buildIndexes(true);
+                $stmt[] = $nodes ? '; '.implode('; ', $nodes) : null;
                 break;
             case 'add':
                 $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->quote($this->table);
-                $nodes = array();
-                foreach ($this->columns as $node) {
-                    $str = 'ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
+                $stmt[] = $this->table;
+                $stmt[] = implode(', ', array_merge($this->buildAddColumns(), $this->buildAddIndex(false)));
 
-                    if ($node[3] !== null) {
-                        $str .= ' AFTER ' . $this->quote($node[3]);
-                    }
-
-                    $nodes[] = $str;
-                }
-
-                foreach ($this->indexes as $node) {
-                    if ($node[2] === 'index') {
-                        continue;
-                    }
-
-                    $nodes[] = 'ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
-                }
-
-                $stmt[] = implode(', ', $nodes);
-
-                foreach ($this->indexes as $node) {
-                    if ($node[2] !== 'index') {
-                        continue;
-                    }
-
-                    if (!empty($stmt)) {
-                        $stmt[] = ';';
-                    }
-
-                    $stmt[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
-                }
-
+                $nodes = $this->buildIndexes(true);
+                $stmt[] = $nodes ? '; '.implode('; ', $nodes) : null;
                 break;
             case 'change':
                 $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->quote($this->table);
-                $nodes = array();
-                foreach ($this->columns as $node) {
-                    $str = 'CHANGE ' . $this->quote($node[3] ? $node[3] : $node[0]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
-                    $nodes[] = $str;
-                }
-                $stmt[] = implode(', ', $nodes);
+                $stmt[] = $this->table;
+                $stmt[] = implode(', ', array_merge($this->buildChangeColumns()));
                 break;
             case 'remove':
                 $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->quote($this->table);
-                $nodes = array();
-                foreach ($this->columns as $node) {
-                    $nodes[] = 'DROP ' . $this->quote($node[0]);
-                }
-                foreach ($this->indexes as $node) {
-                    switch ($node[2]) {
-                        case 'primary':
-                            $nodes[] = 'DROP PRIMARY KEY';
-                            break;
-                        case 'foreign':
-                            $nodes[] = 'DROP CONSTRAINT ' . $this->quote($node[0]);
-                            break;
-                        default:
-                            $nodes[] = 'DROP INDEX ' . $this->quote($node[0]);
-                    }
-                }
-                $stmt[] = implode(', ', $nodes);
+                $stmt[] = $this->table;
+                $stmt[] = implode(', ', array_merge($this->buildDropColumns(), $this->buildDropIndex()));
                 break;
             case 'drop':
                 $stmt[] = 'DROP TABLE IF EXISTS';
-                $stmt[] = $this->quote($this->table);
+                $stmt[] = $this->table;
                 break;
         }
 
@@ -584,50 +312,23 @@ class SchemaBuilder implements SchemaBuilderInterface
     }
 
     /**
-     * Parsers read table structure into model-like array
+     * Returns string with additional options for table creation
      *
-     * @param array $struct
-     *
-     * @return array
+     * @return string
      */
-    public function parse(array $struct)
+    protected function buildAdditionalCreateOptions()
     {
-        $result = array(
-            'table' => $struct[0]['table'],
-            'fields' => array(),
-            'indexes' => array()
-        );
-
-        $fields = array();
-        $indexes = array();
-        foreach ($struct as $node) {
-            if (!isset($fields[$node['column_name']])) {
-                $fields[$node['column_name']] = $this->parseColumn($node);
-            }
-
-            if (empty($node['index_name'])) {
-                continue;
-            }
-
-            if (!isset($indexes[$node['index_name']])) {
-                $indexes[$node['index_name']] = $this->parseIndex($node);
-            } else {
-                if (!in_array($node['column_name'], $indexes[$node['index_name']]['fields'])) {
-                    $indexes[$node['index_name']]['fields'][] = $node['column_name'];
-                }
-
-                if (!empty($node['ref_column']) && !in_array($node['ref_column'], $indexes[$node['index_name']]['foreign'])) {
-                    $indexes[$node['index_name']]['foreign'][] = $node['ref_column'];
-                }
-            }
-        }
-
-        $result['fields'] = array_values($fields);
-        $result['indexes'] = array_values($indexes);
-
-        return $result;
+        return '';
     }
 
+    /**
+     * Build model like column description from passed row
+     *
+     * @param array $node
+     *
+     * @return array
+     * @throws BuilderException
+     */
     protected function parseColumn($node)
     {
         $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['column_type']));
@@ -672,6 +373,14 @@ class SchemaBuilder implements SchemaBuilderInterface
         return $result;
     }
 
+    /**
+     * Build model like index description from passed row
+     *
+     * @param array $node
+     *
+     * @return array
+     * @throws BuilderException
+     */
     protected function parseIndex($node)
     {
         $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['index_type']));
@@ -702,35 +411,5 @@ class SchemaBuilder implements SchemaBuilderInterface
         }
 
         return $result;
-    }
-
-    /**
-     * Resets builder
-     *
-     * @return $this
-     */
-    public function reset()
-    {
-        $this->operation = null;
-        $this->table = null;
-
-        $this->columns = array();
-        $this->indexes = array();
-
-        return $this;
-    }
-
-    /**
-     * Casts query to string (builds it)
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        try {
-            return (string) $this->build();
-        } catch (\Exception $e) {
-            return get_class($e) . ' - ' . $e->getMessage();
-        }
     }
 }

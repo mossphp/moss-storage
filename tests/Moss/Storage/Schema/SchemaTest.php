@@ -45,7 +45,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ->get($table)
             ->table();
 
-        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $tableName . '`'), $schema->queryString());
+        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS ' . $tableName . ''), $schema->queryString());
     }
 
     public function tableProvider()
@@ -70,8 +70,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     public function createProvider()
     {
         return array(
-            array('table', 'CREATE TABLE `test_table` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
-            array('other', 'CREATE TABLE `test_other` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
+            array('table', 'CREATE TABLE test_table ( id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
+            array('other', 'CREATE TABLE test_other ( id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
         );
     }
 
@@ -102,9 +102,9 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                     $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
                 ),
                 array(
-                    'ALTER TABLE `test_table` DROP PRIMARY KEY',
-                    'ALTER TABLE `test_table` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL',
-                    'ALTER TABLE `test_table` ADD PRIMARY KEY (`id`)',
+                    'ALTER TABLE test_table DROP PRIMARY KEY',
+                    'ALTER TABLE test_table CHANGE id id INT(10) UNSIGNED NOT NULL',
+                    'ALTER TABLE test_table ADD PRIMARY KEY (id)',
                 )
             ),
             array(
@@ -113,7 +113,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                     $this->createInputColumn('text', 'char', array('length' => 1024, 'null' => 'YES')),
                 ),
                 array(
-                    'ALTER TABLE `test_table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
+                    'ALTER TABLE test_table CHANGE text text TEXT(1024) DEFAULT NULL',
                 )
             ),
         );
@@ -123,8 +123,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             'pos' => 1,
-            'schema' => 'test',
-            'table' => 'test_table',
+            'table_schema' => 'test',
+            'table_name' => 'test_table',
             'column_name' => $name,
             'column_type' => $type,
             'column_length' => $this->get($attributes, 'length'),

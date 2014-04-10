@@ -62,7 +62,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->num('table');
 
         $expected = array(
-            'SELECT `test_table`.`id` FROM `test_table`',
+            'SELECT test_table.id FROM test_table',
             array()
         );
 
@@ -76,7 +76,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->read('table');
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table`',
+            'SELECT test_table.id, test_table.text FROM test_table',
             array()
         );
 
@@ -90,7 +90,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->readOne('table');
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` LIMIT 1',
+            'SELECT test_table.id, test_table.text FROM test_table LIMIT 1',
             array()
         );
 
@@ -120,7 +120,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->read('table');
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` AS `mapping` FROM `test_table`',
+            'SELECT test_table.id, test_table.text AS mapping FROM test_table',
             array()
         );
 
@@ -150,7 +150,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->fields($fields);
 
         $expected = array(
-            'SELECT ' . $queryPart . ' FROM `test_table`',
+            'SELECT ' . $queryPart . ' FROM test_table',
             array()
         );
 
@@ -160,17 +160,17 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function fieldsProvider()
     {
         return array(
-            array(array('id', 'text'), '`test_table`.`id`, `test_table`.`text`'),
-            array(array('id'), '`test_table`.`id`'),
-            array(array('text'), '`test_table`.`text`'),
+            array(array('id', 'text'), 'test_table.id, test_table.text'),
+            array(array('id'), 'test_table.id'),
+            array(array('text'), 'test_table.text'),
 
-            array(array('table.id', 'table.text'), '`test_table`.`id`, `test_table`.`text`'),
-            array(array('table.id'), '`test_table`.`id`'),
-            array(array('table.text'), '`test_table`.`text`'),
+            array(array('table.id', 'table.text'), 'test_table.id, test_table.text'),
+            array(array('table.id'), 'test_table.id'),
+            array(array('table.text'), 'test_table.text'),
 
-            array(array('other.id', 'other.text'), '`test_other`.`id`, `test_other`.`text`'),
-            array(array('other.id'), '`test_other`.`id`'),
-            array(array('other.text'), '`test_other`.`text`'),
+            array(array('other.id', 'other.text'), 'test_other.id, test_other.text'),
+            array(array('other.id'), 'test_other.id'),
+            array(array('other.text'), 'test_other.text'),
         );
     }
 
@@ -197,7 +197,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->aggregate($method, 'id');
 
         $expected = array(
-            'SELECT ' . $queryPart . ', `test_table`.`id`, `test_table`.`text` FROM `test_table`',
+            'SELECT ' . $queryPart . ', test_table.id, test_table.text FROM test_table',
             array()
         );
 
@@ -216,7 +216,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         call_user_func(array($query, $method), 'id');
 
         $expected = array(
-            'SELECT ' . $queryPart . ', `test_table`.`id`, `test_table`.`text` FROM `test_table`',
+            'SELECT ' . $queryPart . ', test_table.id, test_table.text FROM test_table',
             array()
         );
 
@@ -226,12 +226,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function aggregateProvider()
     {
         return array(
-            array('distinct', 'DISTINCT(`test_table`.`id`) AS `distinct`'),
-            array('count', 'COUNT(`test_table`.`id`) AS `count`'),
-            array('average', 'AVERAGE(`test_table`.`id`) AS `average`'),
-            array('max', 'MAX(`test_table`.`id`) AS `max`'),
-            array('min', 'MIN(`test_table`.`id`) AS `min`'),
-            array('sum', 'SUM(`test_table`.`id`) AS `sum`'),
+            array('distinct', 'DISTINCT(test_table.id) AS distinct'),
+            array('count', 'COUNT(test_table.id) AS count'),
+            array('average', 'AVERAGE(test_table.id) AS average'),
+            array('max', 'MAX(test_table.id) AS max'),
+            array('min', 'MIN(test_table.id) AS min'),
+            array('sum', 'SUM(test_table.id) AS sum'),
         );
     }
 
@@ -270,7 +270,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->where($field, $value);
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` WHERE ' . $queryPart,
+            'SELECT test_table.id, test_table.text FROM test_table WHERE ' . $queryPart,
             $binds
         );
 
@@ -280,11 +280,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function whereFieldValueProvider()
     {
         return array(
-            array('id', 1, '(`test_table`.`id` = :condition_0_id)', array(':condition_0_id' => 1)),
-            array(array('id', 'text'), 1, '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
-            array('id', array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
-            array(array('id', 'text'), array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
-            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id) OR (`test_table`.`text` = :condition_2_text OR `test_table`.`text` = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+            array('id', 1, '(test_table.id = :condition_0_id)', array(':condition_0_id' => 1)),
+            array(array('id', 'text'), 1, '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
+            array('id', array(1, 2), '(test_table.id = :condition_0_id OR test_table.id = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
+            array(array('id', 'text'), array(1, 2), '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
+            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((test_table.id = :condition_0_id OR test_table.id = :condition_1_id) OR (test_table.text = :condition_2_text OR test_table.text = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
         );
     }
 
@@ -324,7 +324,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->having($field, $value);
 
         $expected = array(
-            'SELECT COUNT(`test_table`.`id`) AS `count`, `test_table`.`id`, `test_table`.`text` FROM `test_table` HAVING ' . $queryPart,
+            'SELECT COUNT(test_table.id) AS count, test_table.id, test_table.text FROM test_table HAVING ' . $queryPart,
             $binds
         );
 
@@ -334,12 +334,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function havingFieldValueProvider()
     {
         return array(
-            array('id', 1, '(`test_table`.`id` = :condition_0_id)', array(':condition_0_id' => 1)),
-            array(array('id', 'text'), 1, '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
-            array('id', array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
-            array(array('id', 'text'), array(1, 2), '(`test_table`.`id` = :condition_0_id OR `test_table`.`text` = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
-            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((`test_table`.`id` = :condition_0_id OR `test_table`.`id` = :condition_1_id) OR (`test_table`.`text` = :condition_2_text OR `test_table`.`text` = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
-            array('count', 2, '(`count` = :condition_0_count)', array(':condition_0_count' => 2)),
+            array('id', 1, '(test_table.id = :condition_0_id)', array(':condition_0_id' => 1)),
+            array(array('id', 'text'), 1, '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
+            array('id', array(1, 2), '(test_table.id = :condition_0_id OR test_table.id = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
+            array(array('id', 'text'), array(1, 2), '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
+            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((test_table.id = :condition_0_id OR test_table.id = :condition_1_id) OR (test_table.text = :condition_2_text OR test_table.text = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+            array('count', 2, '(count = :condition_0_count)', array(':condition_0_count' => 2)),
         );
     }
 
@@ -387,20 +387,20 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function joinProvider()
     {
         return array(
-            array('one', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
-            array('many', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
-            array('oneTrough', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` INNER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
-            array('manyTrough', 'inner', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` INNER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` INNER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+            array('one', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_other ON test_table.id = test_other.id'),
+            array('many', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_other ON test_table.id = test_other.id'),
+            array('oneTrough', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_mediator ON test_table.id = test_mediator.in_id INNER JOIN test_other ON test_mediator.out_id = test_other.id'),
+            array('manyTrough', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_mediator ON test_table.id = test_mediator.in_id INNER JOIN test_other ON test_mediator.out_id = test_other.id'),
 
-            array('one', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
-            array('many', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
-            array('oneTrough', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` LEFT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
-            array('manyTrough', 'left', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` LEFT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` LEFT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+            array('one', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id'),
+            array('many', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id'),
+            array('oneTrough', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id LEFT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
+            array('manyTrough', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id LEFT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
 
-            array('one', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
-            array('many', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_other` ON `test_table`.`id` = `test_other`.`id`'),
-            array('oneTrough', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` RIGHT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
-            array('manyTrough', 'right', 'SELECT `test_table`.`id`, `test_table`.`text`, `test_table`.`id`, `test_other`.`id` FROM `test_table` RIGHT OUTER JOIN `test_mediator` ON `test_table`.`id` = `test_mediator`.`in_id` RIGHT OUTER JOIN `test_other` ON `test_mediator`.`out_id` = `test_other`.`id`'),
+            array('one', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_other ON test_table.id = test_other.id'),
+            array('many', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_other ON test_table.id = test_other.id'),
+            array('oneTrough', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id RIGHT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
+            array('manyTrough', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id RIGHT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
         );
     }
 
@@ -415,7 +415,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->where('id', 1, $operator);
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` WHERE ' . $queryPart,
+            'SELECT test_table.id, test_table.text FROM test_table WHERE ' . $queryPart,
             array(':condition_0_id' => 1)
         );
 
@@ -425,14 +425,14 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function conditionComparisonProvider()
     {
         return array(
-            array('=', '(`test_table`.`id` = :condition_0_id)'),
-            array('!=', '(`test_table`.`id` != :condition_0_id)'),
-            array('>', '(`test_table`.`id` > :condition_0_id)'),
-            array('>=', '(`test_table`.`id` >= :condition_0_id)'),
-            array('<', '(`test_table`.`id` < :condition_0_id)'),
-            array('<=', '(`test_table`.`id` <= :condition_0_id)'),
-            array('like', '(`test_table`.`id` LIKE :condition_0_id)'),
-            array('regex', '(LOWER(`test_table`.`id`) REGEXP LOWER(:condition_0_id))'),
+            array('=', '(test_table.id = :condition_0_id)'),
+            array('!=', '(test_table.id != :condition_0_id)'),
+            array('>', '(test_table.id > :condition_0_id)'),
+            array('>=', '(test_table.id >= :condition_0_id)'),
+            array('<', '(test_table.id < :condition_0_id)'),
+            array('<=', '(test_table.id <= :condition_0_id)'),
+            array('like', '(test_table.id LIKE :condition_0_id)'),
+            array('regex', '(LOWER(test_table.id) REGEXP LOWER(:condition_0_id))'),
         );
     }
 
@@ -448,7 +448,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->where('id', 2, '=', $operator);
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` WHERE ' . $queryPart,
+            'SELECT test_table.id, test_table.text FROM test_table WHERE ' . $queryPart,
             array(':condition_0_id' => 1, ':condition_1_id' => 2)
         );
 
@@ -458,8 +458,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function conditionLogicalProvider()
     {
         return array(
-            array('and', '(`test_table`.`id` = :condition_0_id) AND (`test_table`.`id` = :condition_1_id)'),
-            array('or', '(`test_table`.`id` = :condition_0_id) OR (`test_table`.`id` = :condition_1_id)'),
+            array('and', '(test_table.id = :condition_0_id) AND (test_table.id = :condition_1_id)'),
+            array('or', '(test_table.id = :condition_0_id) OR (test_table.id = :condition_1_id)'),
         );
     }
 
@@ -471,7 +471,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->group('id');
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` GROUP BY `test_table`.`id`',
+            'SELECT test_table.id, test_table.text FROM test_table GROUP BY test_table.id',
             array()
         );
 
@@ -501,7 +501,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->order('id', $order);
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table` ORDER BY ' . $queryPart,
+            'SELECT test_table.id, test_table.text FROM test_table ORDER BY ' . $queryPart,
             $binds
         );
 
@@ -511,9 +511,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function orderProvider()
     {
         return array(
-            array('asc', '`test_table`.`id` ASC'),
-            array('desc', '`test_table`.`id` DESC'),
-            array(array(1, 2), '`test_table`.`id` = :order_0_id DESC, `test_table`.`id` = :order_1_id DESC', array(':order_0_id' => 1, ':order_1_id' => 2))
+            array('asc', 'test_table.id ASC'),
+            array('desc', 'test_table.id DESC'),
+            array(array(1, 2), 'test_table.id = :order_0_id DESC, test_table.id = :order_1_id DESC', array(':order_0_id' => 1, ':order_1_id' => 2))
         );
     }
 
@@ -528,7 +528,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->limit($limit, $offset);
 
         $expected = array(
-            'SELECT `test_table`.`id`, `test_table`.`text` FROM `test_table`' . $queryPart,
+            'SELECT test_table.id, test_table.text FROM test_table' . $queryPart,
             array()
         );
 
@@ -557,7 +557,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->write('table', $entity);
 
         $expected = array(
-            'INSERT INTO `test_table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
+            'INSERT INTO test_table (id, text) VALUES (:value_0_id, :value_1_text)',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar')
         );
 
@@ -575,7 +575,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->write('table', $entity);
 
         $expected = array(
-            'UPDATE `test_table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
+            'UPDATE test_table SET id = :value_0_id, text = :value_1_text WHERE id = :condition_2_id',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar', ':condition_2_id' => 1)
         );
 
@@ -593,7 +593,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->insert('table', $entity);
 
         $expected = array(
-            'INSERT INTO `test_table` (`id`, `text`) VALUES (:value_0_id, :value_1_text)',
+            'INSERT INTO test_table (id, text) VALUES (:value_0_id, :value_1_text)',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar')
         );
 
@@ -611,7 +611,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->update('table', $entity);
 
         $expected = array(
-            'UPDATE `test_table` SET `id` = :value_0_id, `text` = :value_1_text WHERE `id` = :condition_2_id',
+            'UPDATE test_table SET id = :value_0_id, text = :value_1_text WHERE id = :condition_2_id',
             array(':value_0_id' => 1, ':value_1_text' => 'foo bar', ':condition_2_id' => 1)
         );
 
@@ -629,7 +629,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->delete('table', $entity);
 
         $expected = array(
-            'DELETE FROM `test_table` WHERE `id` = :condition_0_id',
+            'DELETE FROM test_table WHERE id = :condition_0_id',
             array(':condition_0_id' => 1)
         );
 
@@ -643,7 +643,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ->clear('table');
 
         $expected = array(
-            'TRUNCATE TABLE `test_table`',
+            'TRUNCATE TABLE test_table',
             array()
         );
 

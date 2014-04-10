@@ -17,7 +17,7 @@ use Moss\Storage\StorageException;
  * Exception thrown by queries
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 class QueryException extends StorageException
 {

@@ -17,7 +17,7 @@ use Moss\Storage\Model\Definition\DefinitionException;
  * One to one relation
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class One extends Relation
 {

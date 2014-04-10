@@ -18,7 +18,7 @@ use Moss\Storage\Model\Definition\RelationInterface;
  * Relation definition describing relationship between entities in model
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 abstract class Relation implements RelationInterface
 {

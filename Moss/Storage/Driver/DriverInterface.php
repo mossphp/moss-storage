@@ -15,7 +15,7 @@ namespace Moss\Storage\Driver;
  * Driver interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Driver
+ * @package Moss\Storage
  */
 interface DriverInterface
 {

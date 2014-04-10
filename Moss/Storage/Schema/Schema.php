@@ -21,7 +21,7 @@ use Moss\Storage\Model\ModelInterface;
  * Schema used to create and execute table related operations (create, alter, drop)
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 class Schema implements SchemaInterface
 {
