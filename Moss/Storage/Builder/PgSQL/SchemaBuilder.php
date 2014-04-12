@@ -410,6 +410,12 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 throw new BuilderException(sprintf('Invalid or unsupported index type "%s" in table "%s"', $type, $this->table));
         }
 
+        if($result['type'] == 'primary') {
+            $result['name'] = 'primary';
+        } else {
+            $result['name'] = substr($result['name'], strlen($node['table_name'])+1);
+        }
+
         return $result;
     }
 }

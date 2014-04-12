@@ -434,6 +434,13 @@ abstract class AbstractSchemaBuilder
             }
         }
 
+        foreach($indexes as &$node) {
+            if($node['type'] === 'foreign') {
+                $node['fields'] = array_combine($node['fields'], $node['foreign']);
+            }
+            unset($node['foreign'], $node);
+        }
+
         $result['fields'] = array_values($fields);
         $result['indexes'] = array_values($indexes);
 

@@ -510,7 +510,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
             'column_comment' => $this->get($attributes, 'comment', ''),
-            'index_name' => $this->get($index, 'name', null),
+            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null).$index['name'] : null,
             'index_type' => $this->get($index, 'type', null),
             'index_pos' => $this->get($index, 'pos', null),
             'ref_schema' => $this->get($ref, 'schema', null),
@@ -541,9 +541,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             'name' => $name,
             'type' => $type,
-            'fields' => $fields,
-            'table' => $this->get($ref, 'table'),
-            'foreign' => $this->get($ref, 'fields', array())
+            'fields' => $ref ? array_combine($fields, $this->get($ref, 'fields', array())) : $fields,
+            'table' => $this->get($ref, 'table')
         );
     }
 
