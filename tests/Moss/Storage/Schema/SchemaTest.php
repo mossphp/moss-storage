@@ -12,10 +12,6 @@ use Moss\Storage\Model\ModelBag;
 
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
-    /** @var Schema */
-    protected $schema;
-    protected $queryString;
-
     /**
      * @dataProvider tableProvider
      */
@@ -98,13 +94,11 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 array(
-                    $this->createInputColumn('id', 'int', array('length' => 11, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('id', 'int', array('length' => 5, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
                     $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
                 ),
                 array(
-                    'ALTER TABLE test_table DROP PRIMARY KEY',
-                    'ALTER TABLE test_table CHANGE id id INT(10) UNSIGNED NOT NULL',
-                    'ALTER TABLE test_table ADD PRIMARY KEY (id)',
+                    'ALTER TABLE test_table CHANGE id id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT'
                 )
             ),
             array(
@@ -113,7 +107,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                     $this->createInputColumn('text', 'char', array('length' => 1024, 'null' => 'YES')),
                 ),
                 array(
-                    'ALTER TABLE test_table CHANGE text text TEXT(1024) DEFAULT NULL',
+                    'ALTER TABLE test_table CHANGE text text CHAR(128) DEFAULT NULL',
                 )
             ),
         );
@@ -130,11 +124,11 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'column_length' => $this->get($attributes, 'length'),
             'column_precision' => $this->get($attributes, 'precision', 0),
             'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
-            'column_nullable' => $this->get($attributes, 'nullable', 'NO'),
+            'column_nullable' => $this->get($attributes, 'null', 'NO'),
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
             'column_comment' => $this->get($attributes, 'comment', ''),
-            'index_name' => $this->get($index, 'name', null),
+            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null).$index['name'] : null,
             'index_type' => $this->get($index, 'type', null),
             'index_pos' => $this->get($index, 'pos', null),
             'ref_schema' => $this->get($ref, 'schema', null),
@@ -169,7 +163,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
         $driver->expects($this->any())
             ->method('affectedRows')
-            ->will($this->returnValue($this->queryString || $result ? 1 : 0));
+            ->will($this->returnValue($result ? 1 : 0));
 
         return $driver;
     }
