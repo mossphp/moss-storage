@@ -136,7 +136,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'decimal',
-                'NUMERIC(10,0) NOT NULL',
+                'NUMERIC(11,4) NOT NULL',
             ),
             array(
                 'string',
@@ -215,7 +215,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             array(
                 'decimal',
                 array('precision' => 2),
-                'NUMERIC(10,2) NOT NULL'
+                'NUMERIC(11,2) NOT NULL'
             ),
             array(
                 'decimal',
@@ -335,19 +335,19 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'unique',
                 array('foo'),
                 null,
-                'ALTER TABLE table DROP INDEX foo',
+                'ALTER TABLE table DROP INDEX table_foo',
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'ALTER TABLE table DROP INDEX foo',
+                'ALTER TABLE table DROP INDEX table_foo',
             ),
             array(
                 'foreign',
                 array('bar'),
                 'yada',
-                'ALTER TABLE table DROP CONSTRAINT foo',
+                'ALTER TABLE table DROP CONSTRAINT table_foo',
             ),
         );
     }
@@ -457,7 +457,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 array($this->createInputColumn('column', 'bytea', array('null' => 'YES'))),
-                array($this->createOutputColumn('column', 'serial', array('null' => false))),
+                array($this->createOutputColumn('column', 'serial', array('null' => true))),
             ),
             array(
                 array($this->createInputColumn('column', 'integer', array(), array('name' => 'primary', 'type' => 'primary', 'pos' => 1))),
@@ -506,7 +506,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'column_length' => $this->get($attributes, 'length'),
             'column_precision' => $this->get($attributes, 'precision', 0),
             'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
-            'column_nullable' => $this->get($attributes, 'nullable', 'NO'),
+            'column_nullable' => $this->get($attributes, 'null', 'NO'),
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
             'column_comment' => $this->get($attributes, 'comment', ''),
@@ -527,7 +527,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'attributes' => array(
                 'length' => $this->get($attributes, 'length'),
                 'precision' => $this->get($attributes, 'precision', 0),
-                'null' => $this->get($attributes, 'nullable', false),
+                'null' => $this->get($attributes, 'null', false),
                 'unsigned' => $this->get($attributes, 'unsigned', false),
                 'auto_increment' => $this->get($attributes, 'auto_increment', false),
                 'default' => $this->get($attributes, 'default', null),
