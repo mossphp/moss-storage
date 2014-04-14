@@ -26,6 +26,6 @@ class Boolean extends Field
         $this->mapping = $mapping;
 
         $this->attributes = $this->prepareAttributes($attributes);
-        $this->verifyAttribute(array('default'));
+        $this->verifyAttribute(array('null', 'default'));
     }
 }

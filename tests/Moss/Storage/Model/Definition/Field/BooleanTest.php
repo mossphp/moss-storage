@@ -101,7 +101,6 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
         return array(
             array('length'),
             array('precision'),
-            array('null'),
             array('unsigned'),
             array('auto_increment'),
             array('comment')
