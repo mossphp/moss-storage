@@ -31,12 +31,15 @@ abstract class Field implements FieldInterface
     protected function prepareAttributes(array $attributes)
     {
         foreach ($attributes as $key => $value) {
-            if (!is_numeric($key)) {
+            if (is_numeric($key)) {
+                unset($attributes[$key]);
+                $attributes[$value] = true;
                 continue;
             }
 
-            unset($attributes[$key]);
-            $attributes[$value] = true;
+            if($key == 'default') {
+                $attributes['null'] = true;
+            }
         }
 
         return $attributes;
