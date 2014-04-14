@@ -74,7 +74,35 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'info',
-                'SELECT c.ORDINAL_POSITION AS pos, c.TABLE_SCHEMA AS table_schema, c.TABLE_NAME AS table_name, c.COLUMN_NAME AS column_name, c.DATA_TYPE AS column_type, CASE WHEN LOCATE(\'(\', c.NUMERIC_PRECISION) > 0 IS NOT NULL THEN c.NUMERIC_PRECISION ELSE c.CHARACTER_MAXIMUM_LENGTH END AS column_length, c.NUMERIC_SCALE AS column_precision, CASE WHEN INSTR(LOWER(c.COLUMN_TYPE), \'unsigned\') > 0 THEN \'YES\' ELSE \'NO\' END AS column_unsigned, c.IS_NULLABLE AS column_nullable, CASE WHEN INSTR(LOWER(c.EXTRA), \'auto_increment\') > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment, c.COLUMN_DEFAULT AS column_default, c.COLUMN_COMMENT AS column_comment, k.CONSTRAINT_NAME AS index_name, CASE WHEN (i.CONSTRAINT_TYPE IS NULL AND k.CONSTRAINT_NAME IS NOT NULL) THEN \'INDEX\' ELSE i.CONSTRAINT_TYPE END AS index_type, k.ORDINAL_POSITION AS index_pos, k.REFERENCED_TABLE_SCHEMA AS ref_schema, k.REFERENCED_TABLE_NAME AS ref_table, k.REFERENCED_COLUMN_NAME AS ref_column FROM information_schema.COLUMNS AS c LEFT JOIN information_schema.KEY_COLUMN_USAGE AS k ON c.TABLE_SCHEMA = k.TABLE_SCHEMA AND c.TABLE_NAME = k.TABLE_NAME AND c.COLUMN_NAME = k.COLUMN_NAME LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME WHERE c.TABLE_NAME = \'table\' ORDER BY pos'
+                'SELECT
+	c.ORDINAL_POSITION AS pos,
+	c.TABLE_SCHEMA AS table_schema,
+	c.TABLE_NAME AS table_name,
+	c.COLUMN_NAME AS column_name,
+	c.DATA_TYPE AS column_type,
+	@opening := LOCATE(\'(\', c.COLUMN_TYPE),
+	@comma := LOCATE(\',\', c.COLUMN_TYPE),
+	@closing := LOCATE(\')\', c.COLUMN_TYPE),
+	CASE WHEN @opening THEN SUBSTRING(c.COLUMN_TYPE, @opening + 1, CASE WHEN @comma THEN @comma ELSE @closing END - @opening - 1) ELSE NULL END AS column_length,
+	c.NUMERIC_SCALE AS column_precision,
+	CASE WHEN INSTR(LOWER(c.COLUMN_TYPE), \'unsigned\') > 0 THEN \'YES\' ELSE \'NO\' END AS column_unsigned,
+	c.IS_NULLABLE AS column_nullable,
+	CASE WHEN INSTR(LOWER(c.EXTRA), \'auto_increment\') > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment,
+	c.COLUMN_DEFAULT AS column_default,
+	c.COLUMN_COMMENT AS column_comment,
+	s.INDEX_NAME AS `index_name`,
+	CASE WHEN (s.INDEX_NAME IS NOT NULL AND i.CONSTRAINT_TYPE IS NULL) THEN \'INDEX\' ELSE i.CONSTRAINT_TYPE END AS index_type,
+	k.ORDINAL_POSITION AS index_pos,
+	k.REFERENCED_TABLE_SCHEMA AS ref_schema,
+	k.REFERENCED_TABLE_NAME AS ref_table,
+	k.REFERENCED_COLUMN_NAME AS ref_column
+FROM
+	information_schema.COLUMNS AS c
+	LEFT JOIN information_schema.KEY_COLUMN_USAGE AS k ON c.TABLE_SCHEMA = k.TABLE_SCHEMA AND c.TABLE_NAME = k.TABLE_NAME AND c.COLUMN_NAME = k.COLUMN_NAME
+	LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
+	LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME
+WHERE c.TABLE_NAME = \'table\'
+ORDER BY pos'
             ),
             array(
                 'drop',
@@ -132,11 +160,11 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'integer',
-                'INT(10) NOT NULL',
+                'INT(11) NOT NULL',
             ),
             array(
                 'decimal',
-                'DECIMAL(10,0) NOT NULL',
+                'DECIMAL(11,4) NOT NULL',
             ),
             array(
                 'string',
@@ -170,22 +198,22 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             array(
                 'integer',
                 array('unsigned'),
-                'INT(10) UNSIGNED NOT NULL'
+                'INT(11) UNSIGNED NOT NULL'
             ),
             array(
                 'integer',
                 array('default' => 1),
-                'INT(10) DEFAULT 1'
+                'INT(11) DEFAULT 1'
             ),
             array(
                 'integer',
                 array('auto_increment'),
-                'INT(10) NOT NULL AUTO_INCREMENT'
+                'INT(11) NOT NULL AUTO_INCREMENT'
             ),
             array(
                 'integer',
                 array('null'),
-                'INT(10) DEFAULT NULL'
+                'INT(11) DEFAULT NULL'
             ),
             array(
                 'integer',
@@ -215,7 +243,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             array(
                 'decimal',
                 array('precision' => 2),
-                'DECIMAL(10,2) NOT NULL'
+                'DECIMAL(11,2) NOT NULL'
             ),
             array(
                 'decimal',
@@ -225,7 +253,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             array(
                 'integer',
                 array('comment' => 'some comment'),
-                'INT(10) COMMENT \'some comment\' NOT NULL'
+                'INT(11) COMMENT \'some comment\' NOT NULL'
             ),
         );
     }
@@ -238,7 +266,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', 'integer')
             ->index('foo', $fields, $type, $table);
-        $this->assertEquals('CREATE TABLE table ( foo INT(10) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
+        $this->assertEquals('CREATE TABLE table ( foo INT(11) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
     }
 
     /**
@@ -305,19 +333,19 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'unique',
                 array('foo'),
                 null,
-                'KEY foo',
+                'KEY table_foo',
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'KEY foo',
+                'KEY table_foo',
             ),
             array(
                 'foreign',
                 array('bar'),
                 'yada',
-                'FOREIGN KEY foo',
+                'FOREIGN KEY table_foo',
             ),
         );
     }
@@ -476,7 +504,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'column_length' => $this->get($attributes, 'length'),
             'column_precision' => $this->get($attributes, 'precision', 0),
             'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
-            'column_nullable' => $this->get($attributes, 'nullable', 'NO'),
+            'column_nullable' => $this->get($attributes, 'null', 'NO'),
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
             'column_comment' => $this->get($attributes, 'comment', ''),
@@ -497,7 +525,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'attributes' => array(
                 'length' => $this->get($attributes, 'length'),
                 'precision' => $this->get($attributes, 'precision', 0),
-                'null' => $this->get($attributes, 'nullable', false),
+                'null' => $this->get($attributes, 'null', false),
                 'unsigned' => $this->get($attributes, 'unsigned', false),
                 'auto_increment' => $this->get($attributes, 'auto_increment', false),
                 'default' => $this->get($attributes, 'default', null),
