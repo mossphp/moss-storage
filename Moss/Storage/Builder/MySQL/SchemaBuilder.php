@@ -293,7 +293,7 @@ SELECT
 	CASE WHEN INSTR(LOWER(c.EXTRA), 'auto_increment') > 0 THEN 'YES' ELSE 'NO' END AS column_auto_increment,
 	c.COLUMN_DEFAULT AS column_default,
 	c.COLUMN_COMMENT AS column_comment,
-	s.INDEX_NAME AS `index_name`,
+	s.INDEX_NAME AS index_name,
 	CASE WHEN (s.INDEX_NAME IS NOT NULL AND i.CONSTRAINT_TYPE IS NULL) THEN 'INDEX' ELSE i.CONSTRAINT_TYPE END AS index_type,
 	k.ORDINAL_POSITION AS index_pos,
 	k.REFERENCED_TABLE_SCHEMA AS ref_schema,
@@ -305,7 +305,7 @@ FROM
 	LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
 	LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME
 WHERE c.TABLE_NAME = '{$this->table}'
-ORDER BY `pos`
+ORDER BY pos
 SQL;
                 break;
             case 'create':
