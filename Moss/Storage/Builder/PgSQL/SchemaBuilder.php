@@ -118,8 +118,8 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 return isset($attributes['auto_increment']) ? 'SERIAL' : 'INTEGER';
                 break;
             case 'decimal':
-                $len = isset($attributes['length']) ? $attributes['length'] : 10;
-                $prc = isset($attributes['precision']) ? $attributes['precision'] : 0;
+                $len = isset($attributes['length']) ? $attributes['length'] : 11;
+                $prc = isset($attributes['precision']) ? $attributes['precision'] : 4;
 
                 return sprintf('NUMERIC(%u,%u)', $len, $prc);
                 break;
@@ -220,10 +220,10 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                     $nodes[] = 'DROP PRIMARY KEY';
                     break;
                 case 'foreign':
-                    $nodes[] = 'DROP CONSTRAINT ' . $node[0];
+                    $nodes[] = 'DROP CONSTRAINT ' . $this->table . '_' . $node[0];
                     break;
                 default:
-                    $nodes[] = 'DROP INDEX ' . $node[0];
+                    $nodes[] = 'DROP INDEX ' . $this->table . '_' . $node[0];
             }
         }
 
