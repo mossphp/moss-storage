@@ -62,32 +62,44 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
-    public function testAttribute($attribute, $key, $value)
+    public function testAttribute($attribute, $key, $value = true)
     {
         $field = new Integer('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value, $expected)
-    {
-        $field = new Integer('foo', $attribute, 'bar');
-        $this->assertEquals($expected, $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
-            array(array('length' => 10), 'length', 10, array('length' => 10)),
-            array(array('null'), 'null', true, array('length' => 11, 'null' => true)),
-            array(array('unsigned'), 'unsigned', true, array('length' => 11, 'unsigned' => true)),
-            array(array('auto_increment'), 'auto_increment', true, array('length' => 11, 'auto_increment' => true)),
-            array(array('default' => 123), 'default', 123, array('length' => 11, 'default' => 123)),
-            array(array('comment' => 'Foo'), 'comment', 'Foo', array('length' => 11, 'comment' => 'Foo'))
+            array(array('length' => 10), 'length', 10),
+            array(array('null'), 'null'),
+            array(array('unsigned'), 'unsigned'),
+            array(array('auto_increment'), 'auto_increment', true),
+            array(array('default' => 123), 'default', 123),
+            array(array('comment' => 'Foo'), 'comment', 'Foo')
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new Integer('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('length' => 10), array('length' => 10)),
+            array(array('null'), array('length' => 11, 'null' => true)),
+            array(array('unsigned'), array('length' => 11, 'unsigned' => true)),
+            array(array('auto_increment'), array('length' => 11, 'auto_increment' => true)),
+            array(array('default' => 123), array('length' => 11, 'null' => true, 'default' => 123)),
+            array(array('comment' => 'Foo'), array('length' => 11, 'comment' => 'Foo'))
         );
     }
 

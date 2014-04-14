@@ -62,7 +62,7 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
     public function testAttribute($attribute, $key, $value = true)
     {
@@ -70,20 +70,28 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value = true)
-    {
-        $field = new DateTime('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
             array(array('null'), 'null'),
-            array(array('default' => '2010-10-10 10:10:10'), 'default', '2010-10-10 10:10:10'),
+            array(array('null' => true, 'default' => '2010-10-10 10:10:10'), 'default', '2010-10-10 10:10:10'),
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new DateTime('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('null'), array('null' => true)),
+            array(array('null' => true, 'default' => '2010-10-10 10:10:10'), array('null' => true, 'default' => '2010-10-10 10:10:10')),
         );
     }
 

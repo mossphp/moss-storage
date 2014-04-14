@@ -62,35 +62,43 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
-    public function testAttribute($attribute, $key, $value)
+    public function testAttribute($attribute, $key, $value = true)
     {
         $field = new Serial('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value, $expected)
-    {
-        $field = new Serial('foo', $attribute, 'bar');
-        $this->assertEquals($expected, $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
-            array(array('null'), 'null', true, array('null' => true)),
-            array(array('length' => 4), 'length', 4, array('null' => true, 'length' => 4)),
+            array(array('null'), 'null'),
+            array(array('length' => 4), 'length', 4),
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new Serial('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('null'), array('null' => true)),
+            array(array('length' => 4), array('null' => true, 'length' => 4)),
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {

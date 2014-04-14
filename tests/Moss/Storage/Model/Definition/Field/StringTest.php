@@ -62,30 +62,40 @@ class StringTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
-    public function testAttribute($attribute, $key, $value)
+    public function testAttribute($attribute, $key, $value = true)
     {
         $field = new String('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value, $expected)
-    {
-        $field = new String('foo', $attribute, 'bar');
-        $this->assertEquals($expected, $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
-            array(array('length' => 4), 'length', 4, array('length' => 4)),
-            array(array('null'), 'null', true, array('length' => null, 'null' => true)),
-            array(array('comment' => 'foo'), 'comment', 'foo', array('length' => null, 'comment' => 'foo')),
-            array(array('default' => 1), 'default', 1, array('length' => null, 'default' => 1)),
+            array(array('length' => 4), 'length', 4),
+            array(array('null'), 'null'),
+            array(array('comment' => 'foo'), 'comment', 'foo'),
+            array(array('default' => 1), 'default', 1),
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new String('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('length' => 4), array('length' => 4)),
+            array(array('null'), array('length' => null, 'null' => true)),
+            array(array('comment' => 'foo'), array('length' => null, 'comment' => 'foo')),
+            array(array('default' => 1), array('length' => null, 'null' => true, 'default' => 1)),
         );
     }
 
