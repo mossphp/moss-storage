@@ -58,7 +58,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         $nodes = array();
 
         foreach ($this->columns as $node) {
-            $str = 'ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
+            $str = 'ALTER TABLE ' . $this->table . ' ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
 
             if ($node[3] !== null) {
                 $str .= ' AFTER ' . $node[3];
@@ -80,7 +80,8 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         $nodes = array();
 
         foreach ($this->columns as $node) {
-            $nodes[] = 'CHANGE ' . ($node[3] ? $node[3] : $node[0]) . ' ' . $this->buildColumn($node[0], $node[1], $node[2]);
+            $nodes[] = 'ALTER TABLE ' . $this->table . ' ALTER ' . ($node[3] ? $node[3] : $node[0]) . ' TYPE ' . $this->buildColumnType($node[0], $node[1], $node[2], true);
+            $nodes[] = 'ALTER TABLE ' . $this->table . ' ALTER ' . ($node[3] ? $node[3] : $node[0]) . ' SET ' . $this->buildColumnAttributes($node[1], $node[2]);
         }
 
         return $nodes;
@@ -96,7 +97,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         $nodes = array();
 
         foreach ($this->columns as $node) {
-            $nodes[] = 'DROP ' . $node[0];
+            $nodes[] = 'ALTER TABLE ' . $this->table . ' DROP COLUMN ' . $node[0];
         }
 
         return $nodes;
@@ -108,14 +109,14 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         return $name . ' ' . $this->buildColumnType($name, $type, $attributes) . ' ' . $this->buildColumnAttributes($type, $attributes);
     }
 
-    private function buildColumnType($name, $type, array $attributes)
+    private function buildColumnType($name, $type, array $attributes, $alter = false)
     {
         switch ($type) {
             case 'boolean':
                 return 'BOOLEAN';
                 break;
             case 'integer':
-                return isset($attributes['auto_increment']) ? 'SERIAL' : 'INTEGER';
+                return isset($attributes['auto_increment']) && !$alter ? 'SERIAL' : 'INTEGER';
                 break;
             case 'decimal':
                 $len = isset($attributes['length']) ? $attributes['length'] : 11;
@@ -143,10 +144,6 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
     private function buildColumnAttributes($type, array $attributes)
     {
         $node = array();
-
-        if (isset($attributes['comment'])) {
-            $node[] = 'COMMENT \'' . $attributes['comment'] . '\'';
-        }
 
         if (isset($attributes['default'])) {
             if (!in_array($type, array('boolean', 'integer', 'decimal'))) {
@@ -196,10 +193,11 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
 
         foreach ($this->indexes as $node) {
             if ($node[2] === 'index') {
+                $nodes[] = $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
                 continue;
             }
 
-            $nodes[] = 'ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
+            $nodes[] = 'ALTER TABLE ' . $this->table . ' ADD ' . $this->buildIndex($node[0], $node[1], $node[2], $node[3]);
         }
 
         return $nodes;
@@ -217,10 +215,11 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         foreach ($this->indexes as $node) {
             switch ($node[2]) {
                 case 'primary':
-                    $nodes[] = 'DROP PRIMARY KEY';
+                    $nodes[] = 'ALTER TABLE ' . $this->table . ' DROP PRIMARY KEY';
                     break;
                 case 'foreign':
-                    $nodes[] = 'DROP CONSTRAINT ' . $this->table . '_' . $node[0];
+                case 'unique':
+                    $nodes[] = 'ALTER TABLE ' . $this->table . ' DROP CONSTRAINT ' . $this->table . '_' . $node[0];
                     break;
                 default:
                     $nodes[] = 'DROP INDEX ' . $this->table . '_' . $node[0];
@@ -267,10 +266,45 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
 
         switch ($this->operation) {
             case 'check':
-                $stmt[] = 'SELECT table_name FROM information_schema.tables WHERE table_name = \'' . $this->table . '\'';
+                $stmt[] = <<<"SQL"
+SELECT table_name FROM information_schema.tables WHERE table_name = '{$this->table}'
+SQL;
+
                 break;
             case 'info':
-                $stmt[] = 'SELECT c.ordinal_position AS pos, c.table_schema AS table_schema, c.table_name AS table_name, c.column_name AS column_name, c.data_type AS column_type, CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length, c.numeric_scale AS column_precision, \'TODO\' AS column_unsigned, c.is_nullable AS column_nullable, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default, \'\' AS column_comment, k.constraint_name AS index_name, i.constraint_type AS index_type, k.ordinal_position AS index_pos, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS ref_schema, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS ref_table, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS ref_column FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'' . $this->table . '\' ORDER BY pos';
+                $stmt[] = <<<"SQL"
+SELECT
+	c.ordinal_position AS pos,
+	c.table_schema AS table_schema,
+	c.table_name AS table_name,
+	c.column_name AS column_name,
+	c.data_type AS column_type,
+	CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length,
+	c.numeric_scale AS column_precision,
+	c.is_nullable AS column_nullable,
+	CASE WHEN POSITION('nextval' IN c.column_default) > 0 THEN 'YES' ELSE 'NO' END AS column_auto_increment,
+	CASE WHEN POSITION('nextval' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default,
+	CASE WHEN u.constraint_name IS NULL AND ic.relname IS NOT NULL THEN ic.relname ELSE u.constraint_name END AS index_name,
+	CASE WHEN t.constraint_type IS NULL AND ic.relname IS NOT NULL THEN 'INDEX' ELSE t.constraint_type END AS index_type,
+	u.ordinal_position AS index_pos,
+	y.table_schema AS ref_schema,
+	y.table_name AS ref_table,
+	y.column_name AS ref_column
+FROM information_schema.columns AS c
+	LEFT JOIN information_schema.key_column_usage AS u ON u.table_schema = c.table_schema AND u.table_name = c.table_name AND u.column_name = c.column_name
+	LEFT JOIN information_schema.table_constraints AS t ON u.constraint_schema = t.constraint_schema AND u.constraint_name = t.constraint_name AND constraint_type != 'CHECK'
+
+	LEFT JOIN pg_catalog.pg_class AS it ON it.relname = c.table_name
+	LEFT JOIN pg_catalog.pg_attribute AS ia ON ia.attrelid = it.oid AND ia.attname = c.column_name
+	LEFT JOIN pg_catalog.pg_index AS ii ON ii.indrelid = it.oid AND ia.attnum = ANY (ii.indkey::INT[])
+	LEFT JOIN pg_catalog.pg_class AS ic ON ic.oid = ii.indexrelid
+
+	LEFT JOIN information_schema.referential_constraints AS f ON f.constraint_schema = t.constraint_schema AND f.constraint_name = t.constraint_name
+	LEFT JOIN information_schema.key_column_usage AS x ON x.constraint_name = f.constraint_name
+	LEFT JOIN information_schema.key_column_usage AS y ON y.ordinal_position = x.position_in_unique_constraint AND y.constraint_name = f.unique_constraint_name
+WHERE c.table_name = '{$this->table}'
+ORDER BY pos
+SQL;
                 break;
             case 'create':
                 $stmt[] = 'CREATE TABLE';
@@ -280,25 +314,28 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 $stmt[] = ')';
 
                 $nodes = $this->buildIndexes(true);
-                $stmt[] = $nodes ? '; '.implode('; ', $nodes) : null;
+                $stmt[] = $nodes ? '; ' . implode('; ', $nodes) : null;
                 break;
             case 'add':
-                $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->table;
-                $stmt[] = implode(', ', array_merge($this->buildAddColumns(), $this->buildAddIndex(false)));
-
-                $nodes = $this->buildIndexes(true);
-                $stmt[] = $nodes ? '; '.implode('; ', $nodes) : null;
+                $stmt[] = implode(
+                    '; ',
+                    array_merge(
+                        $this->buildAddColumns(),
+                        $this->buildAddIndex()
+                    )
+                );
                 break;
             case 'change':
-                $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->table;
-                $stmt[] = implode(', ', array_merge($this->buildChangeColumns()));
+                $stmt[] = implode('; ', $this->buildChangeColumns());
                 break;
             case 'remove':
-                $stmt[] = 'ALTER TABLE';
-                $stmt[] = $this->table;
-                $stmt[] = implode(', ', array_merge($this->buildDropColumns(), $this->buildDropIndex()));
+                $stmt[] = implode(
+                    '; ',
+                    array_merge(
+                        $this->buildDropColumns(),
+                        $this->buildDropIndex()
+                    )
+                );
                 break;
             case 'drop':
                 $stmt[] = 'DROP TABLE IF EXISTS';
@@ -340,10 +377,8 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 'length' => (int) $node['column_length'],
                 'precision' => (int) $node['column_precision'],
                 'null' => $node['column_nullable'] == 'YES',
-                'unsigned' => $node['column_unsigned'] === 'YES',
                 'auto_increment' => $node['column_auto_increment'] === 'YES',
-                'default' => empty($node['column_default']) ? null : $node['column_default'],
-                'comment' => empty($node['column_comment']) ? null : $node['column_comment']
+                'default' => empty($node['column_default']) ? null : $node['column_default']
             )
         );
 
@@ -410,10 +445,10 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 throw new BuilderException(sprintf('Invalid or unsupported index type "%s" in table "%s"', $type, $this->table));
         }
 
-        if($result['type'] == 'primary') {
+        if ($result['type'] == 'primary') {
             $result['name'] = 'primary';
         } else {
-            $result['name'] = substr($result['name'], strlen($node['table_name'])+1);
+            $result['name'] = substr($result['name'], strlen($node['table_name']) + 1);
         }
 
         return $result;

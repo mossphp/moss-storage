@@ -105,7 +105,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                         '\stdClass',
                         'test_table',
                         array(
-                            new Integer('id', array('unsigned', 'auto_increment')),
+                            new Integer('id', array('auto_increment')),
                             new String('text', array('length' => '128', 'null'), 'mapping'),
                         ),
                         array(
@@ -690,7 +690,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             '\stdClass',
             'test_table',
             array(
-                new Integer('id', array('unsigned', 'auto_increment')),
+                new Integer('id', array('auto_increment')),
                 new String('text', array('length' => '128', 'null')),
             ),
             array(
@@ -705,7 +705,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             '\altClass',
             'test_other',
             array(
-                new Integer('id', array('unsigned', 'auto_increment')),
+                new Integer('id', array('auto_increment')),
                 new String('text', array('length' => '128', 'null')),
             ),
             array(
@@ -717,8 +717,8 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             null,
             'test_mediator',
             array(
-                new Integer('in', array('unsigned')),
-                new Integer('out', array('unsigned')),
+                new Integer('in'),
+                new Integer('out'),
             ),
             array(
                 new Primary(array('in', 'out')),

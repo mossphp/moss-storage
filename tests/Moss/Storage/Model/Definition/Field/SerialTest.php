@@ -109,10 +109,8 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array('precision'),
-            array('unsigned'),
             array('auto_increment'),
-            array('default'),
-            array('comment')
+            array('default')
         );
     }
 }

@@ -75,7 +75,6 @@ class StringTest extends \PHPUnit_Framework_TestCase
         return array(
             array(array('length' => 4), 'length', 4),
             array(array('null'), 'null'),
-            array(array('comment' => 'foo'), 'comment', 'foo'),
             array(array('default' => 1), 'default', 1),
         );
     }
@@ -94,7 +93,6 @@ class StringTest extends \PHPUnit_Framework_TestCase
         return array(
             array(array('length' => 4), array('length' => 4)),
             array(array('null'), array('length' => null, 'null' => true)),
-            array(array('comment' => 'foo'), array('length' => null, 'comment' => 'foo')),
             array(array('default' => 1), array('length' => null, 'null' => true, 'default' => 1)),
         );
     }
@@ -113,7 +111,6 @@ class StringTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array('precision'),
-            array('unsigned'),
             array('auto_increment')
         );
     }

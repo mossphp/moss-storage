@@ -66,8 +66,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     public function createProvider()
     {
         return array(
-            array('table', 'CREATE TABLE test_table ( id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
-            array('other', 'CREATE TABLE test_other ( id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
+            array('table', 'CREATE TABLE test_table ( id INT(11) NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
+            array('other', 'CREATE TABLE test_other ( id INT(11) NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
         );
     }
 
@@ -87,23 +87,23 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 array(
-                    $this->createInputColumn('id', 'int', array('length' => 11, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
                     $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
                 ),
                 array()
             ),
             array(
                 array(
-                    $this->createInputColumn('id', 'int', array('length' => 5, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('id', 'int', array('length' => 5, 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
                     $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
                 ),
                 array(
-                    'ALTER TABLE test_table CHANGE id id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT'
+                    'ALTER TABLE test_table CHANGE id id INT(11) NOT NULL AUTO_INCREMENT'
                 )
             ),
             array(
                 array(
-                    $this->createInputColumn('id', 'int', array('length' => 11, 'unsigned' => 'YES', 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
                     $this->createInputColumn('text', 'char', array('length' => 1024, 'null' => 'YES')),
                 ),
                 array(
@@ -123,12 +123,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'column_type' => $type,
             'column_length' => $this->get($attributes, 'length'),
             'column_precision' => $this->get($attributes, 'precision', 0),
-            'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
             'column_nullable' => $this->get($attributes, 'null', 'NO'),
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
-            'column_comment' => $this->get($attributes, 'comment', ''),
-            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null).$index['name'] : null,
+            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null) . $index['name'] : null,
             'index_type' => $this->get($index, 'type', null),
             'index_pos' => $this->get($index, 'pos', null),
             'ref_schema' => $this->get($ref, 'schema', null),
@@ -182,7 +180,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             '\stdClass',
             'test_table',
             array(
-                new Integer('id', array('unsigned', 'auto_increment')),
+                new Integer('id', array('auto_increment')),
                 new String('text', array('length' => '128', 'null')),
             ),
             array(
@@ -197,7 +195,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             '\altClass',
             'test_other',
             array(
-                new Integer('id', array('unsigned', 'auto_increment')),
+                new Integer('id', array('auto_increment')),
                 new String('text', array('length' => '128', 'null')),
             ),
             array(

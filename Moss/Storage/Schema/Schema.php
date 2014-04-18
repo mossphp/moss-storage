@@ -352,7 +352,7 @@ class Schema implements SchemaInterface
             return false;
         }
 
-        $attributes = array('length' => null, 'precision' => null, 'null' => false, 'unsigned' => false, 'auto_increment' => false, 'default' => null, 'comment' => null);
+        $attributes = array('length' => null, 'precision' => null, 'null' => false, 'auto_increment' => false, 'default' => null);
         foreach ($new->attributes() as $key => $value) {
             $attributes[$key] = $value;
         }
@@ -363,10 +363,6 @@ class Schema implements SchemaInterface
 
         if (isset($old['attributes']['precision']) && !isset($attributes['precision'])) {
             $attributes['precision'] = $old['attributes']['precision'];
-        }
-
-        if (in_array($new->type(), array('boolean', 'serial')) && !isset($attributes['comment'])) {
-            $attributes['comment'] = $old['attributes']['comment'];
         }
 
         return $attributes == $old['attributes'];

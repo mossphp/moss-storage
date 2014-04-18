@@ -74,7 +74,37 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ),
             array(
                 'info',
-                'SELECT c.ordinal_position AS pos, c.table_schema AS table_schema, c.table_name AS table_name, c.column_name AS column_name, c.data_type AS column_type, CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length, c.numeric_scale AS column_precision, \'TODO\' AS column_unsigned, c.is_nullable AS column_nullable, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment, CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default, \'\' AS column_comment, k.constraint_name AS index_name, i.constraint_type AS index_type, k.ordinal_position AS index_pos, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_schema ELSE NULL END AS ref_schema, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.table_name ELSE NULL END AS ref_table, CASE WHEN i.constraint_type = \'FOREIGN KEY\' THEN u.column_name ELSE NULL END AS ref_column FROM information_schema.columns AS c LEFT JOIN information_schema.key_column_usage AS k ON c.table_schema = k.table_schema AND c.table_name = k.table_name AND c.column_name = k.column_name LEFT JOIN information_schema.table_constraints AS i ON k.constraint_name = i.constraint_name AND i.constraint_type != \'CHECK\' LEFT JOIN information_schema.constraint_column_usage AS u ON u.constraint_name = i.constraint_name WHERE c.table_name = \'table\' ORDER BY pos'
+                'SELECT
+	c.ordinal_position AS pos,
+	c.table_schema AS table_schema,
+	c.table_name AS table_name,
+	c.column_name AS column_name,
+	c.data_type AS column_type,
+	CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length,
+	c.numeric_scale AS column_precision,
+	c.is_nullable AS column_nullable,
+	CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment,
+	CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default,
+	CASE WHEN u.constraint_name IS NULL AND ic.relname IS NOT NULL THEN ic.relname ELSE u.constraint_name END AS index_name,
+	CASE WHEN t.constraint_type IS NULL AND ic.relname IS NOT NULL THEN \'INDEX\' ELSE t.constraint_type END AS index_type,
+	u.ordinal_position AS index_pos,
+	y.table_schema AS ref_schema,
+	y.table_name AS ref_table,
+	y.column_name AS ref_column
+FROM information_schema.columns AS c
+	LEFT JOIN information_schema.key_column_usage AS u ON u.table_schema = c.table_schema AND u.table_name = c.table_name AND u.column_name = c.column_name
+	LEFT JOIN information_schema.table_constraints AS t ON u.constraint_schema = t.constraint_schema AND u.constraint_name = t.constraint_name AND constraint_type != \'CHECK\'
+
+	LEFT JOIN pg_catalog.pg_class AS it ON it.relname = c.table_name
+	LEFT JOIN pg_catalog.pg_attribute AS ia ON ia.attrelid = it.oid AND ia.attname = c.column_name
+	LEFT JOIN pg_catalog.pg_index AS ii ON ii.indrelid = it.oid AND ia.attnum = ANY (ii.indkey::INT[])
+	LEFT JOIN pg_catalog.pg_class AS ic ON ic.oid = ii.indexrelid
+
+	LEFT JOIN information_schema.referential_constraints AS f ON f.constraint_schema = t.constraint_schema AND f.constraint_name = t.constraint_name
+	LEFT JOIN information_schema.key_column_usage AS x ON x.constraint_name = f.constraint_name
+	LEFT JOIN information_schema.key_column_usage AS y ON y.ordinal_position = x.position_in_unique_constraint AND y.constraint_name = f.unique_constraint_name
+WHERE c.table_name = \'table\'
+ORDER BY pos'
             ),
             array(
                 'drop',
@@ -90,7 +120,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', $actual);
-        $this->assertEquals('CREATE TABLE table ( foo ' . $expected . ' )', $schema->build());
+        $this->assertEquals('CREATE TABLE table ( foo ' . $expected . ' NOT NULL )', $schema->build());
     }
 
     /**
@@ -100,7 +130,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table ADD foo ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table ADD foo ' . $expected . ' NOT NULL', $schema->build());
     }
 
     /**
@@ -110,7 +140,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'change');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table CHANGE foo foo ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table ALTER foo TYPE '.$expected.'; ALTER TABLE table ALTER foo SET NOT NULL', $schema->build());
     }
 
     /**
@@ -120,7 +150,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         $schema = new SchemaBuilder('table', 'remove');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table DROP foo', $schema->build());
+        $this->assertEquals('ALTER TABLE table DROP COLUMN foo', $schema->build());
     }
 
     public function columnProvider()
@@ -128,27 +158,27 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 'boolean',
-                'BOOLEAN NOT NULL'
+                'BOOLEAN'
             ),
             array(
                 'integer',
-                'INTEGER NOT NULL',
+                'INTEGER',
             ),
             array(
                 'decimal',
-                'NUMERIC(11,4) NOT NULL',
+                'NUMERIC(11,4)',
             ),
             array(
                 'string',
-                'TEXT NOT NULL'
+                'TEXT'
             ),
             array(
                 'datetime',
-                'TIMESTAMP WITHOUT TIME ZONE NOT NULL'
+                'TIMESTAMP WITHOUT TIME ZONE'
             ),
             array(
                 'serial',
-                'BYTEA NOT NULL'
+                'BYTEA'
             ),
 
         );
@@ -221,11 +251,6 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'decimal',
                 array('length' => 6, 'precision' => 2),
                 'NUMERIC(6,2) NOT NULL'
-            ),
-            array(
-                'integer',
-                array('comment' => 'some comment'),
-                'INTEGER COMMENT \'some comment\' NOT NULL'
             ),
         );
     }
@@ -301,7 +326,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'index',
                 array('foo'),
                 null,
-                'ALTER TABLE table ; CREATE INDEX table_foo ON table ( foo )'
+                'CREATE INDEX table_foo ON table ( foo )'
             ),
             array(
                 'foreign',
@@ -335,13 +360,13 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'unique',
                 array('foo'),
                 null,
-                'ALTER TABLE table DROP INDEX table_foo',
+                'ALTER TABLE table DROP CONSTRAINT table_foo',
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'ALTER TABLE table DROP INDEX table_foo',
+                'DROP INDEX table_foo',
             ),
             array(
                 'foreign',
@@ -505,11 +530,9 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             'column_type' => $type,
             'column_length' => $this->get($attributes, 'length'),
             'column_precision' => $this->get($attributes, 'precision', 0),
-            'column_unsigned' => $this->get($attributes, 'unsigned', 'NO'),
             'column_nullable' => $this->get($attributes, 'null', 'NO'),
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
-            'column_comment' => $this->get($attributes, 'comment', ''),
             'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null).$index['name'] : null,
             'index_type' => $this->get($index, 'type', null),
             'index_pos' => $this->get($index, 'pos', null),
@@ -528,10 +551,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
                 'length' => $this->get($attributes, 'length'),
                 'precision' => $this->get($attributes, 'precision', 0),
                 'null' => $this->get($attributes, 'null', false),
-                'unsigned' => $this->get($attributes, 'unsigned', false),
                 'auto_increment' => $this->get($attributes, 'auto_increment', false),
                 'default' => $this->get($attributes, 'default', null),
-                'comment' => $this->get($attributes, 'comment', null),
             )
         );
     }

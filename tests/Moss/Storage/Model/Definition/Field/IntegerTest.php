@@ -75,10 +75,8 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
         return array(
             array(array('length' => 10), 'length', 10),
             array(array('null'), 'null'),
-            array(array('unsigned'), 'unsigned'),
             array(array('auto_increment'), 'auto_increment', true),
-            array(array('default' => 123), 'default', 123),
-            array(array('comment' => 'Foo'), 'comment', 'Foo')
+            array(array('default' => 123), 'default', 123)
         );
     }
 
@@ -96,10 +94,8 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
         return array(
             array(array('length' => 10), array('length' => 10)),
             array(array('null'), array('length' => 11, 'null' => true)),
-            array(array('unsigned'), array('length' => 11, 'unsigned' => true)),
             array(array('auto_increment'), array('length' => 11, 'auto_increment' => true)),
-            array(array('default' => 123), array('length' => 11, 'null' => true, 'default' => 123)),
-            array(array('comment' => 'Foo'), array('length' => 11, 'comment' => 'Foo'))
+            array(array('default' => 123), array('length' => 11, 'null' => true, 'default' => 123))
         );
     }
 

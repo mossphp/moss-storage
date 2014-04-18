@@ -27,6 +27,6 @@ class Decimal extends Field
 
         $default = array('length' => 11, 'precision' => 4);
         $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('length', 'precision', 'null', 'unsigned', 'default', 'comment'));
+        $this->verifyAttribute(array('length', 'precision', 'null', 'default'));
     }
 }

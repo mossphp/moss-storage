@@ -76,9 +76,7 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
             array(array('length' => 10), 'length', 10),
             array(array('precision' => 2), 'precision', 2),
             array(array('null'), 'null', true),
-            array(array('unsigned'), 'unsigned'),
-            array(array('default' => 12.34), 'default', 12.34),
-            array(array('comment' => 'Foo'), 'comment', 'Foo')
+            array(array('default' => 12.34), 'default', 12.34)
         );
     }
 
@@ -97,9 +95,7 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
             array(array('length' => 10), array('length' => 10, 'precision' => 4)),
             array(array('precision' => 2), array('length' => 11, 'precision' => 2)),
             array(array('null'), array('length' => 11, 'precision' => 4, 'null' => true)),
-            array(array('unsigned'), array('length' => 11, 'precision' => 4, 'unsigned' => true)),
-            array(array('default' => 12.34), array('length' => 11, 'precision' => 4, 'null' => true, 'default' => 12.34)),
-            array(array('comment' => 'Foo'), array('length' => 11, 'precision' => 4, 'comment' => 'Foo'))
+            array(array('default' => 12.34), array('length' => 11, 'precision' => 4, 'null' => true, 'default' => 12.34))
         );
     }
 

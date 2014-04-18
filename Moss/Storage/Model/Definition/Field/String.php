@@ -27,6 +27,6 @@ class String extends Field
 
         $default = array('length' => null);
         $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('length', 'null', 'default', 'comment'));
+        $this->verifyAttribute(array('length', 'null', 'default'));
     }
 }

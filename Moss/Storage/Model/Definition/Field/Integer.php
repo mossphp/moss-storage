@@ -27,6 +27,6 @@ class Integer extends Field
 
         $default = array('length' => 11);
         $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('length', 'null', 'unsigned', 'auto_increment', 'default', 'comment'));
+        $this->verifyAttribute(array('length', 'null', 'auto_increment', 'default'));
     }
 }
