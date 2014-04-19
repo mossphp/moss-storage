@@ -107,7 +107,7 @@ class ModelBag
     {
         $alias = ltrim($alias, '\\');
 
-        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
+        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias]) || isset($this->byTable[$alias])) {
             return true;
         }
 
@@ -124,7 +124,7 @@ class ModelBag
      */
     public function all($array = array())
     {
-        if(!empty($array)) {
+        if (!empty($array)) {
             foreach ($array as $key => $model) {
                 $this->set($model, is_numeric($key) ? null : $key);
             }
