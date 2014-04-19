@@ -61,7 +61,6 @@ Supported attributes:
   * `null` - marks field as nullable
   * `default` - sets default value
   * `auto_increment` - field is auto incremented
-  * `unsigned` - unsigned numeric
   * `length` - field length
   * `precision` - field precision (used only in numeric)
 

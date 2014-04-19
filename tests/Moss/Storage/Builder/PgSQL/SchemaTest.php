@@ -199,7 +199,7 @@ ORDER BY pos'
         return array(
             array(
                 'integer',
-                array('unsigned'),
+                array(),
                 'INTEGER NOT NULL'
             ),
             array(
@@ -413,10 +413,6 @@ ORDER BY pos'
                 array($this->createOutputColumn('column', 'integer', array('length' => 5))),
             ),
             array(
-                array($this->createInputColumn('column', 'integer', array('unsigned' => 'YES'))),
-                array($this->createOutputColumn('column', 'integer', array('unsigned' => true))),
-            ),
-            array(
                 array($this->createInputColumn('column', 'integer', array('auto_increment' => 'YES'))),
                 array($this->createOutputColumn('column', 'integer', array('auto_increment' => true))),
             ),
@@ -431,10 +427,6 @@ ORDER BY pos'
             array(
                 array($this->createInputColumn('column', 'numeric')),
                 array($this->createOutputColumn('column', 'decimal')),
-            ),
-            array(
-                array($this->createInputColumn('column', 'numeric', array('unsigned' => 'YES'))),
-                array($this->createOutputColumn('column', 'decimal', array('unsigned' => true))),
             ),
             array(
                 array($this->createInputColumn('column', 'numeric', array('length' => 4, 'precision' => 2))),
