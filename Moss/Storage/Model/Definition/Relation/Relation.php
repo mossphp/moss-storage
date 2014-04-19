@@ -60,43 +60,29 @@ abstract class Relation implements RelationInterface
         }
     }
 
-    protected function assertType($type)
+    protected function assertTroughKeys($inKeys, $outKeys)
     {
-        $types = array(
-            'one',
-            'many',
-            'oneTrough',
-            'manyTrough'
-        );
-
-        if (!in_array($type, $types)) {
-            throw new DefinitionException(sprintf('Invalid relation type %s in relation for %s', $type, $this->entity));
-        }
-    }
-
-    protected function assertTroughKeys($keys)
-    {
-        if (!isset($keys[0], $keys[1])) {
-            throw new DefinitionException(sprintf('Invalid keys for relation "%s", must have two arrays, got %u', $this->entity, count($keys)));
+        if (empty($inKeys) || empty($outKeys)) {
+            throw new DefinitionException(sprintf('Invalid keys for relation "%s", must be two arrays with key-value pairs', $this->entity, count($inKeys)));
         }
 
-        if (count($keys[0]) !== count($keys[1])) {
-            throw new DefinitionException(sprintf('Both key arrays for relation "%s", must same number of elements', $this->entity));
+        if (count($inKeys) !== count($outKeys)) {
+            throw new DefinitionException(sprintf('Both key arrays for relation "%s", must have the same number of elements', $this->entity));
         }
     }
 
     protected function assertField($field)
     {
-        if (!is_string($field)) {
-            throw new DefinitionException(sprintf('Field name for relation "%s.%s" must be string, %s given', $this->entity, $field, gettype($field)));
-        }
-
         if (empty($field)) {
-            throw new DefinitionException(sprintf('Field name for "%s.%s" can not be empty', $this->entity, $field));
+            throw new DefinitionException(sprintf('Invalid field name for relation "%s.%s" can not be empty', $this->entity, $field));
         }
 
         if (is_numeric($field)) {
-            throw new DefinitionException(sprintf('Field name for "%s.%s" can not be numeric', $this->entity, $field));
+            throw new DefinitionException(sprintf('Invalid field name for relation "%s.%s" can not be numeric', $this->entity, $field));
+        }
+
+        if (!is_string($field)) {
+            throw new DefinitionException(sprintf('Invalid field name for relation "%s.%s" must be string, %s given', $this->entity, $field, gettype($field)));
         }
     }
 

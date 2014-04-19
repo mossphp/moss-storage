@@ -27,13 +27,9 @@ class ManyTrough extends Relation
         $this->type = 'manyTrough';
         $this->container = $this->containerName($container);
 
-        if (empty($in) || empty($out)) {
-            throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
-        }
-
         $this->mediator = $mediator ? ltrim($mediator, '\\') : $mediator;
 
-        $this->assertTroughKeys(array($in, $out));
+        $this->assertTroughKeys($in, $out);
         $this->assignKeys($in, $this->in);
         $this->assignKeys($out, $this->out);
         $this->keys = array_combine(array_keys($this->in), array_values($this->out));
