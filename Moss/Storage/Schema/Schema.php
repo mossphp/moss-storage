@@ -42,6 +42,13 @@ class Schema implements SchemaInterface
     private $queries = array();
     private $after = array();
 
+    /**
+     * Constructor
+     *
+     * @param DriverInterface  $driver
+     * @param BuilderInterface $builder
+     * @param ModelBag         $models
+     */
     public function __construct(DriverInterface $driver, BuilderInterface $builder, ModelBag $models)
     {
         $this->driver = & $driver;
@@ -167,6 +174,11 @@ class Schema implements SchemaInterface
         return $this;
     }
 
+    /**
+     * Builds check query
+     *
+     * @param ModelInterface $model
+     */
     protected function buildCheck(ModelInterface $model)
     {
         $this->queries[$model->table()] = $this->builder->reset()
@@ -174,6 +186,13 @@ class Schema implements SchemaInterface
             ->build();
     }
 
+    /**
+     * Builds create table queries
+     *
+     * @param ModelInterface $model
+     *
+     * @throws SchemaException
+     */
     protected function buildCreate(ModelInterface $model)
     {
         if ($this->checkIfSchemaExists($model)) {
@@ -210,6 +229,13 @@ class Schema implements SchemaInterface
         }
     }
 
+    /**
+     * Builds table alteration queries
+     *
+     * @param ModelInterface $model
+     *
+     * @throws SchemaException
+     */
     protected function buildAlter(ModelInterface $model)
     {
         if (!$this->checkIfSchemaExists($model)) {
@@ -238,6 +264,12 @@ class Schema implements SchemaInterface
         $this->queries = array_merge($this->queries, array_values($queries));
     }
 
+    /**
+     * Builds remove and create queries for foreign keys
+     *
+     * @param ModelInterface $model
+     * @param                $current
+     */
     private function buildForeignKeysAlterations(ModelInterface $model, $current)
     {
         foreach ($current['indexes'] as $index) {
@@ -259,16 +291,20 @@ class Schema implements SchemaInterface
         }
     }
 
+    /**
+     * Builds column alterations
+     *
+     * @param ModelInterface $model
+     * @param                $current
+     * @param array          $queries
+     */
     private function buildColumnsAlterations(ModelInterface $model, $current, &$queries = array())
     {
         $fields = $current['fields'];
 
         foreach ($model->fields() as $field) {
             if (false === $i = $this->findNodeByName($fields, $field->name())) {
-                $queries['FLD+' . $field->name()] = $this->builder->reset()
-                    ->add($model->table())
-                    ->column($field->name(), $field->type(), $field->attributes())
-                    ->build();
+                $queries[] = $this->buildColumnOperation('add', $model->table(), $field->name(), $field->type(), $field->attributes());
                 continue;
             }
 
@@ -277,31 +313,51 @@ class Schema implements SchemaInterface
                 continue;
             }
 
-            $queries['FLD*' . $field->name()] = $this->builder->reset()
-                ->change($model->table())
-                ->column($field->name(), $field->type(), $field->attributes())
-                ->build();
+            $queries[] = $this->buildColumnOperation('change', $model->table(), $field->name(), $field->type(), $field->attributes());
             unset($fields[$i]);
         }
 
         foreach ($fields as $field) {
-            $queries['FLD-' . $field['name']] = $this->builder->reset()
-                ->remove($model->table())
-                ->column($field['name'], $field['type'], $field['attributes'])
-                ->build();
+            $queries[] = $this->buildColumnOperation('remove', $model->table(), $field['name'], $field['type'], $field['attributes']);
         }
     }
 
+    /**
+     * Builds actual queries altering columns
+     *
+     * @param string      $operation
+     * @param string      $table
+     * @param string      $name
+     * @param string      $type
+     * @param array       $attributes
+     * @param null|string $after
+     *
+     * @return string
+     */
+    private function buildColumnOperation($operation, $table, $name, $type, $attributes, $after = null)
+    {
+        return $this->builder->reset()
+            ->operation($operation)
+            ->table($table)
+            ->column($name, $type, $attributes, $after)
+            ->build();
+    }
+
+    /**
+     * Builds keys/indexes alterations
+     *
+     * @param ModelInterface $model
+     * @param                $current
+     * @param array          $before
+     * @param array          $after
+     */
     private function buildIndexesAlteration(ModelInterface $model, $current, &$before = array(), &$after = array())
     {
         $indexes = $current['indexes'];
 
         foreach ($model->indexes() as $index) {
             if (false === $i = $this->findNodeByName($indexes, $index->name())) {
-                $after['IDX+' . $index->name()] = $this->builder->reset()
-                    ->add($model->table())
-                    ->index($index->name(), $index->fields(), $index->type(), $index->table())
-                    ->build();
+                $after[] = $this->buildIndexOperation('add', $model->table(), $index->name(), $index->fields(), $index->type(), $index->table());
                 continue;
             }
 
@@ -312,13 +368,38 @@ class Schema implements SchemaInterface
         }
 
         foreach ($indexes as $index) {
-            $before['IDX-' . $index['name']] = $this->builder->reset()
-                ->remove($model->table())
-                ->index($index['name'], $index['fields'], $index['type'], $index['table'])
-                ->build();
+            $before[] = $this->buildIndexOperation('remove', $model->table(), $index['name'], $index['fields'], $index['type'], $index['table']);
         }
     }
 
+    /**
+     * Builds actual index altering queriers
+     *
+     * @param string      $operation
+     * @param string      $table
+     * @param string      $name
+     * @param array       $fields
+     * @param string      $type
+     * @param null|string $foreignTable
+     *
+     * @return string
+     */
+    private function buildIndexOperation($operation, $table, $name, $fields, $type, $foreignTable = null)
+    {
+        return $this->builder->reset()
+            ->operation($operation)
+            ->table($table)
+            ->index($name, $fields, $type, $foreignTable)
+            ->build();
+    }
+
+    /**
+     * Returns true if schema exists
+     *
+     * @param ModelInterface $model
+     *
+     * @return bool
+     */
     protected function checkIfSchemaExists(ModelInterface $model)
     {
         $query = $this->builder->reset()
@@ -332,6 +413,13 @@ class Schema implements SchemaInterface
         return $count == 1;
     }
 
+    /**
+     * Returns array representing current schema
+     *
+     * @param ModelInterface $model
+     *
+     * @return array
+     */
     protected function getCurrentSchema(ModelInterface $model)
     {
         $query = $this->builder->reset()
@@ -347,6 +435,14 @@ class Schema implements SchemaInterface
         return $array;
     }
 
+    /**
+     * Finds node in array by its name
+     *
+     * @param $array
+     * @param $name
+     *
+     * @return bool|int|string
+     */
     protected function findNodeByName($array, $name)
     {
         foreach ($array as $i => $node) {
@@ -358,6 +454,14 @@ class Schema implements SchemaInterface
         return false;
     }
 
+    /**
+     * Returns true if both fields are equal
+     *
+     * @param array          $old
+     * @param FieldInterface $new
+     *
+     * @return bool
+     */
     protected function sameField($old, FieldInterface $new)
     {
         if ($old['type'] !== $new->type()) {
@@ -380,6 +484,14 @@ class Schema implements SchemaInterface
         return $attributes == $old['attributes'];
     }
 
+    /**
+     * Returns true if both indexes are equal
+     *
+     * @param array          $old
+     * @param IndexInterface $new
+     *
+     * @return bool
+     */
     protected function sameIndex($old, IndexInterface $new)
     {
         if ($old['type'] !== $new->type()) {
@@ -389,6 +501,11 @@ class Schema implements SchemaInterface
         return $old['fields'] == $new->fields();
     }
 
+    /**
+     * Builds drop table query
+     *
+     * @param ModelInterface $model
+     */
     protected function buildDrop(ModelInterface $model)
     {
         if ($this->checkIfSchemaExists($model)) {
