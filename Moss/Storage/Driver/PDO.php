@@ -121,26 +121,24 @@ class PDO implements DriverInterface
             return null;
         }
 
-        if ($type === 'boolean' || $type === 'integer') {
-            return (int) $value;
+        switch ($type) {
+            case 'boolean':
+            case 'integer':
+                return (int) $value;
+            case 'decimal':
+                $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
+                $value = str_replace(',', '.', $value);
+
+                return (float) $value;
+            case 'datetime' && $value instanceof \DateTime:
+                return $value->format('Y-m-d H:i:s');
+            case 'serial':
+                return base64_encode(serialize($value));
+
+
+            default:
+                return $value;
         }
-
-        if ($type === 'decimal') {
-            $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
-            $value = str_replace(',', '.', $value);
-
-            return (float) $value;
-        }
-
-        if ($type === 'datetime' && $value instanceof \DateTime) {
-            return $value->format('Y-m-d H:i:s');
-        }
-
-        if ($type === 'serial') {
-            return base64_encode(serialize($value));
-        }
-
-        return $value;
     }
 
     /**
@@ -157,33 +155,33 @@ class PDO implements DriverInterface
             return null;
         }
 
-        if ($type === 'boolean') {
-            return (bool) $value;
+        switch ($type) {
+            case 'boolean':
+                return (bool) $value;
+            case 'integer':
+                return (int) $value;
+            case 'decimal':
+                $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
+                $value = str_replace(',', '.', $value);
+                $value = strpos($value, '.') === false ? (int) $value : (float) $value;
+
+                return $value;
+            case 'datetime':
+                return new \DateTime($value);
+            case 'serial':
+                return unserialize(base64_decode($value));
+            default:
+                return $value;
         }
-
-        if ($type === 'integer') {
-            return (int) $value;
-        }
-
-        if ($type === 'decimal') {
-            $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
-            $value = str_replace(',', '.', $value);
-            $value = strpos($value, '.') === false ? (int) $value : (float) $value;
-
-            return $value;
-        }
-
-        if ($type === 'datetime') {
-            return new \DateTime($value);
-        }
-
-        if ($type === 'serial') {
-            return unserialize(base64_decode($value));
-        }
-
-        return $value;
     }
 
+    /**
+     * Returns true if value is ALMOST null (empty string or null)
+     *
+     * @param $value
+     *
+     * @return bool
+     */
     protected function isNullValue($value)
     {
         return is_scalar($value) && $value !== false && !strlen($value);
@@ -242,12 +240,11 @@ class PDO implements DriverInterface
 
     /**
      * Retches result element as object
-
      *
-*@param string $className
-     * @param array $restore
+     * @param string $className
+     * @param array  $restore
      *
-*@return bool|mixed
+     * @return bool|mixed
      * @throws DriverException
      */
     public function fetchObject($className, $restore = array())
@@ -279,11 +276,10 @@ class PDO implements DriverInterface
 
     /**
      * Fetches result element as associative array
-
      *
-*@param array $restore
+     * @param array $restore
      *
-*@return bool|mixed
+     * @return bool|mixed
      * @throws DriverException
      */
     public function fetchAssoc($restore = array())
@@ -309,12 +305,11 @@ class PDO implements DriverInterface
 
     /**
      * Fetches field from result element
-
      *
-*@param int  $fieldNum
+     * @param int  $fieldNum
      * @param null $restore
      *
-*@return bool|mixed|string
+     * @return bool|mixed|string
      * @throws DriverException
      */
     public function fetchField($fieldNum = 0, $restore = null)
@@ -340,12 +335,11 @@ class PDO implements DriverInterface
 
     /**
      * Fetches all results as objects or associative array
-
      *
-*@param string $className
-     * @param array $restore
+     * @param string $className
+     * @param array  $restore
      *
-*@return array
+     * @return array
      * @throws DriverException
      */
     public function fetchAll($className = null, $restore = array())
@@ -354,25 +348,44 @@ class PDO implements DriverInterface
             throw new DriverException('Result instance missing');
         }
 
-        $result = array();
         if ($className === null) {
-            while ($row = $this->fetchAssoc($restore)) {
-                $result[] = $row;
-            }
-
-            return $result;
+            return $this->fetchAllAssoc($restore);
         }
 
-        if (empty($restore)) {
-            while ($row = $this->fetchObject($className)) {
-                $result[] = $row;
-            }
+        return $this->fetchAllObject($className, $restore);
+    }
 
-            return $result;
+    /**
+     * Fetches all result data as associative array
+     *
+     * @param array $restore
+     *
+     * @return array
+     */
+    protected function fetchAllAssoc($restore = array())
+    {
+        $result = array();
+        while ($row = $this->fetchAssoc($restore)) {
+            $result[] = $row;
         }
 
+        return $result;
+    }
+
+    /**
+     * Fetches all result data as objects
+     *
+     * @param       $className
+     * @param array $restore
+     *
+     * @return array
+     */
+    protected function fetchAllObject($className, $restore = array())
+    {
+        $result = array();
         $ref = new \ReflectionClass($className);
-        while ($row = $this->fetchObject($className)) {
+
+        while ($row = $this->statement->fetchObject($className)) {
             foreach ($restore as $field => $type) {
                 if (!$ref->hasProperty($field)) {
                     $row->$field = $this->restore($row->$field, $type);
