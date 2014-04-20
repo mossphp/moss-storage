@@ -219,9 +219,29 @@ class Schema implements SchemaInterface
         $current = $this->getCurrentSchema($model);
 
         // foreign keys
+        $this->buildForeignKeysAlterations($model, $current);
+
+        $before = array();
+        $after = array();
+        $queries = array();
+
+        $this->buildColumnsAlterations($model, $current, $queries);
+        $this->buildIndexesAlteration($model, $current, $before, $after);
+
+        $queries = array_merge($before, $queries, $after);
+        $queries = array_diff($queries, $this->before, $this->queries, $this->after);
+
+        if (empty($queries)) {
+            return;
+        }
+
+        $this->queries = array_merge($this->queries, array_values($queries));
+    }
+
+    private function buildForeignKeysAlterations(ModelInterface $model, $current)
+    {
         foreach ($current['indexes'] as $index) {
             if ($index['type'] === 'foreign') {
-
                 $this->before[] = $this->builder->reset()
                     ->remove($model->table())
                     ->index($index['name'], $index['fields'], $index['type'], $index['table'])
@@ -231,20 +251,18 @@ class Schema implements SchemaInterface
 
         foreach ($model->indexes() as $index) {
             if ($index->type() === 'foreign') {
-
                 $this->after[] = $this->builder->reset()
                     ->add($model->table())
                     ->index($index->name(), $index->fields(), $index->type(), $index->table())
                     ->build();
             }
         }
+    }
 
-        $before = array();
-        $after = array();
-        $queries = array();
-
-        // columns
+    private function buildColumnsAlterations(ModelInterface $model, $current, &$queries = array())
+    {
         $fields = $current['fields'];
+
         foreach ($model->fields() as $field) {
             if (false === $i = $this->findNodeByName($fields, $field->name())) {
                 $queries['FLD+' . $field->name()] = $this->builder->reset()
@@ -272,9 +290,12 @@ class Schema implements SchemaInterface
                 ->column($field['name'], $field['type'], $field['attributes'])
                 ->build();
         }
+    }
 
-        // indexes
+    private function buildIndexesAlteration(ModelInterface $model, $current, &$before = array(), &$after = array())
+    {
         $indexes = $current['indexes'];
+
         foreach ($model->indexes() as $index) {
             if (false === $i = $this->findNodeByName($indexes, $index->name())) {
                 $after['IDX+' . $index->name()] = $this->builder->reset()
@@ -296,15 +317,6 @@ class Schema implements SchemaInterface
                 ->index($index['name'], $index['fields'], $index['type'], $index['table'])
                 ->build();
         }
-
-        $queries = array_merge($before, $queries, $after);
-        $queries = array_diff($queries, $this->before, $this->queries, $this->after);
-
-        if (empty($queries)) {
-            return;
-        }
-
-        $this->queries = array_merge($this->queries, array_values($queries));
     }
 
     protected function checkIfSchemaExists(ModelInterface $model)
