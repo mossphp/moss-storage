@@ -11,7 +11,7 @@
 
 namespace Moss\Storage\Schema;
 
-use Moss\Storage\Builder\SchemaBuilderInterface as BuilderInterface;
+use Moss\Storage\Builder\SchemaBuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\IndexInterface;
@@ -30,7 +30,7 @@ class Schema implements SchemaInterface
     /** @var DriverInterface */
     protected $driver;
 
-    /** @var BuilderInterface */
+    /** @var SchemaBuilderInterface */
     protected $builder;
 
     /** @var ModelBag */
@@ -46,10 +46,10 @@ class Schema implements SchemaInterface
      * Constructor
      *
      * @param DriverInterface  $driver
-     * @param BuilderInterface $builder
+     * @param SchemaBuilderInterface $builder
      * @param ModelBag         $models
      */
-    public function __construct(DriverInterface $driver, BuilderInterface $builder, ModelBag $models)
+    public function __construct(DriverInterface $driver, SchemaBuilderInterface $builder, ModelBag $models)
     {
         $this->driver = & $driver;
         $this->builder = & $builder;
@@ -69,7 +69,7 @@ class Schema implements SchemaInterface
     /**
      * Returns builder instance
      *
-     * @return BuilderInterface
+     * @return SchemaBuilderInterface
      */
     public function builder()
     {

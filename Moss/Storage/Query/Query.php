@@ -11,7 +11,7 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
+use Moss\Storage\Builder\QueryBuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
@@ -34,7 +34,7 @@ class Query implements QueryInterface
     /** @var DriverInterface */
     protected $driver;
 
-    /** @var BuilderInterface */
+    /** @var QueryBuilderInterface */
     protected $builder;
 
     /** @var ModelBag */
@@ -73,10 +73,10 @@ class Query implements QueryInterface
      * Constructor
      *
      * @param DriverInterface  $driver
-     * @param BuilderInterface $builder
+     * @param QueryBuilderInterface $builder
      * @param ModelBag         $models
      */
-    public function __construct(DriverInterface $driver, BuilderInterface $builder, ModelBag $models)
+    public function __construct(DriverInterface $driver, QueryBuilderInterface $builder, ModelBag $models)
     {
         $this->driver = & $driver;
         $this->builder = & $builder;
@@ -96,7 +96,7 @@ class Query implements QueryInterface
     /**
      * Returns builder instance
      *
-     * @return BuilderInterface
+     * @return QueryBuilderInterface
      */
     public function builder()
     {
@@ -367,8 +367,8 @@ class Query implements QueryInterface
     private function resolveField($field)
     {
         $relation = $this->model->table();
-        if (strpos($field, BuilderInterface::SEPARATOR) !== false) {
-            list($relation, $field) = explode(BuilderInterface::SEPARATOR, $field, 2);
+        if (strpos($field, QueryBuilderInterface::SEPARATOR) !== false) {
+            list($relation, $field) = explode(QueryBuilderInterface::SEPARATOR, $field, 2);
         }
 
         if ($this->model->table() === $relation && $this->model->hasField($field)) {
@@ -403,7 +403,7 @@ class Query implements QueryInterface
             return $field;
         }
 
-        return $table . BuilderInterface::SEPARATOR . $field;
+        return $table . QueryBuilderInterface::SEPARATOR . $field;
     }
 
     /**
