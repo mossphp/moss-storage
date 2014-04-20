@@ -192,13 +192,7 @@ abstract class Relation implements RelationInterface
      */
     protected function cleanup($entity, array $collection, array $conditions)
     {
-        if (empty($collection) || empty($conditions)) {
-            return;
-        }
-
-        $existing = $this->fetch($entity, $conditions);
-
-        if (empty($existing)) {
+        if (!$existing = $this->isCleanupNecessary($entity, $conditions)) {
             return;
         }
 
@@ -221,6 +215,21 @@ abstract class Relation implements RelationInterface
         return;
     }
 
+    private function isCleanupNecessary($entity, $conditions)
+    {
+        if (empty($collection) || empty($conditions)) {
+            return false;
+        }
+
+        $existing = $this->fetch($entity, $conditions);
+
+        if (empty($existing)) {
+            return false;
+        }
+
+        return $existing;
+    }
+
     /**
      * Builds local key from field property pairs
      *
@@ -231,12 +240,9 @@ abstract class Relation implements RelationInterface
      */
     protected function buildLocalKey($entity, array $pairs)
     {
-        $key = '';
-        foreach ($pairs as $local => $refer) {
-            $key .= $local . ':' . $this->accessProperty($entity, $local);
-        }
+        $keys = array_keys($pairs);
 
-        return $key;
+        return $this->buildKey($entity, array_combine($keys, $keys));
     }
 
     /**
@@ -249,12 +255,25 @@ abstract class Relation implements RelationInterface
      */
     protected function buildForeignKey($entity, array $pairs)
     {
-        $key = '';
+        return $this->buildKey($entity, $pairs);
+    }
+
+    /**
+     * Builds key from key-value pairs
+     *
+     * @param mixed $entity
+     * @param array $pairs
+     *
+     * @return string
+     */
+    protected function buildKey($entity, array $pairs)
+    {
+        $key = array();
         foreach ($pairs as $local => $refer) {
-            $key .= $local . ':' . $this->accessProperty($entity, $refer);
+            $key[] = $local . ':' . $this->accessProperty($entity, $refer);
         }
 
-        return $key;
+        return implode('-', $key);
     }
 
     /**
@@ -281,11 +300,7 @@ abstract class Relation implements RelationInterface
         $ref = new \ReflectionObject($entity);
 
         if (!$ref->hasProperty($field)) {
-            if ($value !== null) {
-                $entity->$field = $value;
-            }
-
-            return isset($entity->$field) ? $entity->$field : null;
+            $entity->$field = $value;
         }
 
         $prop = $ref->getProperty($field);
