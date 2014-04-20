@@ -15,7 +15,7 @@ namespace Moss\Storage\Model\Definition;
  * Index interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 interface IndexInterface
 {

@@ -15,17 +15,18 @@ namespace Moss\Storage\Model\Definition\Field;
  * Decimal field
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Decimal extends Field
 {
-    public function __construct($field, $attributes = array('length' => 10, 'precision' => 4), $mapping = null)
+    public function __construct($field, $attributes = array(), $mapping = null)
     {
         $this->name = $field;
         $this->type = 'decimal';
         $this->mapping = $mapping;
 
-        $this->attributes = $this->prepareAttributes($attributes);
-        $this->verifyAttribute(array('length', 'precision', 'null', 'unsigned', 'default', 'comment'));
+        $default = array('length' => 11, 'precision' => 4);
+        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
+        $this->verifyAttribute(array('length', 'precision', 'null', 'default'));
     }
 }

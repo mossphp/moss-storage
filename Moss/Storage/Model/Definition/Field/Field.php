@@ -18,7 +18,7 @@ use Moss\Storage\Model\Definition\FieldInterface;
  * Field describes how entities property is mapped to field in database
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 abstract class Field implements FieldInterface
 {
@@ -31,12 +31,15 @@ abstract class Field implements FieldInterface
     protected function prepareAttributes(array $attributes)
     {
         foreach ($attributes as $key => $value) {
-            if (!is_numeric($key)) {
+            if (is_numeric($key)) {
+                unset($attributes[$key]);
+                $attributes[$value] = true;
                 continue;
             }
 
-            unset($attributes[$key]);
-            $attributes[$value] = true;
+            if($key == 'default') {
+                $attributes['null'] = true;
+            }
         }
 
         return $attributes;

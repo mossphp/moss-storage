@@ -15,7 +15,7 @@ namespace Moss\Storage\Model\Definition\Field;
  * Serial field
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Boolean extends Field
 {
@@ -26,6 +26,6 @@ class Boolean extends Field
         $this->mapping = $mapping;
 
         $this->attributes = $this->prepareAttributes($attributes);
-        $this->verifyAttribute(array('default'));
+        $this->verifyAttribute(array('null', 'default'));
     }
 }

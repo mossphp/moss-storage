@@ -84,6 +84,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
+     * @expectedExceptionMessage Invalid keys for relation "Foo", must be two arrays with key-value pairs
      */
     public function testWithoutInKeys()
     {
@@ -92,6 +93,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
+     * @expectedExceptionMessage Invalid keys for relation "Foo", must be two arrays with key-value pairs
      */
     public function testWithoutOutKeys()
     {
@@ -100,7 +102,17 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
-     * @dataProvider invalidKeysProvider
+     * @expectedExceptionMessage Both key arrays for relation "Foo", must have the same number of elements
+     */
+    public function testKeysWithoutSameNumberOfElements()
+    {
+        new OneTrough('\Foo', array('id' => 'in'), array('foo' => 'foo', 'bar' => 'bar'), 'mediator');
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Model\Definition\DefinitionException
+     * @expectedExceptionMessage Invalid field name for relation
+     * @dataProvider      invalidKeysProvider
      */
     public function testWithInvalidKeys($keys)
     {

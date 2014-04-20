@@ -9,17 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Moss\Storage\Model;
+namespace Moss\Storage\Schema;
 
 use Moss\Storage\StorageException;
 
 /**
- * Exception thrown by model
+ * Exception thrown by schemas
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ModelException extends StorageException
+class SchemaException extends StorageException
 {
-
 }

@@ -1,5 +1,5 @@
 <?php
-namespace Moss\Storage\Builder\MySQL;
+namespace Moss\Storage\Builder\PgSQL;
 
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
@@ -70,34 +70,41 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         return array(
             array(
                 'check',
-                'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = \'table\''
+                'SELECT table_name FROM information_schema.tables WHERE table_name = \'table\''
             ),
             array(
                 'info',
                 'SELECT
-	c.ORDINAL_POSITION AS pos,
-	c.TABLE_SCHEMA AS table_schema,
-	c.TABLE_NAME AS table_name,
-	c.COLUMN_NAME AS column_name,
-	c.DATA_TYPE AS column_type,
-	CASE WHEN LOCATE(\'(\', c.NUMERIC_PRECISION) > 0 IS NOT NULL THEN c.NUMERIC_PRECISION ELSE c.CHARACTER_MAXIMUM_LENGTH END AS column_length,
-	c.NUMERIC_SCALE AS column_precision,
-	c.IS_NULLABLE AS column_nullable,
-	CASE WHEN INSTR(LOWER(c.EXTRA), \'auto_increment\') > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment,
-	c.COLUMN_DEFAULT AS column_default,
-	s.INDEX_NAME AS index_name,
-	CASE WHEN (s.INDEX_NAME IS NOT NULL AND i.CONSTRAINT_TYPE IS NULL) THEN \'INDEX\' ELSE i.CONSTRAINT_TYPE END AS index_type,
-	k.ORDINAL_POSITION AS index_pos,
-	k.REFERENCED_TABLE_SCHEMA AS ref_schema,
-	k.REFERENCED_TABLE_NAME AS ref_table,
-	k.REFERENCED_COLUMN_NAME AS ref_column
-FROM
-	information_schema.COLUMNS AS c
-	LEFT JOIN information_schema.KEY_COLUMN_USAGE AS k ON c.TABLE_SCHEMA = k.TABLE_SCHEMA AND c.TABLE_NAME = k.TABLE_NAME AND c.COLUMN_NAME = k.COLUMN_NAME
-	LEFT JOIN information_schema.STATISTICS AS s ON c.TABLE_SCHEMA = s.TABLE_SCHEMA AND c.TABLE_NAME = s.TABLE_NAME AND c.COLUMN_NAME = s.COLUMN_NAME
-	LEFT JOIN information_schema.TABLE_CONSTRAINTS AS i ON k.CONSTRAINT_SCHEMA = i.CONSTRAINT_SCHEMA AND k.CONSTRAINT_NAME = i.CONSTRAINT_NAME
-WHERE c.TABLE_NAME = \'table\'
-ORDER BY pos;'
+	c.ordinal_position AS pos,
+	c.table_schema AS table_schema,
+	c.table_name AS table_name,
+	c.column_name AS column_name,
+	c.data_type AS column_type,
+	CASE WHEN c.character_maximum_length IS NOT NULL THEN c.character_maximum_length ELSE c.numeric_precision END AS column_length,
+	c.numeric_scale AS column_precision,
+	c.is_nullable AS column_nullable,
+	CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN \'YES\' ELSE \'NO\' END AS column_auto_increment,
+	CASE WHEN POSITION(\'nextval\' IN c.column_default) > 0 THEN NULL ELSE c.column_default END AS column_default,
+	CASE WHEN u.constraint_name IS NULL AND ic.relname IS NOT NULL THEN ic.relname ELSE u.constraint_name END AS index_name,
+	CASE WHEN t.constraint_type IS NULL AND ic.relname IS NOT NULL THEN \'INDEX\' ELSE t.constraint_type END AS index_type,
+	u.ordinal_position AS index_pos,
+	y.table_schema AS ref_schema,
+	y.table_name AS ref_table,
+	y.column_name AS ref_column
+FROM information_schema.columns AS c
+	LEFT JOIN information_schema.key_column_usage AS u ON u.table_schema = c.table_schema AND u.table_name = c.table_name AND u.column_name = c.column_name
+	LEFT JOIN information_schema.table_constraints AS t ON u.constraint_schema = t.constraint_schema AND u.constraint_name = t.constraint_name AND constraint_type != \'CHECK\'
+
+	LEFT JOIN pg_catalog.pg_class AS it ON it.relname = c.table_name
+	LEFT JOIN pg_catalog.pg_attribute AS ia ON ia.attrelid = it.oid AND ia.attname = c.column_name
+	LEFT JOIN pg_catalog.pg_index AS ii ON ii.indrelid = it.oid AND ia.attnum = ANY (ii.indkey::INT[])
+	LEFT JOIN pg_catalog.pg_class AS ic ON ic.oid = ii.indexrelid
+
+	LEFT JOIN information_schema.referential_constraints AS f ON f.constraint_schema = t.constraint_schema AND f.constraint_name = t.constraint_name
+	LEFT JOIN information_schema.key_column_usage AS x ON x.constraint_name = f.constraint_name
+	LEFT JOIN information_schema.key_column_usage AS y ON y.ordinal_position = x.position_in_unique_constraint AND y.constraint_name = f.unique_constraint_name
+WHERE c.table_name = \'table\'
+ORDER BY pos'
             ),
             array(
                 'drop',
@@ -113,7 +120,7 @@ ORDER BY pos;'
     {
         $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', $actual);
-        $this->assertEquals('CREATE TABLE table ( foo ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
+        $this->assertEquals('CREATE TABLE table ( foo ' . $expected . ' NOT NULL )', $schema->build());
     }
 
     /**
@@ -123,7 +130,7 @@ ORDER BY pos;'
     {
         $schema = new SchemaBuilder('table', 'add');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table ADD foo ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table ADD foo ' . $expected . ' NOT NULL', $schema->build());
     }
 
     /**
@@ -133,7 +140,7 @@ ORDER BY pos;'
     {
         $schema = new SchemaBuilder('table', 'change');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table CHANGE foo foo ' . $expected . '', $schema->build());
+        $this->assertEquals('ALTER TABLE table ALTER foo TYPE '.$expected.'; ALTER TABLE table ALTER foo SET NOT NULL', $schema->build());
     }
 
     /**
@@ -143,7 +150,7 @@ ORDER BY pos;'
     {
         $schema = new SchemaBuilder('table', 'remove');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table DROP foo', $schema->build());
+        $this->assertEquals('ALTER TABLE table DROP COLUMN foo', $schema->build());
     }
 
     public function columnProvider()
@@ -151,27 +158,27 @@ ORDER BY pos;'
         return array(
             array(
                 'boolean',
-                'TINYINT(1) NOT NULL'
+                'BOOLEAN'
             ),
             array(
                 'integer',
-                'INT(11) NOT NULL',
+                'INTEGER',
             ),
             array(
                 'decimal',
-                'DECIMAL(11,4) NOT NULL',
+                'NUMERIC(11,4)',
             ),
             array(
                 'string',
-                'TEXT NOT NULL'
+                'TEXT'
             ),
             array(
                 'datetime',
-                'DATETIME NOT NULL'
+                'TIMESTAMP WITHOUT TIME ZONE'
             ),
             array(
                 'serial',
-                'BLOB NOT NULL'
+                'BYTEA'
             ),
 
         );
@@ -192,28 +199,33 @@ ORDER BY pos;'
         return array(
             array(
                 'integer',
+                array(),
+                'INTEGER NOT NULL'
+            ),
+            array(
+                'integer',
                 array('default' => 1),
-                'INT(11) DEFAULT 1'
+                'INTEGER DEFAULT 1'
             ),
             array(
                 'integer',
                 array('auto_increment'),
-                'INT(11) NOT NULL AUTO_INCREMENT'
+                'SERIAL NOT NULL'
             ),
             array(
                 'integer',
                 array('null'),
-                'INT(11) DEFAULT NULL'
+                'INTEGER DEFAULT NULL'
             ),
             array(
                 'integer',
                 array('length' => 6),
-                'INT(6) NOT NULL'
+                'INTEGER NOT NULL'
             ),
             array(
                 'string',
                 array('length' => null),
-                'TEXT NOT NULL'
+                'CHARACTER VARYING NOT NULL'
             ),
             array(
                 'string',
@@ -223,74 +235,104 @@ ORDER BY pos;'
             array(
                 'string',
                 array('length' => 512),
-                'VARCHAR(512) NOT NULL'
+                'CHARACTER VARYING NOT NULL'
             ),
             array(
                 'string',
                 array('length' => 10),
-                'CHAR(10) NOT NULL'
+                'CHARACTER VARYING NOT NULL'
             ),
             array(
                 'decimal',
                 array('precision' => 2),
-                'DECIMAL(11,2) NOT NULL'
+                'NUMERIC(11,2) NOT NULL'
             ),
             array(
                 'decimal',
                 array('length' => 6, 'precision' => 2),
-                'DECIMAL(6,2) NOT NULL'
+                'NUMERIC(6,2) NOT NULL'
             ),
         );
     }
 
     /**
-     * @dataProvider indexProvider
+     * @dataProvider createIndexProvider
      */
     public function testCreateIndex($type, $fields, $table, $expected)
     {
         $schema = new SchemaBuilder('table', 'create');
         $schema->column('foo', 'integer')
             ->index('foo', $fields, $type, $table);
-        $this->assertEquals('CREATE TABLE table ( foo INT(11) NOT NULL, ' . $expected . ' ) ENGINE=InnoDB DEFAULT CHARSET=utf8', $schema->build());
+        $this->assertEquals($expected, $schema->build());
     }
 
-    /**
-     * @dataProvider indexProvider
-     */
-    public function testAddIndex($type, $fields, $table, $expected)
-    {
-        $schema = new SchemaBuilder('table', 'add');
-        $schema->index('foo', $fields, $type, $table);
-        $this->assertEquals('ALTER TABLE table ADD ' . $expected . '', $schema->build());
-    }
-
-
-    public function indexProvider()
+    public function createIndexProvider()
     {
         return array(
             array(
                 'primary',
                 array('foo'),
                 null,
-                'PRIMARY KEY (foo)'
+                'CREATE TABLE table ( foo INTEGER NOT NULL, CONSTRAINT table_pk PRIMARY KEY (foo) )'
             ),
             array(
                 'unique',
                 array('foo'),
                 null,
-                'UNIQUE KEY table_foo (foo)'
+                'CREATE TABLE table ( foo INTEGER NOT NULL, CONSTRAINT table_foo UNIQUE (foo) )'
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'KEY table_foo (foo)'
+                'CREATE TABLE table ( foo INTEGER NOT NULL ) ; CREATE INDEX table_foo ON table ( foo )'
             ),
             array(
                 'foreign',
                 array('foo' => 'bar'),
                 'yada',
-                'CONSTRAINT table_foo FOREIGN KEY (foo) REFERENCES yada (bar) ON UPDATE CASCADE ON DELETE RESTRICT'
+                'CREATE TABLE table ( foo INTEGER NOT NULL, CONSTRAINT table_foo FOREIGN KEY (foo) REFERENCES yada (bar) MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT )'
+            ),
+        );
+    }
+
+    /**
+     * @dataProvider indexAlterProvider
+     */
+    public function testAddIndex($type, $fields, $table, $expected)
+    {
+        $schema = new SchemaBuilder('table', 'add');
+        $schema->index('foo', $fields, $type, $table);
+        $this->assertEquals($expected, $schema->build());
+    }
+
+
+    public function indexAlterProvider()
+    {
+        return array(
+            array(
+                'primary',
+                array('foo'),
+                null,
+                'ALTER TABLE table ADD CONSTRAINT table_pk PRIMARY KEY (foo)'
+            ),
+            array(
+                'unique',
+                array('foo'),
+                null,
+                'ALTER TABLE table ADD CONSTRAINT table_foo UNIQUE (foo)'
+            ),
+            array(
+                'index',
+                array('foo'),
+                null,
+                'CREATE INDEX table_foo ON table ( foo )'
+            ),
+            array(
+                'foreign',
+                array('foo' => 'bar'),
+                'yada',
+                'ALTER TABLE table ADD CONSTRAINT table_foo FOREIGN KEY (foo) REFERENCES yada (bar) MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT'
             ),
         );
     }
@@ -302,7 +344,7 @@ ORDER BY pos;'
     {
         $schema = new SchemaBuilder('table', 'remove');
         $schema->index('foo', $fields, $type, $table);
-        $this->assertEquals('ALTER TABLE table DROP ' . $expected, $schema->build());
+        $this->assertEquals($expected, $schema->build());
     }
 
     public function dropIndexProvider()
@@ -312,25 +354,25 @@ ORDER BY pos;'
                 'primary',
                 array('foo'),
                 null,
-                'PRIMARY KEY'
+                'ALTER TABLE table DROP PRIMARY KEY'
             ),
             array(
                 'unique',
                 array('foo'),
                 null,
-                'KEY table_foo',
+                'ALTER TABLE table DROP CONSTRAINT table_foo',
             ),
             array(
                 'index',
                 array('foo'),
                 null,
-                'KEY table_foo',
+                'DROP INDEX table_foo',
             ),
             array(
                 'foreign',
                 array('bar'),
                 'yada',
-                'FOREIGN KEY table_foo',
+                'ALTER TABLE table DROP CONSTRAINT table_foo',
             ),
         );
     }
@@ -355,47 +397,47 @@ ORDER BY pos;'
     {
         return array(
             array(
-                array($this->createInputColumn('column', 'tinyint', array())),
-                array($this->createOutputColumn('column', 'boolean', array())),
+                array($this->createInputColumn('column', 'boolean')),
+                array($this->createOutputColumn('column', 'boolean')),
             ),
             array(
-                array($this->createInputColumn('column', 'tinyint', array('default' => 0))),
+                array($this->createInputColumn('column', 'boolean', array('default' => 0))),
                 array($this->createOutputColumn('column', 'boolean', array('default' => 0))),
             ),
             array(
-                array($this->createInputColumn('column', 'int')),
+                array($this->createInputColumn('column', 'integer')),
                 array($this->createOutputColumn('column', 'integer')),
             ),
             array(
-                array($this->createInputColumn('column', 'int', array('length' => 5))),
+                array($this->createInputColumn('column', 'integer', array('length' => 5))),
                 array($this->createOutputColumn('column', 'integer', array('length' => 5))),
             ),
             array(
-                array($this->createInputColumn('column', 'int', array('auto_increment' => 'YES'))),
+                array($this->createInputColumn('column', 'integer', array('auto_increment' => 'YES'))),
                 array($this->createOutputColumn('column', 'integer', array('auto_increment' => true))),
             ),
             array(
-                array($this->createInputColumn('column', 'int', array('default' => 10))),
+                array($this->createInputColumn('column', 'integer', array('default' => 10))),
                 array($this->createOutputColumn('column', 'integer', array('default' => 10))),
             ),
             array(
-                array($this->createInputColumn('column', 'int', array('null' => 'YES'))),
+                array($this->createInputColumn('column', 'integer', array('null' => 'YES'))),
                 array($this->createOutputColumn('column', 'integer', array('null' => true))),
             ),
             array(
-                array($this->createInputColumn('column', 'decimal')),
+                array($this->createInputColumn('column', 'numeric')),
                 array($this->createOutputColumn('column', 'decimal')),
             ),
             array(
-                array($this->createInputColumn('column', 'decimal', array('length' => 4, 'precision' => 2))),
+                array($this->createInputColumn('column', 'numeric', array('length' => 4, 'precision' => 2))),
                 array($this->createOutputColumn('column', 'decimal', array('length' => 4, 'precision' => 2))),
             ),
             array(
-                array($this->createInputColumn('column', 'decimal', array('default' => 10.2))),
+                array($this->createInputColumn('column', 'numeric', array('default' => 10.2))),
                 array($this->createOutputColumn('column', 'decimal', array('default' => 10.2))),
             ),
             array(
-                array($this->createInputColumn('column', 'decimal', array('null' => 'YES'))),
+                array($this->createInputColumn('column', 'numeric', array('null' => 'YES'))),
                 array($this->createOutputColumn('column', 'decimal', array('null' => true))),
             ),
             array(
@@ -419,45 +461,45 @@ ORDER BY pos;'
                 array($this->createOutputColumn('column', 'string', array('null' => true))),
             ),
             array(
-                array($this->createInputColumn('column', 'datetime')),
+                array($this->createInputColumn('column', 'timestamp')),
                 array($this->createOutputColumn('column', 'datetime')),
             ),
             array(
-                array($this->createInputColumn('column', 'datetime', array('null' => 'YES'))),
+                array($this->createInputColumn('column', 'timestamp', array('null' => 'YES'))),
                 array($this->createOutputColumn('column', 'datetime', array('null' => true))),
             ),
             array(
-                array($this->createInputColumn('column', 'blob', array())),
-                array($this->createOutputColumn('column', 'serial', array())),
+                array($this->createInputColumn('column', 'bytea')),
+                array($this->createOutputColumn('column', 'serial')),
             ),
             array(
-                array($this->createInputColumn('column', 'blob', array('null' => 'YES'))),
+                array($this->createInputColumn('column', 'bytea', array('null' => 'YES'))),
                 array($this->createOutputColumn('column', 'serial', array('null' => true))),
             ),
             array(
-                array($this->createInputColumn('column', 'int', array(), array('name' => 'primary', 'type' => 'primary', 'pos' => 1))),
+                array($this->createInputColumn('column', 'integer', array(), array('name' => 'primary', 'type' => 'primary', 'pos' => 1))),
                 array($this->createOutputColumn('column', 'integer', array('length' => 0))),
                 array($this->createOutputIndex('primary', 'primary', array('column')))
             ),
             array(
-                array($this->createInputColumn('column', 'int', array(), array('name' => 'idx', 'type' => 'unique', 'pos' => 1))),
+                array($this->createInputColumn('column', 'integer', array(), array('name' => 'idx', 'type' => 'unique', 'pos' => 1))),
                 array($this->createOutputColumn('column', 'integer', array('length' => 0))),
                 array($this->createOutputIndex('idx', 'unique', array('column')))
             ),
             array(
-                array($this->createInputColumn('column', 'int', array(), array('name' => 'idx', 'type' => 'index', 'pos' => 1))),
+                array($this->createInputColumn('column', 'integer', array(), array('name' => 'idx', 'type' => 'index', 'pos' => 1))),
                 array($this->createOutputColumn('column', 'integer', array('length' => 0))),
                 array($this->createOutputIndex('idx', 'index', array('column')))
             ),
             array(
-                array($this->createInputColumn('column', 'int', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 1), array('table' => 'other', 'column' => 'ref'))),
+                array($this->createInputColumn('column', 'integer', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 1), array('table' => 'other', 'column' => 'ref'))),
                 array($this->createOutputColumn('column', 'integer', array('length' => 0))),
                 array($this->createOutputIndex('idx', 'foreign', array('column'), array('table' => 'other', 'fields' => array('ref'))))
             ),
             array(
                 array(
-                    $this->createInputColumn('columnA', 'int', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 1), array('table' => 'other', 'column' => 'refA')),
-                    $this->createInputColumn('columnB', 'int', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 2), array('table' => 'other', 'column' => 'refB'))
+                    $this->createInputColumn('columnA', 'integer', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 1), array('table' => 'other', 'column' => 'refA')),
+                    $this->createInputColumn('columnB', 'integer', array(), array('name' => 'idx', 'type' => 'foreign', 'pos' => 2), array('table' => 'other', 'column' => 'refB'))
                 ),
                 array(
                     $this->createOutputColumn('columnA', 'integer', array('length' => 0)),
@@ -502,7 +544,7 @@ ORDER BY pos;'
                 'precision' => $this->get($attributes, 'precision', 0),
                 'null' => $this->get($attributes, 'null', false),
                 'auto_increment' => $this->get($attributes, 'auto_increment', false),
-                'default' => $this->get($attributes, 'default', null)
+                'default' => $this->get($attributes, 'default', null),
             )
         );
     }

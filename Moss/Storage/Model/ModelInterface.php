@@ -19,7 +19,7 @@ use Moss\Storage\Model\Definition\RelationInterface;
  * Model interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 interface ModelInterface
 {

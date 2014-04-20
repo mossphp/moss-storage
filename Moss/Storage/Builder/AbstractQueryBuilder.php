@@ -1,63 +1,58 @@
 <?php
 
 /*
- * This file is part of the Storage package
- *
- * (c) Michal Wachowski <wachowski.michal@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+* This file is part of the moss-storage package
+*
+* (c) Michal Wachowski <wachowski.michal@gmail.com>
+*
+* For the full copyright and license information, please view the LICENSE
+* file that was distributed with this source code.
+*/
 
-namespace Moss\Storage\Builder\MySQL;
-
-use Moss\Storage\Builder\BuilderException;
-use Moss\Storage\Builder\QueryInterface;
+namespace Moss\Storage\Builder;
 
 /**
- * MySQL query builder - builds CRUD queries
+ * Abstract query builder
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\MySQL
+ * @package Moss\Storage
  */
-class Query implements QueryInterface
+abstract class AbstractQueryBuilder implements QueryBuilderInterface
 {
-    const QUOTE = '`';
-
     protected $aggregateMethods = array(
-        'distinct' => 'DISTINCT',
-        'count' => 'COUNT',
-        'average' => 'AVERAGE',
-        'max' => 'MAX',
-        'min' => 'MIN',
-        'sum' => 'SUM'
+        'distinct' => null,
+        'count' => null,
+        'average' => null,
+        'max' => null,
+        'min' => null,
+        'sum' => null
     );
 
     protected $joinTypes = array(
-        'inner' => 'INNER JOIN',
-        'left' => 'LEFT OUTER JOIN',
-        'right' => 'RIGHT OUTER JOIN',
+        'inner' => null,
+        'left' => null,
+        'right' => null
     );
 
     protected $comparisonOperators = array(
-        '=' => '=',
-        '!=' => '!=',
-        '<' => '<',
-        '>' => '>',
-        '<=' => '<=',
-        '>=' => '>=',
-        'like' => 'LIKE',
-        'regex' => 'REGEXP'
+        '=' => null,
+        '!=' => null,
+        '<' => null,
+        '>' => null,
+        '<=' => null,
+        '>=' => null,
+        'like' => null,
+        'regex' => null
     );
 
     protected $logicalOperators = array(
-        'and' => 'AND',
-        'or' => 'OR',
+        'and' => null,
+        'or' => null
     );
 
     protected $orderMethods = array(
-        'asc' => 'ASC',
-        'desc' => 'DESC',
+        'asc' => null,
+        'desc' => null
     );
 
     protected $operation;
@@ -103,25 +98,21 @@ class Query implements QueryInterface
      */
     protected function quote($string, $table = null)
     {
-        $array = explode(self::SEPARATOR, $string, 2);
-
         if ($this->operation !== 'select') {
-            return self::QUOTE . $string . self::QUOTE;
+            return $string;
         }
 
-        if (count($array) !== 2 && $table === null) {
-            return self::QUOTE . $string . self::QUOTE;
+        $array = explode(self::SEPARATOR, $string, 2);
+
+        if (count($array) === 1 && $table === null) {
+            return $string;
         }
 
         if (!isset($array[1])) {
             array_unshift($array, $table);
         }
 
-        if (strpos($array[0], self::QUOTE) !== 0) {
-            $array[0] = self::QUOTE . $array[0] . self::QUOTE;
-        }
-
-        return $array[0] . '.' . self::QUOTE . $array[1] . self::QUOTE;
+        return $array[0] . '.' . $array[1];
     }
 
     /**
@@ -248,38 +239,12 @@ class Query implements QueryInterface
         return $this;
     }
 
-    protected function buildTable()
-    {
-        $result = array();
-        $result[] = $this->table[0];
-
-        if ($this->operation !== 'select') {
-            return implode(' ', $result);
-        }
-
-        if ($this->table[1]) {
-            $result[] = 'AS';
-            $result[] = $this->table[1];
-        }
-
-        foreach ($this->joins as $node) {
-            list($type, $table, $joins) = $node;
-
-            $result[] = $this->joinTypes[$type];
-            $result[] = $table[0];
-            if ($table[1]) {
-                $result[] = 'AS';
-                $result[] = $table[1];
-            }
-            $result[] = 'ON';
-
-            foreach ($joins as $join) {
-                $result[] = $join[0] . ' = ' . $join[1];
-            }
-        }
-
-        return implode(' ', $result);
-    }
+    /**
+     * Builds table with all required joins
+     *
+     * @return string
+     */
+    abstract protected function buildTable();
 
     /**
      * Adds fields to query
@@ -291,6 +256,7 @@ class Query implements QueryInterface
     public function fields(array $fields)
     {
         $this->fields = array();
+
         foreach ($fields as $key => $val) {
             is_numeric($key) ? $this->field($val) : $this->field($key, $val);
         }
@@ -436,62 +402,34 @@ class Query implements QueryInterface
         return $this;
     }
 
-    protected function buildGroup()
-    {
-        if (empty($this->group)) {
-            return null;
-        }
-
-        return 'GROUP BY ' . implode(', ', $this->group);
-    }
+    /**
+     * Builds GROUP statement
+     *
+     * @return string
+     */
+    abstract protected function buildGroup();
 
     /**
      * Adds sub query
      *
-     * @param QueryInterface $query
-     * @param string         $alias
+     * @param QueryBuilderInterface $query
+     * @param string                $alias
      *
      * @return $this
      */
-    public function sub(QueryInterface $query, $alias)
+    public function sub(QueryBuilderInterface $query, $alias)
     {
         $this->subs[] = array($query, $this->quote($alias));
 
         return $this;
     }
 
-    protected function buildFields()
-    {
-        if (empty($this->fields)) {
-            return '*';
-        }
-
-        $result = array();
-
-        foreach ($this->aggregates as $node) {
-            $result[] = sprintF(
-                '%s(%s) AS %s',
-                $this->aggregateMethods[$node[0]],
-                $node[1],
-                $node[2]
-            );
-        }
-
-        foreach ($this->fields as $node) {
-            if ($node[1] === null) {
-                $result[] = $node[0];
-                continue;
-            }
-
-            $result[] = $node[0] . ' AS ' . $node[1];
-        }
-
-        foreach ($this->subs as $node) {
-            $result[] = '( ' . $node[0] . ' ) AS ' . $node[1];
-        }
-
-        return implode(', ', $result);
-    }
+    /**
+     * Builds field list with aggregation methods for SELECT statements
+     *
+     * @return string
+     */
+    abstract protected function buildFields();
 
     /**
      * Adds values to query
@@ -529,42 +467,19 @@ class Query implements QueryInterface
         return $this;
     }
 
-    protected function buildInsertValues()
-    {
-        if (empty($this->values)) {
-            throw new BuilderException('No values to insert');
-        }
+    /**
+     * Builds field-value definition for INSERT statements
+     *
+     * @return string
+     */
+    abstract protected function buildInsertValues();
 
-        $fields = array();
-        $values = array();
-
-        foreach ($this->values as $node) {
-            $fields[] = $node[0];
-            $values[] = ($node[1] === null ? 'NULL' : $node[1]);
-        }
-
-        return sprintf(
-            '(%s) %s (%s)',
-            implode(', ', $fields),
-            count($fields) > 1 ? 'VALUES' : 'VALUE',
-            implode(', ', $values)
-        );
-    }
-
-    protected function buildUpdateValues()
-    {
-        if (empty($this->values)) {
-            throw new BuilderException('No values to update');
-        }
-
-        $result = array();
-
-        foreach ($this->values as $node) {
-            $result[] = $node[0] . ' = ' . ($node[1] === null ? 'NULL' : $node[1]);
-        }
-
-        return 'SET ' . implode(', ', $result);
-    }
+    /**
+     * Builds field-value definition for UPDATE statements
+     *
+     * @return string
+     */
+    abstract protected function buildUpdateValues();
 
     /**
      * Adds inner join with set table
@@ -762,58 +677,14 @@ class Query implements QueryInterface
         return 'HAVING ' . implode(' ', $result);
     }
 
-    protected function buildConditions(&$conditions)
-    {
-        if (empty($conditions)) {
-            return null;
-        }
-
-        $result = array();
-
-        foreach ($conditions as $node) {
-            if (!is_array($node[0])) {
-                $result[] = $this->buildConditionString($node[0], $node[1], $node[2]);
-                $result[] = $node[3];
-                continue;
-            }
-
-            $condition = array();
-            foreach ($node[0] as $key => $field) {
-                $condition[] = $this->buildConditionString($node[0][$key], is_array($node[1]) ? $node[1][$key] : $node[1], $node[2]);
-            }
-
-            $result[] = '(' . implode(' OR ', $condition) . ')';
-            $result[] = $node[3];
-        }
-
-        array_pop($result);
-
-        return $result;
-    }
-
-    protected function buildConditionString($field, $bind, $operator)
-    {
-        if (is_array($bind)) {
-            foreach ($bind as &$val) {
-                $val = $this->buildConditionString($field, $val, $operator);
-                unset($val);
-            }
-
-            $operator = $operator === '!=' ? 'AND' : 'OR';
-
-            return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
-        }
-
-        if ($bind === null) {
-            return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
-        }
-
-        if ($operator === 'REGEXP') {
-            return sprintf('LOWER(%s) REGEXP LOWER(%s)', $field, $bind);
-        }
-
-        return $field . ' ' . $operator . ' ' . $bind;
-    }
+    /**
+     * Builds array of conditions
+     *
+     * @param array $conditions
+     *
+     * @return array
+     */
+    abstract protected function buildConditions(&$conditions);
 
     /**
      * Adds sorting to query
@@ -849,26 +720,12 @@ class Query implements QueryInterface
         return $this;
     }
 
-    protected function buildOrder()
-    {
-        if (empty($this->order)) {
-            return null;
-        }
-
-        $output = array();
-        foreach ($this->order as $node) {
-            if (!is_array($node[1])) {
-                $output[] = $node[0] . ' ' . $node[1];
-                continue;
-            }
-
-            foreach ($node[1] as $v) {
-                $output[] = $this->buildConditionString($node[0], $v, '=') . ' DESC';
-            }
-        }
-
-        return 'ORDER BY ' . implode(', ', (array) $output);
-    }
+    /**
+     * Builds ORDER BY for query
+     *
+     * @return string
+     */
+    abstract protected function buildOrder();
 
     /**
      * Sets limits to query
@@ -886,18 +743,12 @@ class Query implements QueryInterface
         return $this;
     }
 
-    protected function buildLimit()
-    {
-        if ($this->limit <= 0) {
-            return null;
-        }
-
-        if (!$this->offset) {
-            return 'LIMIT ' . (int) $this->limit;
-        }
-
-        return 'LIMIT ' . ($this->offset ? $this->offset . ',' : null) . ' ' . (int) $this->limit;
-    }
+    /**
+     * Builds LIMIT part
+     *
+     * @return string
+     */
+    abstract protected function buildLimit();
 
     /**
      * Builds query string
@@ -991,10 +842,6 @@ class Query implements QueryInterface
      */
     public function __toString()
     {
-        try {
-            return $this->build();
-        } catch (BuilderException $e) {
-            return get_class($e) . ' - ' . $e->getMessage();
-        }
+        return $this->build();
     }
-}
+} 

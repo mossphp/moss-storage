@@ -1,7 +1,7 @@
 <?php
-namespace Moss\Storage\Query;
+namespace Moss\Storage\Schema;
 
-use Moss\Storage\Builder\MySQL\Schema as Builder;
+use Moss\Storage\Builder\MySQL\SchemaBuilder as Builder;
 use Moss\Storage\Model\Definition\Field\Integer;
 use Moss\Storage\Model\Definition\Field\String;
 use Moss\Storage\Model\Definition\Index\Primary;
@@ -12,10 +12,6 @@ use Moss\Storage\Model\ModelBag;
 
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
-    /** @var Schema */
-    protected $schema;
-    protected $queryString;
-
     /**
      * @dataProvider tableProvider
      */
@@ -29,7 +25,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ->get($table)
             ->table();
 
-        $this->assertEquals(array($tableName => 'SHOW TABLES LIKE \'' . $tableName . '\''), $schema->queryString());
+        $this->assertEquals(array($tableName => 'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = \'' . $tableName . '\''), $schema->queryString());
     }
 
     /**
@@ -45,7 +41,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ->get($table)
             ->table();
 
-        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS `' . $tableName . '`'), $schema->queryString());
+        $this->assertEquals(array(0 => 'DROP TABLE IF EXISTS ' . $tableName . ''), $schema->queryString());
     }
 
     public function tableProvider()
@@ -70,8 +66,8 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     public function createProvider()
     {
         return array(
-            array('table', 'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
-            array('other', 'CREATE TABLE `test_other` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
+            array('table', 'CREATE TABLE test_table ( id INT(11) NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8'),
+            array('other', 'CREATE TABLE test_other ( id INT(11) NOT NULL AUTO_INCREMENT, text CHAR(128) DEFAULT NULL, PRIMARY KEY (id) ) ENGINE=InnoDB DEFAULT CHARSET=utf8')
         );
     }
 
@@ -90,27 +86,61 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(
-                'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
+                array(
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
+                ),
                 array()
             ),
             array(
-                'CREATE TABLE `test_table` ( `id` CHAR(10) NOT NULL, `text` CHAR(128) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array(
-                    'ALTER TABLE `test_table` DROP PRIMARY KEY',
-                    'ALTER TABLE `test_table` CHANGE `id` `id` INT(10) UNSIGNED NOT NULL',
-                    'ALTER TABLE `test_table` ADD PRIMARY KEY (`id`)',
+                    $this->createInputColumn('id', 'int', array('length' => 5, 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('text', 'char', array('length' => 128, 'null' => 'YES')),
+                ),
+                array(
+                    'ALTER TABLE test_table CHANGE id id INT(11) NOT NULL AUTO_INCREMENT'
                 )
             ),
             array(
-                'CREATE TABLE `test_table` ( `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT, `text` CHAR(1024) DEFAULT NULL, PRIMARY KEY (`id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8',
                 array(
-                    'ALTER TABLE `test_table` CHANGE `text` `text` TEXT(1024) DEFAULT NULL',
+                    $this->createInputColumn('id', 'int', array('length' => 11, 'auto_increment' => 'YES'), array('name' => 'primary', 'type' => 'primary')),
+                    $this->createInputColumn('text', 'char', array('length' => 1024, 'null' => 'YES')),
+                ),
+                array(
+                    'ALTER TABLE test_table CHANGE text text CHAR(128) DEFAULT NULL',
                 )
             ),
         );
     }
 
-    protected function mockDriver($queryString = null)
+    protected function createInputColumn($name, $type, $attributes = array(), $index = array(), $ref = array())
+    {
+        return array(
+            'pos' => 1,
+            'table_schema' => 'test',
+            'table_name' => 'test_table',
+            'column_name' => $name,
+            'column_type' => $type,
+            'column_length' => $this->get($attributes, 'length'),
+            'column_precision' => $this->get($attributes, 'precision', 0),
+            'column_nullable' => $this->get($attributes, 'null', 'NO'),
+            'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
+            'column_default' => $this->get($attributes, 'default', null),
+            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null) . $index['name'] : null,
+            'index_type' => $this->get($index, 'type', null),
+            'index_pos' => $this->get($index, 'pos', null),
+            'ref_schema' => $this->get($ref, 'schema', null),
+            'ref_table' => $this->get($ref, 'table', null),
+            'ref_column' => $this->get($ref, 'column', null),
+        );
+    }
+
+    protected function get($array, $offset, $default = null)
+    {
+        return array_key_exists($offset, $array) ? $array[$offset] : $default;
+    }
+
+    protected function mockDriver($result = null)
     {
         $driver = $this->getMock('\Moss\Storage\Driver\DriverInterface');
         $driver->expects($this->any())
@@ -123,11 +153,15 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
         $driver->expects($this->any())
             ->method('fetchField')
-            ->will($this->returnValue($queryString));
+            ->will($this->returnValue($result));
+
+        $driver->expects($this->any())
+            ->method('fetchAll')
+            ->will($this->returnValue($result));
 
         $driver->expects($this->any())
             ->method('affectedRows')
-            ->will($this->returnValue($this->queryString || $queryString ? 1 : 0));
+            ->will($this->returnValue($result ? 1 : 0));
 
         return $driver;
     }
@@ -146,7 +180,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             '\stdClass',
             'test_table',
             array(
-                new Integer('id', array('unsigned', 'auto_increment')),
+                new Integer('id', array('auto_increment')),
                 new String('text', array('length' => '128', 'null')),
             ),
             array(
@@ -161,7 +195,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             '\altClass',
             'test_other',
             array(
-                new Integer('id', array('unsigned', 'auto_increment')),
+                new Integer('id', array('auto_increment')),
                 new String('text', array('length' => '128', 'null')),
             ),
             array(

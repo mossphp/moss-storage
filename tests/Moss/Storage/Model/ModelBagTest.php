@@ -9,9 +9,9 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     public function testGetSet($name, $expected)
     {
         $bag = new ModelBag();
-        $bag->set($this->mockModel('\stdClass', 'table'), 'std');
-        $bag->set($this->mockModel('\splFileObject', 'table'), 'spl');
-        $bag->set($this->mockModel('\foo\bar\Yada', 'table'), 'yada');
+        $bag->set($this->mockModel('\stdClass', 'table_std'), 'std');
+        $bag->set($this->mockModel('\splFileObject', 'table_spl'), 'spl');
+        $bag->set($this->mockModel('\foo\bar\Yada', 'table_yada'), 'yada');
 
         $model = $bag->get($name);
         $this->assertEquals($model->entity(), $expected);
@@ -34,9 +34,9 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     public function testHas($name)
     {
         $bag = new ModelBag();
-        $bag->set($this->mockModel('\stdClass', 'table'), 'std');
-        $bag->set($this->mockModel('\splFileObject', 'table'), 'spl');
-        $bag->set($this->mockModel('\foo\bar\Yada', 'table'), 'yada');
+        $bag->set($this->mockModel('\stdClass', 'table_std'), 'std');
+        $bag->set($this->mockModel('\splFileObject', 'table_spl'), 'spl');
+        $bag->set($this->mockModel('\foo\bar\Yada', 'table_yada'), 'yada');
 
         $this->assertTrue($bag->has($name));
     }
@@ -50,7 +50,11 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
 
             array('std', 'stdClass'),
             array('spl', 'splFileObject'),
-            array('yada', 'foo\bar\Yada')
+            array('yada', 'foo\bar\Yada'),
+
+            array('table_std', 'stdClass'),
+            array('table_spl', 'splFileObject'),
+            array('table_yada', 'foo\bar\Yada')
         );
     }
 

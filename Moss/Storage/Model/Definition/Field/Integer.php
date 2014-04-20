@@ -15,17 +15,18 @@ namespace Moss\Storage\Model\Definition\Field;
  * Integer field
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Integer extends Field
 {
-    public function __construct($field, $attributes = array('length' => 11), $mapping = null)
+    public function __construct($field, $attributes = array(), $mapping = null)
     {
         $this->name = $field;
         $this->type = 'integer';
         $this->mapping = $mapping;
 
-        $this->attributes = $this->prepareAttributes($attributes);
-        $this->verifyAttribute(array('length', 'null', 'unsigned', 'auto_increment', 'default', 'comment'));
+        $default = array('length' => 11);
+        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
+        $this->verifyAttribute(array('length', 'null', 'auto_increment', 'default'));
     }
 }

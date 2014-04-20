@@ -15,7 +15,7 @@ namespace Moss\Storage\Driver;
  * PDO implementing driver interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Driver
+ * @package Moss\Storage
  */
 class PDO implements DriverInterface
 {
@@ -117,30 +117,28 @@ class PDO implements DriverInterface
      */
     public function store($value, $type)
     {
-        if (is_scalar($value) && $value !== false && strlen($value) === 0) {
+        if ($this->isNullValue($value)) {
             return null;
         }
 
-        if ($type === 'boolean' || $type === 'integer') {
-            return (int) $value;
+        switch ($type) {
+            case 'boolean':
+            case 'integer':
+                return (int) $value;
+            case 'decimal':
+                $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
+                $value = str_replace(',', '.', $value);
+
+                return (float) $value;
+            case 'datetime' && $value instanceof \DateTime:
+                return $value->format('Y-m-d H:i:s');
+            case 'serial':
+                return base64_encode(serialize($value));
+
+
+            default:
+                return $value;
         }
-
-        if ($type === 'decimal') {
-            $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
-            $value = str_replace(',', '.', $value);
-
-            return (float) $value;
-        }
-
-        if ($type === 'datetime' && $value instanceof \DateTime) {
-            return $value->format('Y-m-d H:i:s');
-        }
-
-        if ($type === 'serial') {
-            return base64_encode(serialize($value));
-        }
-
-        return $value;
     }
 
     /**
@@ -153,35 +151,40 @@ class PDO implements DriverInterface
      */
     public function restore($value, $type)
     {
-        if (is_scalar($value) && $value !== false && !strlen($value)) {
+        if ($this->isNullValue($value)) {
             return null;
         }
 
-        if ($type === 'boolean') {
-            return (bool) $value;
+        switch ($type) {
+            case 'boolean':
+                return (bool) $value;
+            case 'integer':
+                return (int) $value;
+            case 'decimal':
+                $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
+                $value = str_replace(',', '.', $value);
+                $value = strpos($value, '.') === false ? (int) $value : (float) $value;
+
+                return $value;
+            case 'datetime':
+                return new \DateTime($value);
+            case 'serial':
+                return unserialize(base64_decode($value));
+            default:
+                return $value;
         }
+    }
 
-        if ($type === 'integer') {
-            return (int) $value;
-        }
-
-        if ($type === 'decimal') {
-            $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
-            $value = str_replace(',', '.', $value);
-            $value = strpos($value, '.') === false ? (int) $value : (float) $value;
-
-            return $value;
-        }
-
-        if ($type === 'datetime') {
-            return new \DateTime($value);
-        }
-
-        if ($type === 'serial') {
-            return unserialize(base64_decode($value));
-        }
-
-        return $value;
+    /**
+     * Returns true if value is ALMOST null (empty string or null)
+     *
+     * @param $value
+     *
+     * @return bool
+     */
+    protected function isNullValue($value)
+    {
+        return is_scalar($value) && $value !== false && !strlen($value);
     }
 
     /**
@@ -223,7 +226,7 @@ class PDO implements DriverInterface
     /**
      * Returns last inserted id
      *
-     * @return string
+     * @return int
      * @throws DriverException
      */
     public function lastInsertId()
@@ -239,12 +242,12 @@ class PDO implements DriverInterface
      * Retches result element as object
      *
      * @param string $className
-     * @param array  $reCast
+     * @param array  $restore
      *
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchObject($className, $reCast = array())
+    public function fetchObject($className, $restore = array())
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -254,12 +257,12 @@ class PDO implements DriverInterface
             return false;
         }
 
-        if (empty($reCast)) {
+        if (empty($restore)) {
             return $row;
         }
 
         $ref = new \ReflectionObject($row);
-        foreach ($reCast as $field => $type) {
+        foreach ($restore as $field => $type) {
             $prop = $ref->getProperty($field);
             $prop->setAccessible(true);
 
@@ -274,12 +277,12 @@ class PDO implements DriverInterface
     /**
      * Fetches result element as associative array
      *
-     * @param array $reCast
+     * @param array $restore
      *
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchAssoc($reCast = array())
+    public function fetchAssoc($restore = array())
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -289,11 +292,11 @@ class PDO implements DriverInterface
             return false;
         }
 
-        if (empty($reCast)) {
+        if (empty($restore)) {
             return $row;
         }
 
-        foreach ($reCast as $field => $type) {
+        foreach ($restore as $field => $type) {
             $row[$field] = $this->restore($row[$field], $type);
         }
 
@@ -304,12 +307,12 @@ class PDO implements DriverInterface
      * Fetches field from result element
      *
      * @param int  $fieldNum
-     * @param null $reCast
+     * @param null $restore
      *
      * @return bool|mixed|string
      * @throws DriverException
      */
-    public function fetchField($fieldNum = 0, $reCast = null)
+    public function fetchField($fieldNum = 0, $restore = null)
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -319,12 +322,12 @@ class PDO implements DriverInterface
             return false;
         }
 
-        if (empty($reCast)) {
+        if (empty($restore)) {
             return $value;
         }
 
-        if ($reCast) {
-            $value = $this->restore($value, $reCast);
+        if ($restore) {
+            $value = $this->restore($value, $restore);
         }
 
         return $value;
@@ -334,37 +337,56 @@ class PDO implements DriverInterface
      * Fetches all results as objects or associative array
      *
      * @param string $className
-     * @param array  $unbind
+     * @param array  $restore
      *
      * @return array
      * @throws DriverException
      */
-    public function fetchAll($className = null, $unbind = array())
+    public function fetchAll($className = null, $restore = array())
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
         }
 
-        $result = array();
         if ($className === null) {
-            while ($row = $this->fetchAssoc($unbind)) {
-                $result[] = $row;
-            }
-
-            return $result;
+            return $this->fetchAllAssoc($restore);
         }
 
-        if (empty($unbind)) {
-            while ($row = $this->fetchObject($className)) {
-                $result[] = $row;
-            }
+        return $this->fetchAllObject($className, $restore);
+    }
 
-            return $result;
+    /**
+     * Fetches all result data as associative array
+     *
+     * @param array $restore
+     *
+     * @return array
+     */
+    protected function fetchAllAssoc($restore = array())
+    {
+        $result = array();
+        while ($row = $this->fetchAssoc($restore)) {
+            $result[] = $row;
         }
 
+        return $result;
+    }
+
+    /**
+     * Fetches all result data as objects
+     *
+     * @param       $className
+     * @param array $restore
+     *
+     * @return array
+     */
+    protected function fetchAllObject($className, $restore = array())
+    {
+        $result = array();
         $ref = new \ReflectionClass($className);
-        while ($row = $this->fetchObject($className)) {
-            foreach ($unbind as $field => $type) {
+
+        while ($row = $this->statement->fetchObject($className)) {
+            foreach ($restore as $field => $type) {
                 if (!$ref->hasProperty($field)) {
                     $row->$field = $this->restore($row->$field, $type);
                     continue;

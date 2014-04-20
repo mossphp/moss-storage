@@ -15,17 +15,18 @@ namespace Moss\Storage\Model\Definition\Field;
  * Serial field
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class Serial extends Field
 {
-    public function __construct($field, $attributes = array('null'), $mapping = null)
+    public function __construct($field, $attributes = array(), $mapping = null)
     {
         $this->name = $field;
         $this->type = 'serial';
         $this->mapping = $mapping;
 
-        $this->attributes = $this->prepareAttributes($attributes);
+        $default = array('null');
+        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
         $this->verifyAttribute(array('length', 'null'));
     }
 }

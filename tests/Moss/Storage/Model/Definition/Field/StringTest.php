@@ -62,7 +62,7 @@ class StringTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
     public function testAttribute($attribute, $key, $value = true)
     {
@@ -70,29 +70,37 @@ class StringTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value = true)
-    {
-        $field = new String('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
             array(array('length' => 4), 'length', 4),
             array(array('null'), 'null'),
-            array(array('comment' => 'foo'), 'comment', 'foo'),
             array(array('default' => 1), 'default', 1),
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new String('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('length' => 4), array('length' => 4)),
+            array(array('null'), array('length' => null, 'null' => true)),
+            array(array('default' => 1), array('length' => null, 'null' => true, 'default' => 1)),
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {
@@ -103,7 +111,6 @@ class StringTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array('precision'),
-            array('unsigned'),
             array('auto_increment')
         );
     }

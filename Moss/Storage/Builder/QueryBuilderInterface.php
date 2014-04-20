@@ -15,9 +15,9 @@ namespace Moss\Storage\Builder;
  * MySQL query builder interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\MySQL
+ * @package Moss\Storage
  */
-interface QueryInterface extends BuilderInterface
+interface QueryBuilderInterface extends BuilderInterface
 {
     const SEPARATOR = '.';
 
@@ -173,12 +173,12 @@ interface QueryInterface extends BuilderInterface
     /**
      * Adds sub query
      *
-     * @param QueryInterface $query
-     * @param string         $alias
+     * @param QueryBuilderInterface $query
+     * @param string                $alias
      *
      * @return $this
      */
-    public function sub(QueryInterface $query, $alias);
+    public function sub(QueryBuilderInterface $query, $alias);
 
     /**
      * Adds values to query

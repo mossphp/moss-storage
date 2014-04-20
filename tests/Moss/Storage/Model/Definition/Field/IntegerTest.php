@@ -62,7 +62,7 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
     public function testAttribute($attribute, $key, $value = true)
     {
@@ -70,31 +70,39 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value = true)
-    {
-        $field = new Integer('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
             array(array('length' => 10), 'length', 10),
             array(array('null'), 'null'),
-            array(array('unsigned'), 'unsigned'),
-            array(array('auto_increment'), 'auto_increment'),
-            array(array('default' => 123), 'default', 123),
-            array(array('comment'), 'comment')
+            array(array('auto_increment'), 'auto_increment', true),
+            array(array('default' => 123), 'default', 123)
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new Integer('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('length' => 10), array('length' => 10)),
+            array(array('null'), array('length' => 11, 'null' => true)),
+            array(array('auto_increment'), array('length' => 11, 'auto_increment' => true)),
+            array(array('default' => 123), array('length' => 11, 'null' => true, 'default' => 123))
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {

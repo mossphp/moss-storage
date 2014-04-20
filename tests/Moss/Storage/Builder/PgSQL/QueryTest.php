@@ -1,5 +1,5 @@
 <?php
-namespace Moss\Storage\Builder\MySQL;
+namespace Moss\Storage\Builder\PgSQL;
 
 class QueryTest extends \PHPUnit_Framework_TestCase
 {
@@ -235,7 +235,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', 'regex')
                 ),
-                'LOWER(t.foo) REGEXP LOWER(:bind)'
+                't.foo ~* :bind'
             ),
             array(
                 array(
@@ -310,9 +310,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     public function aggregateProvider()
     {
         return array(
-            array('DISTINCT(t.bar) AS distinct', 'distinct'),
+            array('DISTINCT t.bar AS distinct', 'distinct'),
             array('COUNT(t.bar) AS count', 'count'),
-            array('AVERAGE(t.bar) AS average', 'average'),
+            array('AVG(t.bar) AS average', 'average'),
             array('MIN(t.bar) AS min', 'min'),
             array('MAX(t.bar) AS max', 'max'),
             array('SUM(t.bar) AS sum', 'sum')
@@ -650,7 +650,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 array(
                     array('foo', ':bind', 'regex')
                 ),
-                'WHERE LOWER(foo) REGEXP LOWER(:bind)'
+                'WHERE foo ~* :bind'
             ),
             array(
                 array(

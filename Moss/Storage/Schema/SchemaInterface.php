@@ -9,16 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Moss\Storage\Query;
+namespace Moss\Storage\Schema;
 
 use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryInterface as BuilderInterface;
+use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
 
 /**
  * Schema interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Query
+ * @package Moss\Storage
  */
 interface SchemaInterface
 {

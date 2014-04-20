@@ -64,7 +64,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Field "yada" not found in model "foo"
+     * @expectedExceptionMessage Unknown field, field "yada" not found in model "foo"
      */
     public function testUndefinedField()
     {
@@ -115,7 +115,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Unknown field
+     * @expectedExceptionMessage Unknown field, field "yada" not found in model "foo"
      */
     public function testIsIndexWithInvalidField()
     {

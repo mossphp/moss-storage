@@ -15,9 +15,9 @@ namespace Moss\Storage\Builder;
  * MySQL schema builder interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Builder\MySQL
+ * @package Moss\Storage
  */
-interface SchemaInterface extends BuilderInterface
+interface SchemaBuilderInterface extends BuilderInterface
 {
     /**
      * Sets check operation on table
@@ -137,11 +137,11 @@ interface SchemaInterface extends BuilderInterface
     public function index($name, array $fields, $type = 'index', $table = null);
 
     /**
-     * Parsers create table statement into array
+     * Parsers read table structure into model-like array
      *
-     * @param string $statement
+     * @param array $struct
      *
      * @return array
      */
-    public function parse($statement);
+    public function parse(array $struct);
 }

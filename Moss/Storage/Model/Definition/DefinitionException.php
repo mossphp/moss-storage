@@ -17,7 +17,7 @@ use Moss\Storage\Model\ModelException;
  * Exception thrown by definitions
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Model
+ * @package Moss\Storage
  */
 class DefinitionException extends ModelException
 {

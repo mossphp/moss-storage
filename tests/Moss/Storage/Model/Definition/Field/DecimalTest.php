@@ -62,7 +62,7 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
     public function testAttribute($attribute, $key, $value = true)
     {
@@ -70,31 +70,39 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value = true)
-    {
-        $field = new Decimal('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
             array(array('length' => 10), 'length', 10),
-            array(array('precision' => 4), 'precision', 4),
-            array(array('null'), 'null'),
-            array(array('unsigned'), 'unsigned'),
-            array(array('default' => 12.34), 'default', 12.34),
-            array(array('comment'), 'comment')
+            array(array('precision' => 2), 'precision', 2),
+            array(array('null'), 'null', true),
+            array(array('default' => 12.34), 'default', 12.34)
+        );
+    }
+
+    /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected = array())
+    {
+        $field = new Decimal('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('length' => 10), array('length' => 10, 'precision' => 4)),
+            array(array('precision' => 2), array('length' => 11, 'precision' => 2)),
+            array(array('null'), array('length' => 11, 'precision' => 4, 'null' => true)),
+            array(array('default' => 12.34), array('length' => 11, 'precision' => 4, 'null' => true, 'default' => 12.34))
         );
     }
 
     /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {

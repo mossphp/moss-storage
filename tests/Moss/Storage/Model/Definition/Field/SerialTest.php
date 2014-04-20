@@ -62,7 +62,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider attributeProvider
+     * @dataProvider attributeValueProvider
      */
     public function testAttribute($attribute, $key, $value = true)
     {
@@ -70,16 +70,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($value, $field->attribute($key));
     }
 
-    /**
-     * @dataProvider attributeProvider
-     */
-    public function testAttributes($attribute, $key, $value = true)
-    {
-        $field = new Serial('foo', $attribute, 'bar');
-        $this->assertEquals(array($key => $value), $field->attributes($key));
-    }
-
-    public function attributeProvider()
+    public function attributeValueProvider()
     {
         return array(
             array(array('null'), 'null'),
@@ -88,9 +79,26 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @dataProvider attributeArrayProvider
+     */
+    public function testAttributes($attribute, $expected)
+    {
+        $field = new Serial('foo', $attribute, 'bar');
+        $this->assertEquals($expected, $field->attributes());
+    }
+
+    public function attributeArrayProvider()
+    {
+        return array(
+            array(array('null'), array('null' => true)),
+            array(array('length' => 4), array('null' => true, 'length' => 4)),
+        );
+    }
+
+    /**
      * @expectedException \Moss\Storage\Model\Definition\DefinitionException
      * @expectedExceptionMessage Forbidden attribute
-     * @dataProvider forbiddenAttributeProvider
+     * @dataProvider             forbiddenAttributeProvider
      */
     public function testForbiddenAttributes($attribute)
     {
@@ -101,10 +109,8 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array('precision'),
-            array('unsigned'),
             array('auto_increment'),
-            array('default'),
-            array('comment')
+            array('default')
         );
     }
 }

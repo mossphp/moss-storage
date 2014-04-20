@@ -17,7 +17,7 @@ use Moss\Storage\StorageException;
  * Exception thrown by drivers
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage\Driver
+ * @package Moss\Storage
  */
 class DriverException extends StorageException
 {
