@@ -172,17 +172,8 @@ abstract class AbstractSchemaBuilder
      */
     public function operation($operation)
     {
-        switch ($operation) {
-            case 'check':
-            case 'info':
-            case 'create':
-            case 'add':
-            case 'change':
-            case 'remove':
-            case 'drop':
-                break;
-            default:
-                throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
+        if (!in_array($operation, array('check', 'info', 'create', 'add', 'change', 'remove', 'drop'))) {
+            throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
         }
 
         $this->operation = $operation;
@@ -434,8 +425,8 @@ abstract class AbstractSchemaBuilder
             }
         }
 
-        foreach($indexes as &$node) {
-            if($node['type'] === 'foreign') {
+        foreach ($indexes as &$node) {
+            if ($node['type'] === 'foreign') {
                 $node['fields'] = array_combine($node['fields'], $node['foreign']);
             }
             unset($node['foreign'], $node);

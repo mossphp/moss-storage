@@ -113,24 +113,19 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         switch ($type) {
             case 'boolean':
                 return 'TINYINT(1)';
-                break;
             case 'integer':
                 $len = isset($attributes['length']) ? $attributes['length'] : 11;
 
                 return sprintf('INT(%u)', $len);
-                break;
             case 'decimal':
                 $len = isset($attributes['length']) ? $attributes['length'] : 11;
                 $prc = isset($attributes['precision']) ? $attributes['precision'] : 4;
 
                 return sprintf('DECIMAL(%u,%u)', $len, $prc);
-                break;
             case 'datetime':
                 return 'DATETIME';
-                break;
             case 'serial':
                 return 'BLOB';
-                break;
             case 'string':
                 $len = isset($attributes['length']) ? $attributes['length'] : null;
                 if ($len == 0 || $len > 1023) {
@@ -140,10 +135,8 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 } else {
                     return sprintf('CHAR(%u)', $len);
                 }
-                break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for field "%s"', $type, $name));
-                break;
         }
     }
 
@@ -232,19 +225,14 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         switch ($type) {
             case 'primary':
                 return 'PRIMARY KEY (' . implode(', ', $fields) . ')';
-                break;
             case 'foreign':
                 return 'CONSTRAINT ' . $this->table . '_' . $name . ' FOREIGN KEY (' . implode(', ', array_keys($fields)) . ') REFERENCES ' . $table . ' (' . implode(', ', array_values($fields)) . ') ON UPDATE CASCADE ON DELETE RESTRICT';
-                break;
             case 'unique':
                 return 'UNIQUE KEY ' . $this->table . '_' . $name . ' (' . implode(', ', $fields) . ')';
-                break;
             case 'index':
                 return 'KEY ' . $this->table . '_' . $name . ' (' . implode(', ', $fields) . ')';
-                break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
-                break;
         }
     }
 
