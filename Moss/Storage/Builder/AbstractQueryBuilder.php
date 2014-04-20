@@ -605,11 +605,11 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     /**
      * Builds generic condition array
      *
-     * @param array|string $field
-     * @param mixed        $value
-     * @param string       $comparison
-     * @param string       $logical
-     * @param callback     $quotingCallback
+     * @param array|string  $field
+     * @param mixed         $value
+     * @param string        $comparison
+     * @param string        $logical
+     * @param null|callback $quotingCallback
      *
      * @return array
      */
@@ -619,7 +619,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         $this->assertLogicalOperator($logical);
 
         if ($quotingCallback) {
-            is_array($field) ? array_walk_recursive($field, $quotingCallback) : call_user_func($quotingCallback, $field);
+            is_array($field) ? array_walk_recursive($field, $quotingCallback) : call_user_func_array($quotingCallback, array(&$field));
         }
 
         return array(
@@ -686,7 +686,12 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     protected function buildWhere()
     {
-        return 'WHERE ' . implode(' ', $this->buildConditions($this->where));
+        $conditions = $this->buildConditions($this->where);
+        if (empty($conditions)) {
+            return null;
+        }
+
+        return 'WHERE ' . implode(' ', $conditions);
     }
 
     /**
@@ -696,7 +701,12 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     protected function buildHaving()
     {
-        return 'HAVING ' . implode(' ', $this->buildConditions($this->having));
+        $conditions = $this->buildConditions($this->having);
+        if (empty($conditions)) {
+            return null;
+        }
+
+        return 'HAVING ' . implode(' ', $conditions);
     }
 
     /**
