@@ -207,7 +207,7 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
     protected function buildConditions(&$conditions)
     {
         if (empty($conditions)) {
-            return null;
+            return array();
         }
 
         $result = array();
