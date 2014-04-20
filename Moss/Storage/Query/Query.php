@@ -72,9 +72,9 @@ class Query implements QueryInterface
     /**
      * Constructor
      *
-     * @param DriverInterface  $driver
+     * @param DriverInterface       $driver
      * @param QueryBuilderInterface $builder
-     * @param ModelBag         $models
+     * @param ModelBag              $models
      */
     public function __construct(DriverInterface $driver, QueryBuilderInterface $builder, ModelBag $models)
     {
@@ -728,61 +728,81 @@ class Query implements QueryInterface
     public function join($type, $entity)
     {
         if (!$this->model->hasRelation($entity)) {
-            throw new QueryException(sprintf('Unable to join "%s" in query "%s"', $entity, $this->model->entity()));
+            throw new QueryException(sprintf('Unable to join "%s" in query "%s" undefined relation', $entity, $this->model->entity()));
         }
 
         $relation = $this->model->relation($entity);
 
-        switch ($relation->type()) {
-            case 'one':
-            case 'many':
-                $this->joins[] = array(
-                    $type,
-                    $this->models->get($entity)
-                        ->table(),
-                    $relation->keys()
-                );
+        if (in_array($relation->type(), array('one', 'many'))) {
+            $this->joinSimpleRelations($type, $entity, $relation);
 
-                foreach ($relation->localValues() as $field => $value) {
-                    $this->where($field, $value);
-                }
-
-                foreach ($relation->foreignValues() as $field => $value) {
-                    $this->where($this->buildField($field, $relation->container()), $value);
-                }
-                break;
-            case 'oneTrough':
-            case 'manyTrough':
-                $mediator = $this->models->get($relation->mediator())
-                    ->table();
-
-                $entity = $this->models->get($relation->entity())
-                    ->table();
-
-                $this->joins[] = array(
-                    $type,
-                    $mediator,
-                    $this->prefixKeys($relation->localKeys(), $this->model->table(), $mediator)
-                );
-
-                $this->joins[] = array(
-                    $type,
-                    $entity,
-                    $this->prefixKeys($relation->foreignKeys(), $mediator, $entity)
-                );
-
-                foreach ($relation->localValues() as $field => $value) {
-                    $this->where($this->buildField($field, $entity), $value);
-                }
-
-                foreach ($relation->foreignValues() as $field => $value) {
-                    $this->where($this->buildField($field, $relation->container()), $value);
-                }
-
-                break;
+            return $this;
         }
 
-        return $this;
+        if (in_array($relation->type(), array('oneTrough', 'manyTrough'))) {
+            $this->joinTroughRelations($type, $entity, $relation);
+
+            return $this;
+        }
+
+        throw new QueryException(sprintf('Unable to join "%s" in query "%s" invalid relation type', $entity, $this->model->entity()));
+    }
+
+    /**
+     * @param string                      $type
+     * @param string                      $entity
+     * @param RelationDefinitionInterface $relation
+     */
+    private function joinSimpleRelations($type, $entity, RelationDefinitionInterface $relation)
+    {
+        $this->joins[] = array(
+            $type,
+            $this->models->get($entity)
+                ->table(),
+            $relation->keys()
+        );
+
+        foreach ($relation->localValues() as $field => $value) {
+            $this->where($field, $value);
+        }
+
+        foreach ($relation->foreignValues() as $field => $value) {
+            $this->where($this->buildField($field, $relation->container()), $value);
+        }
+    }
+
+    /**
+     * @param string                      $type
+     * @param string                      $entity
+     * @param RelationDefinitionInterface $relation
+     */
+    private function joinTroughRelations($type, $entity, $relation)
+    {
+        $mediator = $this->models->get($relation->mediator())
+            ->table();
+
+        $entity = $this->models->get($entity)
+            ->table();
+
+        $this->joins[] = array(
+            $type,
+            $mediator,
+            $this->prefixKeys($relation->localKeys(), $this->model->table(), $mediator)
+        );
+
+        $this->joins[] = array(
+            $type,
+            $entity,
+            $this->prefixKeys($relation->foreignKeys(), $mediator, $entity)
+        );
+
+        foreach ($relation->localValues() as $field => $value) {
+            $this->where($this->buildField($field, $entity), $value);
+        }
+
+        foreach ($relation->foreignValues() as $field => $value) {
+            $this->where($this->buildField($field, $relation->container()), $value);
+        }
     }
 
     /**
