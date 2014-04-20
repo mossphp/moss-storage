@@ -117,7 +117,7 @@ class PDO implements DriverInterface
      */
     public function store($value, $type)
     {
-        if (is_scalar($value) && $value !== false && strlen($value) === 0) {
+        if ($this->isNullValue($value)) {
             return null;
         }
 
@@ -153,7 +153,7 @@ class PDO implements DriverInterface
      */
     public function restore($value, $type)
     {
-        if (is_scalar($value) && $value !== false && !strlen($value)) {
+        if ($this->isNullValue($value)) {
             return null;
         }
 
@@ -182,6 +182,11 @@ class PDO implements DriverInterface
         }
 
         return $value;
+    }
+
+    protected function isNullValue($value)
+    {
+        return is_scalar($value) && $value !== false && !strlen($value);
     }
 
     /**
