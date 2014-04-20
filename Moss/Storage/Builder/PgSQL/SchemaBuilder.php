@@ -114,30 +114,23 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         switch ($type) {
             case 'boolean':
                 return 'BOOLEAN';
-                break;
             case 'integer':
                 return isset($attributes['auto_increment']) && !$alter ? 'SERIAL' : 'INTEGER';
-                break;
             case 'decimal':
                 $len = isset($attributes['length']) ? $attributes['length'] : 11;
                 $prc = isset($attributes['precision']) ? $attributes['precision'] : 4;
 
                 return sprintf('NUMERIC(%u,%u)', $len, $prc);
-                break;
             case 'datetime':
                 return 'TIMESTAMP WITHOUT TIME ZONE';
-                break;
             case 'serial':
                 return 'BYTEA';
-                break;
             case 'string':
                 $len = isset($attributes['length']) ? $attributes['length'] : null;
 
                 return $len === null || $len > 1023 ? 'TEXT' : 'CHARACTER VARYING';
-                break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for field "%s"', $type, $name));
-                break;
         }
     }
 
@@ -234,19 +227,14 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         switch ($type) {
             case 'primary':
                 return 'CONSTRAINT ' . $this->table . '_pk' . ' PRIMARY KEY (' . implode(', ', $fields) . ')';
-                break;
             case 'foreign':
                 return 'CONSTRAINT ' . $this->table . '_' . $name . ' FOREIGN KEY (' . implode(', ', array_keys($fields)) . ') REFERENCES ' . $table . ' (' . implode(', ', array_values($fields)) . ') MATCH SIMPLE ON UPDATE CASCADE ON DELETE RESTRICT';
-                break;
             case 'unique':
                 return 'CONSTRAINT ' . $this->table . '_' . $name . ' UNIQUE (' . implode(', ', $fields) . ')';
-                break;
             case 'index':
                 return 'CREATE INDEX ' . $this->table . '_' . $name . ' ON ' . $this->table . ' ( ' . implode(', ', $fields) . ' )';
-                break;
             default:
                 throw new BuilderException(sprintf('Invalid type "%s" for index "%s"', $type, $name));
-                break;
         }
     }
 
@@ -269,7 +257,6 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 $stmt[] = <<<"SQL"
 SELECT table_name FROM information_schema.tables WHERE table_name = '{$this->table}'
 SQL;
-
                 break;
             case 'info':
                 $stmt[] = <<<"SQL"
