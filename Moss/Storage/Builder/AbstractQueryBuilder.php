@@ -92,7 +92,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
 
     /**
      * @param string $string
-     * @param null   $table
+     * @param null|string   $table
      *
      * @return string
      */
