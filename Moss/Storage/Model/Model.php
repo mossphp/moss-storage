@@ -166,6 +166,13 @@ class Model implements ModelInterface
         return $this->fields;
     }
 
+    protected function assertField($field)
+    {
+        if (!$this->hasField($field)) {
+            throw new ModelException(sprintf('Unknown field, field "%s" not found in model "%s"', $field, $this->entity));
+        }
+    }
+
     /**
      * Returns field definition
      *
@@ -176,9 +183,7 @@ class Model implements ModelInterface
      */
     public function field($field)
     {
-        if (!$this->hasField($field)) {
-            throw new ModelException(sprintf('Field "%s" not found in model "%s"', $field, $this->entity));
-        }
+        $this->assertField($field);
 
         return $this->fields[$field];
     }
@@ -193,17 +198,9 @@ class Model implements ModelInterface
      */
     public function isPrimary($field)
     {
-        if (!$this->hasField($field)) {
-            throw new ModelException(sprintf('Unknown field "%s" in model "%s"', $field, $this->entity));
-        }
+        $this->assertField($field);
 
-        foreach ($this->indexes as $index) {
-            if ($index->isPrimary() && $index->hasField($field)) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($this->field($field), $this->primaryFields(), true);
     }
 
     /**
@@ -237,17 +234,9 @@ class Model implements ModelInterface
      */
     public function isIndex($field)
     {
-        if (!$this->hasField($field)) {
-            throw new ModelException(sprintf('Unknown field "%s" in model "%s"', $field, $this->entity));
-        }
+        $this->assertField($field);
 
-        foreach ($this->indexes as $index) {
-            if ($index->hasField($field)) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($this->field($field), $this->indexFields(), true);
     }
 
     /**
@@ -260,9 +249,7 @@ class Model implements ModelInterface
      */
     public function inIndex($field)
     {
-        if (!$this->hasField($field)) {
-            throw new ModelException(sprintf('Unknown field "%s" in model "%s"', $field, $this->entity));
-        }
+        $this->assertField($field);
 
         $result = array();
         foreach ($this->indexes as $index) {
@@ -317,7 +304,7 @@ class Model implements ModelInterface
     public function index($index)
     {
         if (empty($this->indexes[$index])) {
-            throw new ModelException(sprintf('Unknown index "%s" in model "%s"', $index, $this->entity));
+            throw new ModelException(sprintf('Unknown index, index "%s" not found in model "%s"', $index, $this->entity));
         }
 
         return $this->indexes[$index];
@@ -366,7 +353,7 @@ class Model implements ModelInterface
     public function relation($relationName)
     {
         if (!$this->hasRelation($relationName)) {
-            throw new ModelException(sprintf('Relation "%s" not found in model "%s"', $relationName, $this->entity));
+            throw new ModelException(sprintf('Unknown relation, relation "%s" not found in model "%s"', $relationName, $this->entity));
         }
 
         return $this->relations[$relationName];
