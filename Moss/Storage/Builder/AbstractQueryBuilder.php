@@ -91,8 +91,8 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     }
 
     /**
-     * @param string $string
-     * @param null|string   $table
+     * @param string      $string
+     * @param null|string $table
      *
      * @return string
      */
@@ -579,21 +579,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function where($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->assertComparisonOperator($comparison);
-        $this->assertLogicalOperator($logical);
-
-        if (is_array($field)) {
-            array_walk_recursive($field, array($this, 'quoteWhereCallback'));
-        } else {
-            $this->quoteWhereCallback($field);
-        }
-
-        $this->where[] = array(
-            $field,
-            $value,
-            $this->comparisonOperators[$comparison],
-            $this->logicalOperators[$logical]
-        );
+        $this->where[] = $this->condition($field, $value, $comparison, $logical, array($this, 'quoteWhereCallback'));
 
         return $this;
     }
@@ -611,25 +597,46 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function having($field, $value, $comparison = '=', $logical = 'and')
     {
+        $this->having[] = $this->condition($field, $value, $comparison, $logical, array($this, 'quoteHavingCallback'));
+
+        return $this;
+    }
+
+    /**
+     * Builds generic condition array
+     *
+     * @param array|string $field
+     * @param mixed        $value
+     * @param string       $comparison
+     * @param string       $logical
+     * @param callback     $quotingCallback
+     *
+     * @return array
+     */
+    protected function condition($field, $value, $comparison = '=', $logical = 'and', $quotingCallback = null)
+    {
         $this->assertComparisonOperator($comparison);
         $this->assertLogicalOperator($logical);
 
-        if (is_array($field)) {
-            array_walk_recursive($field, array($this, 'quoteHavingCallback'));
-        } else {
-            $this->quoteHavingCallback($field);
+        if ($quotingCallback) {
+            is_array($field) ? array_walk_recursive($field, $quotingCallback) : call_user_func($quotingCallback, $field);
         }
 
-        $this->having[] = array(
+        return array(
             $field,
             $value,
             $this->comparisonOperators[$comparison],
             $this->logicalOperators[$logical]
         );
-
-        return $this;
     }
 
+    /**
+     * Asserts correct comparison operator
+     *
+     * @param string $operator
+     *
+     * @throws BuilderException
+     */
     protected function assertComparisonOperator($operator)
     {
         if (!isset($this->comparisonOperators[$operator])) {
@@ -637,6 +644,13 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         }
     }
 
+    /**
+     * Asserts correct logical operator
+     *
+     * @param string $operator
+     *
+     * @throws BuilderException
+     */
     protected function assertLogicalOperator($operator)
     {
         if (!isset($this->logicalOperators[$operator])) {
@@ -644,37 +658,45 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         }
     }
 
+    /**
+     * Quotes field names for where conditions
+     *
+     * @param $field
+     */
     protected function quoteWhereCallback(&$field)
     {
         $field = $this->quote($field, $this->mapping());
     }
 
+    /**
+     * Quotes field names for having conditions
+     *
+     * @param $field
+     */
     protected function quoteHavingCallback(&$field)
     {
         $table = isset($this->aggregates[$field]) ? null : $this->mapping();
         $field = $this->quote($field, $table);
     }
 
+    /**
+     * Builds where query part
+     *
+     * @return string
+     */
     protected function buildWhere()
     {
-        if (empty($this->where)) {
-            return null;
-        }
-
-        $result = $this->buildConditions($this->where);
-
-        return 'WHERE ' . implode(' ', $result);
+        return 'WHERE ' . implode(' ', $this->buildConditions($this->where));
     }
 
+    /**
+     * Builds having query part
+     *
+     * @return string
+     */
     protected function buildHaving()
     {
-        if (empty($this->having)) {
-            return null;
-        }
-
-        $result = $this->buildConditions($this->having);
-
-        return 'HAVING ' . implode(' ', $result);
+        return 'HAVING ' . implode(' ', $this->buildConditions($this->having));
     }
 
     /**
