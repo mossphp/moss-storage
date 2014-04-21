@@ -20,7 +20,7 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Moss\Storage\Model\ModelException
      * @expectedExceptionMessage does not exists
-     * @dataProvider nameProvider
+     * @dataProvider             nameProvider
      */
     public function testGetUndefined($name)
     {
@@ -58,13 +58,17 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    protected function mockModel($entity, $table)
+    protected function mockModel($entity, $table, $alias = null)
     {
         $mock = $this->getMock('Moss\Storage\Model\ModelInterface');
 
         $mock->expects($this->any())
             ->method('entity')
             ->will($this->returnValue(ltrim($entity, '\\')));
+
+        $mock->expects($this->any())
+            ->method('alias')
+            ->will($this->returnCallback(function ($arg = null) use (&$alias) { return $alias = $arg; }));
 
         $mock->expects($this->any())
             ->method('table')

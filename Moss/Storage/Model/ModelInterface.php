@@ -38,6 +38,24 @@ interface ModelInterface
     public function entity();
 
     /**
+     * Returns alias
+     *
+     * @param string $alias
+     *
+     * @return string
+     */
+    public function alias($alias = null);
+
+    /**
+     * Returns true if models table, entity or alias matches name
+     *
+     * @param string $name
+     *
+     * @return boolean
+     */
+    public function isNamed($name);
+
+    /**
      * Returns true if model has field
      *
      * @param string $field

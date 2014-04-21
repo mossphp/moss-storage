@@ -14,13 +14,11 @@ namespace Moss\Storage\Query;
 use Moss\Storage\Builder\QueryBuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Relation\ManyRelation;
-use Moss\Storage\Query\Relation\ManyTroughRelation;
-use Moss\Storage\Query\Relation\OneRelation;
-use Moss\Storage\Query\Relation\OneTroughRelation;
+use Moss\Storage\Query\Join\JoinFactory;
+use Moss\Storage\Query\Join\JoinInterface;
+use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationInterface;
 
 /**
@@ -47,8 +45,6 @@ class Query implements QueryInterface
 
     private $operation;
 
-    private $joins = array();
-
     private $fields = array();
     private $aggregates = array();
     private $group = array();
@@ -66,8 +62,17 @@ class Query implements QueryInterface
     private $binds = array();
     private $casts = array();
 
+    /** @var JoinInterface[] */
+    private $joins = array();
+
+    /** @var JoinFactory */
+    private $joinFactory;
+
     /** @var RelationInterface[] */
     private $relations = array();
+
+    /** @var RelationFactory */
+    private $relationFactory;
 
     /**
      * Constructor
@@ -81,6 +86,9 @@ class Query implements QueryInterface
         $this->driver = & $driver;
         $this->builder = & $builder;
         $this->models = & $models;
+
+        $this->joinFactory = new JoinFactory($this->models);
+        $this->relationFactory = new RelationFactory($this, $this->models);
     }
 
     /**
@@ -366,27 +374,33 @@ class Query implements QueryInterface
      */
     private function resolveField($field)
     {
-        $relation = $this->model->table();
+        $relation = $this->model->entity();
         if (strpos($field, QueryBuilderInterface::SEPARATOR) !== false) {
             list($relation, $field) = explode(QueryBuilderInterface::SEPARATOR, $field, 2);
         }
+        $relation = trim($relation, '\\');
 
-        if ($this->model->table() === $relation && $this->model->hasField($field)) {
+        if ($this->model->isNamed($relation) && $this->model->hasField($field)) {
             return $this->model->field($field);
         }
 
-        if ($this->models->has($relation)) {
-            if ($this->model == $this->models->get($relation) && $this->model->hasField($field)) {
-                return $this->model->field($field);
-            }
-
-            $model = $this->models->get($relation);
-            if ($this->model->hasRelation($relation) && $model->hasField($field)) {
-                return $model->field($field);
+        foreach ($this->joins as $join) {
+            if ($join->isNamed($relation)) {
+                return $join->field($field);
             }
         }
 
-        throw new QueryException(sprintf('Unable to access field "%s" in query "%s"', $field, $this->model->entity()));
+        foreach ($this->aggregates as $node) {
+            if ($node[2] === $field) {
+                return array(
+                    'table' => null,
+                    'mapping' => $field,
+                    'type' => 'decimal'
+                );
+            }
+        }
+
+        throw new QueryException(sprintf('Unable to access field "%s.%s" in query "%s" or in joined models', $relation, $field, $this->model->entity()));
     }
 
     /**
@@ -723,105 +737,12 @@ class Query implements QueryInterface
      * @param string $entity
      *
      * @return $this
-     * @throws QueryException
      */
     public function join($type, $entity)
     {
-        if (!$this->model->hasRelation($entity)) {
-            throw new QueryException(sprintf('Unable to join "%s" in query "%s" undefined relation', $entity, $this->model->entity()));
-        }
+        $this->joins[] = $this->joinFactory->create($this->model, $type, $entity);
 
-        $relation = $this->model->relation($entity);
-
-        if (in_array($relation->type(), array('one', 'many'))) {
-            $this->joinSimpleRelations($type, $entity, $relation);
-
-            return $this;
-        }
-
-        if (in_array($relation->type(), array('oneTrough', 'manyTrough'))) {
-            $this->joinTroughRelations($type, $entity, $relation);
-
-            return $this;
-        }
-
-        throw new QueryException(sprintf('Unable to join "%s" in query "%s" invalid relation type', $entity, $this->model->entity()));
-    }
-
-    /**
-     * @param string                      $type
-     * @param string                      $entity
-     * @param RelationDefinitionInterface $relation
-     */
-    private function joinSimpleRelations($type, $entity, RelationDefinitionInterface $relation)
-    {
-        $this->joins[] = array(
-            $type,
-            $this->models->get($entity)
-                ->table(),
-            $relation->keys()
-        );
-
-        foreach ($relation->localValues() as $field => $value) {
-            $this->where($field, $value);
-        }
-
-        foreach ($relation->foreignValues() as $field => $value) {
-            $this->where($this->buildField($field, $relation->container()), $value);
-        }
-    }
-
-    /**
-     * @param string                      $type
-     * @param string                      $entity
-     * @param RelationDefinitionInterface $relation
-     */
-    private function joinTroughRelations($type, $entity, $relation)
-    {
-        $mediator = $this->models->get($relation->mediator())
-            ->table();
-
-        $entity = $this->models->get($entity)
-            ->table();
-
-        $this->joins[] = array(
-            $type,
-            $mediator,
-            $this->prefixKeys($relation->localKeys(), $this->model->table(), $mediator)
-        );
-
-        $this->joins[] = array(
-            $type,
-            $entity,
-            $this->prefixKeys($relation->foreignKeys(), $mediator, $entity)
-        );
-
-        foreach ($relation->localValues() as $field => $value) {
-            $this->where($this->buildField($field, $entity), $value);
-        }
-
-        foreach ($relation->foreignValues() as $field => $value) {
-            $this->where($this->buildField($field, $relation->container()), $value);
-        }
-    }
-
-    /**
-     * Prefixes local/foreign keys with table name
-     *
-     * @param array $keys
-     * @param       $localPrefix
-     * @param       $foreignPrefix
-     *
-     * @return array
-     */
-    private function prefixKeys(array $keys, $localPrefix, $foreignPrefix)
-    {
-        $result = array();
-        foreach ($keys as $local => $foreign) {
-            $result[$this->buildField($local, $localPrefix)] = $this->buildField($foreign, $foreignPrefix);
-        }
-
-        return $result;
+        return $this;
     }
 
     /**
@@ -837,34 +758,7 @@ class Query implements QueryInterface
      */
     public function where($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->assertComparison($comparison);
-        $this->assertLogical($logical);
-
-
-        $fields = array();
-        $values = array();
-
-        if (!is_array($field) && is_array($value)) {
-            $f = $this->resolveField($field);
-            foreach ($value as $i => $v) {
-                $fields[$i] = $this->buildField($f->mapping(), $f->table());
-                $values[] = $v === null ? null : $this->bindValues($f->mapping(), $f->type(), $v);
-            }
-        } else {
-            foreach ((array) $field as $i => $f) {
-                $this->assertFieldName($f);
-
-                $f = $this->resolveField($f);
-                $fields[] = $this->buildField($f->mapping(), $f->table());
-                if ($value === null || $value === array()) {
-                    $values[] = null;
-                } else {
-                    $values[] = $this->bindValues($f->mapping(), $f->type(), is_array($value) ? $value[$i] : $value);
-                }
-            }
-        }
-
-        $this->where[] = array($fields, $values, $comparison, $logical);
+        $this->where[] = $this->condition($field, $value, $comparison, $logical);
 
         return $this;
     }
@@ -882,36 +776,110 @@ class Query implements QueryInterface
      */
     public function having($field, $value, $comparison = '=', $logical = 'and')
     {
+        $this->having[] = $this->condition($field, $value, $comparison, $logical);
+
+        return $this;
+    }
+
+    /**
+     * Adds where condition to builder
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     * @throws QueryException
+     */
+    public function condition($field, $value, $comparison, $logical)
+    {
         $this->assertComparison($comparison);
         $this->assertLogical($logical);
 
-        $fields = array();
-        $values = array();
-
         if (!is_array($field) && is_array($value)) {
-            $f = $this->resolveHavingField($field);
-            foreach ($value as $i => $v) {
-                $fields[$i] = $this->buildField($f['mapping'], $f['table']);
-                $values[] = $v === null ? null : $this->bindValues($f['mapping'], $f['type'], $v);
-            }
+            list($fields, $values) = $this->buildSingularFieldCondition($field, $value);
         } else {
-            foreach ((array) $field as $i => $f) {
-                $this->assertFieldName($f);
+            list($fields, $values) = $this->buildMultipleFieldsCondition($field, $value);
+        }
 
-                $f = $this->resolveHavingField($f);
-                $fields[] = $this->buildField($f['mapping'], $f['table']);
+        return array($fields, $values, $comparison, $logical);
+    }
 
-                if ($value === null || $value === array()) {
-                    $values[] = null;
-                } else {
-                    $values[] = $this->bindValues($f['mapping'], $f['type'], is_array($value) ? $value[$i] : $value);
-                }
+    /**
+     * Builds condition for singular field
+     *
+     * @param string       $field
+     * @param string|array $value
+     * @param array        $resultFields
+     * @param array        $resultValues
+     *
+     * @return array
+     */
+    protected function buildSingularFieldCondition($field, $value, $resultFields = array(), $resultValues = array())
+    {
+        $this->assertFieldName($field);
+        $f = $this->resolveFieldAsArray($this->resolveField($field));
+
+        foreach ($value as $i => $v) {
+            $resultFields[$i] = $this->buildField($f['mapping'], $f['table']);
+            $resultValues[] = $v === null ? null : $this->bindValues($f['mapping'], $f['type'], $v);
+        }
+
+        return array(
+            $resultFields,
+            $resultValues
+        );
+    }
+
+    /**
+     * Builds conditions for multiple fields
+     *
+     * @param array        $field
+     * @param string|array $value
+     * @param array        $resultFields
+     * @param array        $resultValues
+     *
+     * @return array
+     */
+    protected function buildMultipleFieldsCondition($field, $value, $resultFields = array(), $resultValues = array())
+    {
+        foreach ((array) $field as $i => $f) {
+            $this->assertFieldName($f);
+            $f = $this->resolveFieldAsArray($this->resolveField($f));
+
+            $resultFields[] = $this->buildField($f['mapping'], $f['table']);
+            if ($value === null || $value === array()) {
+                $resultValues[] = null;
+            } else {
+                $resultValues[] = $this->bindValues($f['mapping'], $f['type'], is_array($value) ? $value[$i] : $value);
             }
         }
 
-        $this->having[] = array($fields, $values, $comparison, $logical);
+        return array(
+            $resultFields,
+            $resultValues
+        );
+    }
 
-        return $this;
+    /**
+     * Translates field into array
+     *
+     * @param mixed $field
+     *
+     * @return array
+     */
+    protected function resolveFieldAsArray($field)
+    {
+        if (is_array($field)) {
+            return $field;
+        }
+
+        return array(
+            'table' => $field->table(),
+            'mapping' => $field->mapping(),
+            'type' => $field->type(),
+        );
     }
 
     /**
@@ -921,39 +889,11 @@ class Query implements QueryInterface
      *
      * @throws QueryException
      */
-    private function assertFieldName($field)
+    protected function assertFieldName($field)
     {
         if (!is_scalar($field)) {
-            throw new QueryException(sprintf('Expected field name, got "%s" in query "%s"', $this->getType($field), $this->model->entity()));
+            throw new QueryException(sprintf('Expected field name, got "%s" in query "%s"', gettype($field), $this->model->entity()));
         }
-    }
-
-    /**
-     * Resolves field name for having conditions
-     *
-     * @param string $field
-     *
-     * @return array
-     */
-    private function resolveHavingField($field)
-    {
-        foreach ($this->aggregates as $node) {
-            if ($node[2] === $field) {
-                return array(
-                    'table' => null,
-                    'mapping' => $field,
-                    'type' => 'decimal'
-                );
-            }
-        }
-
-        $field = $this->resolveField($field);
-
-        return array(
-            'table' => $field->table(),
-            'mapping' => $field->mapping(),
-            'type' => $field->type()
-        );
     }
 
     /**
@@ -963,7 +903,7 @@ class Query implements QueryInterface
      *
      * @throws QueryException
      */
-    private function assertComparison($operator)
+    protected function assertComparison($operator)
     {
         $comparisonOperators = array('=', '!=', '<', '<=', '>', '>=', 'like', 'regex');
 
@@ -979,7 +919,7 @@ class Query implements QueryInterface
      *
      * @throws QueryException
      */
-    private function assertLogical($operator)
+    protected function assertLogical($operator)
     {
         $comparisonOperators = array('or', 'and');
 
@@ -997,7 +937,7 @@ class Query implements QueryInterface
      *
      * @return array|string
      */
-    private function bindValues($name, $type, $values)
+    protected function bindValues($name, $type, $values)
     {
         if (!is_array($values)) {
             return $this->bind('condition', $name, $type, $values);
@@ -1083,92 +1023,11 @@ class Query implements QueryInterface
      */
     public function with($relation, array $conditions = array(), array $order = array())
     {
-        if (!is_array($relation)) {
-            $this->assignRelation($relation, $conditions, $order);
-
-            return $this;
-        }
-
-        foreach (array_keys($relation) as $i) {
-            $this->assignRelation(
-                $relation[$i],
-                isset($conditions[$i]) ? $conditions[$i] : array(),
-                isset($order[$i]) ? $order[$i] : array()
-            );
+        foreach ($this->relationFactory->create($this->model, $relation, $conditions, $order) as $rel) {
+            $this->relations[] = $rel;
         }
 
         return $this;
-    }
-
-    /**
-     * Assigns relation to query
-     *
-     * @param string $relation
-     * @param array  $conditions
-     * @param array  $order
-     *
-     * @throws QueryException
-     */
-    private function assignRelation($relation, array $conditions = array(), array $order = array())
-    {
-        list($relation, $furtherRelations) = $this->splitRelationName($relation);
-
-        $definition = $this->model->relation($relation);
-
-        $query = new self($this->driver, $this->builder, $this->models);
-        $query->operation('read', $definition->entity());
-
-        $instance = $this->buildRelationInstance($relation, $definition, $query);
-
-        foreach ($conditions as $node) {
-            if (!is_array($node)) {
-                throw new QueryException(sprintf('Invalid condition, must be an array, got %s', gettype($node)));
-            }
-
-            $instance->query()
-                ->where($node[0], $node[1], isset($node[2]) ? $node[2] : '=', isset($node[3]) ? $node[3] : 'and');
-        }
-
-        foreach ($order as $node) {
-            if (!is_array($node)) {
-                throw new QueryException(sprintf('Invalid order, must be an array, got %s', gettype($node)));
-            }
-
-            $instance->query()
-                ->order($node[0], isset($node[1]) ? $node[1] : 'desc');
-        }
-
-        if ($furtherRelations) {
-            $instance->with($furtherRelations);
-        }
-
-        $this->relations[$relation] = $instance;
-    }
-
-    /**
-     * Builds relation instance
-     *
-     * @param $relation
-     * @param $definition
-     * @param $query
-     *
-     * @return ManyRelation|ManyTroughRelation|OneRelation|OneTroughRelation
-     * @throws QueryException
-     */
-    private function buildRelationInstance($relation, RelationDefinitionInterface $definition, $query)
-    {
-        switch ($definition->type()) {
-            case 'one':
-                return new OneRelation($query, $definition, $this->models);
-            case 'many':
-                return new ManyRelation($query, $definition, $this->models);
-            case 'oneTrough':
-                return new OneTroughRelation($query, $definition, $this->models);
-            case 'manyTrough':
-                return new ManyTroughRelation($query, $definition, $this->models);
-            default:
-                throw new QueryException(sprintf('Invalid relation type "%s" in relation "%s" for "%s"', $definition->type(), $relation, $this->model->entity()));
-        }
     }
 
     /**
@@ -1181,7 +1040,7 @@ class Query implements QueryInterface
      */
     public function relation($relation)
     {
-        list($relation, $furtherRelations) = $this->splitRelationName($relation);
+        list($relation, $furtherRelations) = $this->relationFactory->splitRelationName($relation);
 
         if (!isset($this->relations[$relation])) {
             throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $relation, $this->model->entity()));
@@ -1194,22 +1053,6 @@ class Query implements QueryInterface
         }
 
         return $instance;
-    }
-
-    /**
-     * Splits relation name
-     *
-     * @param string $relationName
-     *
-     * @return array
-     */
-    private function splitRelationName($relationName)
-    {
-        if (strpos($relationName, '.') !== false) {
-            return explode('.', $relationName, 2);
-        }
-
-        return array($relationName, null);
     }
 
     /**
@@ -1330,8 +1173,14 @@ class Query implements QueryInterface
         $this->builder->reset()
             ->select($this->model->table());
 
-        foreach ($this->joins as $node) {
-            $this->builder->join($node[0], $node[1], $node[2]);
+        foreach ($this->joins as $join) {
+            foreach ($join->joints() as $node) {
+                $this->builder->join($node[0], $node[1], $node[2]);
+            }
+
+            foreach ($join->conditions() as $node) {
+                $this->builder->where($node[0], $node[1], $node[2], $node[3]);
+            }
         }
 
         foreach ($this->fields as $node) {

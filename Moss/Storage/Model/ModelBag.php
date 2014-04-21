@@ -84,7 +84,7 @@ class ModelBag
 
         $key = preg_replace('/_?[^\w\d]+/i', '_', $model->table());
 
-        $alias = $alias ? $alias : $key;
+        $alias = $model->alias($alias ? $alias : $key);
         $this->byAlias[$alias] = & $this->collection[$hash];
 
         $entity = $model->entity() ? ltrim($model->entity(), '\\') : $key;
