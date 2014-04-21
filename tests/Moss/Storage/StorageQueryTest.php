@@ -143,6 +143,10 @@ class StorageQueryTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('stdClass'));
 
         $mock->expects($this->any())
+            ->method('alias')
+            ->will($this->returnValue('entity'));
+
+        $mock->expects($this->any())
             ->method('primaryFields')
             ->will($this->returnValue(array()));
 

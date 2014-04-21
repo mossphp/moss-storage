@@ -147,10 +147,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
             ->read('table')
+            ->join('left', 'other')
             ->fields($fields);
 
         $expected = array(
-            'SELECT ' . $queryPart . ' FROM test_table',
+            'SELECT ' . $queryPart . ' FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id',
             array()
         );
 
@@ -370,11 +371,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag($type));
         $query->reset()
-            ->read('table')
-            ->field('table.id')
-            ->field('other.id');
+            ->read('table');
 
         call_user_func(array($query, $join . 'Join'), 'other');
+
+        $query->field('table.id')
+            ->field('other.id');
 
         $expected = array(
             $queryString,
