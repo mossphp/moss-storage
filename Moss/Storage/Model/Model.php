@@ -26,6 +26,7 @@ class Model implements ModelInterface
 
     protected $table;
     protected $entity;
+    protected $alias;
 
     /** @var array|FieldInterface[] */
     protected $fields = array();
@@ -142,6 +143,34 @@ class Model implements ModelInterface
     public function entity()
     {
         return $this->entity;
+    }
+
+    /**
+     * Returns alias
+     *
+     * @param string $alias
+     *
+     * @return string
+     */
+    public function alias($alias = null)
+    {
+        if($alias !== null) {
+            $this->alias = $alias;
+        }
+
+        return $this->alias;
+    }
+
+    /**
+     * Returns true if models table, entity or alias matches name
+     *
+     * @param string $name
+     *
+     * @return boolean
+     */
+    public function isNamed($name)
+    {
+        return $this->table == $name || $this->entity == $name || $this->alias == $name;
     }
 
     /**
