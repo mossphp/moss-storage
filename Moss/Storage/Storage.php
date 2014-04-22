@@ -11,9 +11,12 @@
 
 namespace Moss\Storage;
 
+use Moss\Storage\Builder\BuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\QueryInterface;
+use Moss\Storage\Schema\SchemaInterface;
 
 /**
  * Abstract class implementing basic storage functionality
@@ -30,6 +33,7 @@ abstract class Storage implements StorageInterface
     /** @var ModelBag */
     protected $bag;
 
+    /** @var QueryInterface|SchemaInterface  */
     protected $instance;
 
     /**
@@ -40,6 +44,16 @@ abstract class Storage implements StorageInterface
     public function getDriver()
     {
         return $this->driver;
+    }
+
+    /**
+     * Returns builder instance
+     *
+     * @return BuilderInterface
+     */
+    public function getBuilder()
+    {
+        return $this->instance->builder();
     }
 
     /**
@@ -62,7 +76,7 @@ abstract class Storage implements StorageInterface
      *
      * @return ModelBag
      */
-    public function models()
+    public function getModels()
     {
         return $this->bag;
     }
