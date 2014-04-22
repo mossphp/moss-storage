@@ -84,47 +84,43 @@ interface DriverInterface
 
     /**
      * Retches result element as object
-
      *
-*@param string $className
-     * @param array $restore
+     * @param string $className
+     * @param array  $restore
      *
-*@return bool|mixed
+     * @return bool|mixed
      * @throws DriverException
      */
     public function fetchObject($className, $restore = array());
 
     /**
      * Fetches result element as associative array
-
      *
-*@param array $restore
+     * @param array $restore
      *
-*@return bool|mixed
+     * @return bool|mixed
      * @throws DriverException
      */
     public function fetchAssoc($restore = array());
 
     /**
      * Fetches field from result element
-
      *
-*@param int  $fieldNum
+     * @param int  $fieldNum
      * @param null $restore
      *
-*@return bool|mixed|string
+     * @return bool|mixed|string
      * @throws DriverException
      */
     public function fetchField($fieldNum = 0, $restore = null);
 
     /**
      * Fetches all results as objects or associative array
-
      *
-*@param string $className
-     * @param array $restore
+     * @param string $className
+     * @param array  $restore
      *
-*@return array
+     * @return array
      * @throws DriverException
      */
     public function fetchAll($className = null, $restore = array());
