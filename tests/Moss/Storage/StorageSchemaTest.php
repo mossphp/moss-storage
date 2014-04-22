@@ -41,7 +41,7 @@ class StorageSchemaTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeEquals('alter', 'operation', $query);
     }
 
-    public  function testDrop()
+    public function testDrop()
     {
         $storage = new StorageSchema($this->mockDriver(), $this->mockBuilder());
         $query = $storage->drop();
@@ -50,18 +50,92 @@ class StorageSchemaTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeEquals('drop', 'operation', $query);
     }
 
-    protected function mockDriver($affectedRows = 0)
+    public function testTransactionStart()
+    {
+        $storage = new StorageSchema($this->mockDriver(), $this->mockBuilder());
+        $storage->transactionStart();
+        $this->assertTrue($storage->transactionCheck());
+    }
+
+    public function testTransactionCommit()
+    {
+        $storage = new StorageSchema($this->mockDriver(), $this->mockBuilder());
+        $storage->transactionStart();
+        $this->assertTrue($storage->transactionCheck());
+        $storage->transactionCommit();
+        $this->assertFalse($storage->transactionCheck());
+    }
+
+    public function testTransactionRollback()
+    {
+        $storage = new StorageSchema($this->mockDriver(), $this->mockBuilder());
+        $storage->transactionStart();
+        $this->assertTrue($storage->transactionCheck());
+        $storage->transactionRollback();
+        $this->assertFalse($storage->transactionCheck());
+    }
+
+    protected function mockDriver($affectedRows = 0, $transaction = false)
     {
         $mock = $this->getMock('Moss\Storage\Driver\DriverInterface');
+
         $mock->expects($this->any())
             ->method('prepare')
             ->will($this->returnSelf());
+
         $mock->expects($this->any())
             ->method('execute')
             ->will($this->returnSelf());
+
         $mock->expects($this->any())
             ->method('affectedRows')
             ->will($this->returnValue($affectedRows));
+
+        $mock->expects($this->any())
+            ->method('transactionStart')
+            ->will(
+                $this->returnCallback(
+                    function () use (&$transaction) {
+                        if ($transaction) {
+                            throw new DriverException();
+                        }
+
+                        return $transaction = true;
+                    }
+                )
+            );
+
+        $mock->expects($this->any())
+            ->method('transactionCommit')
+            ->will(
+                $this->returnCallback(
+                    function () use (&$transaction) {
+                        if (!$transaction) {
+                            throw new DriverException();
+                        }
+
+                        return $transaction = false;
+                    }
+                )
+            );
+
+        $mock->expects($this->any())
+            ->method('transactionRollback')
+            ->will(
+                $this->returnCallback(
+                    function () use (&$transaction) {
+                        if (!$transaction) {
+                            throw new DriverException();
+                        }
+
+                        return $transaction = false;
+                    }
+                )
+            );
+
+        $mock->expects($this->any())
+            ->method('transactionCheck')
+            ->will($this->returnCallback(function () use (&$transaction) { return $transaction; }));
 
         return $mock;
     }
@@ -69,9 +143,11 @@ class StorageSchemaTest extends \PHPUnit_Framework_TestCase
     protected function mockBuilder()
     {
         $mock = $this->getMock('Moss\Storage\Builder\SchemaBuilderInterface');
+
         $mock->expects($this->any())
             ->method('reset')
             ->will($this->returnSelf());
+
         $mock->expects($this->any())
             ->method('select')
             ->will($this->returnSelf());
