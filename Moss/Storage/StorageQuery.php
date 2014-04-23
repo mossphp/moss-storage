@@ -22,7 +22,7 @@ use Moss\Storage\Query\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class StorageQuery extends Storage
+class StorageQuery extends AbstractStorage
 {
     /**
      * Constructor

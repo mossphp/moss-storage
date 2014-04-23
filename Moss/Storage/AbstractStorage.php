@@ -24,7 +24,7 @@ use Moss\Storage\Schema\SchemaInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-abstract class Storage implements StorageInterface
+abstract class AbstractStorage implements StorageInterface
 {
 
     /** @var DriverInterface */

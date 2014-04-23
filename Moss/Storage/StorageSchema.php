@@ -22,7 +22,7 @@ use Moss\Storage\Schema\Schema;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class StorageSchema extends Storage
+class StorageSchema extends AbstractStorage
 {
     /**
      * Constructor
