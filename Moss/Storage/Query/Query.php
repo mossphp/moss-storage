@@ -214,9 +214,9 @@ class Query implements QueryInterface
     /**
      * Sets and prepares query operation
      *
-     * @param string       $operation
-     * @param string       $entity
-     * @param array|object $instance
+     * @param string            $operation
+     * @param string            $entity
+     * @param null|array|object $instance
      *
      * @return $this
      * @throws QueryException
@@ -273,8 +273,8 @@ class Query implements QueryInterface
     /**
      * Prepares query for operations using entity instance
      *
-     * @param string $operation
-     * @param string $entity
+     * @param string       $operation
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -397,7 +397,7 @@ class Query implements QueryInterface
     protected function checkIfEntityExists($entity, $instance)
     {
         $query = new self($this->driver, $this->builder, $this->models);
-        $query->num($entity, $instance);
+        $query->num($entity);
 
         $model = $this->models->get($entity);
         foreach ($model->primaryFields() as $field) {
