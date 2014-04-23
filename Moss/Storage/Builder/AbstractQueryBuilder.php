@@ -876,4 +876,4 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     {
         return $this->build();
     }
-} 
+}
