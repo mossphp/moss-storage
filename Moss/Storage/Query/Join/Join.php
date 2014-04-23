@@ -62,8 +62,8 @@ class Join implements JoinInterface
         $this->target = $target;
         $this->mediator = $mediator;
 
-        $this->buildConditions($this->relation->localValues(), $this->source, $this->conditions);
-        $this->buildConditions($this->relation->foreignValues(), $this->target, $this->conditions);
+        $this->buildConditions($this->relation->localValues(), $this->source->table(), $this->conditions);
+        $this->buildConditions($this->relation->foreignValues(), $this->target->table(), $this->conditions);
 
         if (in_array($relation->type(), array('one', 'many'))) {
             $this->joints[] = $this->buildJoint(
@@ -198,7 +198,7 @@ class Join implements JoinInterface
      */
     protected function buildJoint($type, $table, $keys, $source, $target)
     {
-        return array($type, $table(), $this->prefixKeys($keys, $source, $target));
+        return array($type, $table, $this->prefixKeys($keys, $source, $target));
     }
 
     /**
@@ -228,7 +228,7 @@ class Join implements JoinInterface
     protected function buildConditions($keys, $table, &$conditions = array())
     {
         foreach ($keys as $field => $value) {
-            $conditions[] = array($this->buildField($field, $this->source->table()), $value, '=', 'and');
+            $conditions[] = array($this->buildField($field, $table), $value, '=', 'and');
         }
     }
 
