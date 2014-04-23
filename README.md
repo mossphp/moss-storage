@@ -1,5 +1,9 @@
 # Moss Storage
 
+[![Build Status](https://travis-ci.org/potfur/moss-storage.png?branch=master)](https://travis-ci.org/potfur/moss-storage)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/quality-score.png?s=6b11b311a9dfe2d150f9b2ac8568426b2ed3bc9f)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
+[![Code Coverage](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/coverage.png?s=f1e8ae97cb136068a9592fbb8f694cb392ec2a24)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
+
 `Storage` is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss) but can be used in other projects.
 In philosophy similar to _Data Mapper_ pattern, that moves data between objects and database and tries to keep them independent of each other.
 

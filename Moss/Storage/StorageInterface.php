@@ -45,7 +45,7 @@ interface StorageInterface
      *
      * @return ModelBag
      */
-    public function models();
+    public function getModels();
 
     /**
      * Starts transaction

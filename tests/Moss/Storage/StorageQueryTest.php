@@ -12,8 +12,27 @@
 namespace Moss\Storage;
 
 
+use Moss\Storage\Driver\DriverException;
+
 class StorageQueryTest extends \PHPUnit_Framework_TestCase
 {
+    public function testGetDriver()
+    {
+        $storage = new StorageQuery($this->mockDriver(), $this->mockBuilder());
+        $this->assertInstanceOf('\Moss\Storage\Driver\DriverInterface', $storage->getDriver());
+    }
+
+    public function testGetModels()
+    {
+        $storage = new StorageQuery($this->mockDriver(), $this->mockBuilder());
+        $this->assertInstanceOf('\Moss\Storage\Model\ModelBag', $storage->getModels());
+    }
+
+    public function testGetBuilder()
+    {
+        $storage = new StorageQuery($this->mockDriver(), $this->mockBuilder());
+        $this->assertInstanceOf('\Moss\Storage\Builder\QueryBuilderInterface', $storage->getBuilder());
+    }
 
     public function testNum()
     {
@@ -105,18 +124,92 @@ class StorageQueryTest extends \PHPUnit_Framework_TestCase
         $this->assertAttributeEquals('clear', 'operation', $query);
     }
 
-    protected function mockDriver($affectedRows = 0)
+    public function testTransactionStart()
+    {
+        $storage = new StorageQuery($this->mockDriver(), $this->mockBuilder());
+        $storage->transactionStart();
+        $this->assertTrue($storage->transactionCheck());
+    }
+
+    public function testTransactionCommit()
+    {
+        $storage = new StorageQuery($this->mockDriver(), $this->mockBuilder());
+        $storage->transactionStart();
+        $this->assertTrue($storage->transactionCheck());
+        $storage->transactionCommit();
+        $this->assertFalse($storage->transactionCheck());
+    }
+
+    public function testTransactionRollback()
+    {
+        $storage = new StorageQuery($this->mockDriver(), $this->mockBuilder());
+        $storage->transactionStart();
+        $this->assertTrue($storage->transactionCheck());
+        $storage->transactionRollback();
+        $this->assertFalse($storage->transactionCheck());
+    }
+
+    protected function mockDriver($affectedRows = 0, $transaction = false)
     {
         $mock = $this->getMock('Moss\Storage\Driver\DriverInterface');
+
         $mock->expects($this->any())
             ->method('prepare')
             ->will($this->returnSelf());
+
         $mock->expects($this->any())
             ->method('execute')
             ->will($this->returnSelf());
+
         $mock->expects($this->any())
             ->method('affectedRows')
             ->will($this->returnValue($affectedRows));
+
+        $mock->expects($this->any())
+            ->method('transactionStart')
+            ->will(
+                $this->returnCallback(
+                    function () use (&$transaction) {
+                        if ($transaction) {
+                            throw new DriverException();
+                        }
+
+                        return $transaction = true;
+                    }
+                )
+            );
+
+        $mock->expects($this->any())
+            ->method('transactionCommit')
+            ->will(
+                $this->returnCallback(
+                    function () use (&$transaction) {
+                        if (!$transaction) {
+                            throw new DriverException();
+                        }
+
+                        return $transaction = false;
+                    }
+                )
+            );
+
+        $mock->expects($this->any())
+            ->method('transactionRollback')
+            ->will(
+                $this->returnCallback(
+                    function () use (&$transaction) {
+                        if (!$transaction) {
+                            throw new DriverException();
+                        }
+
+                        return $transaction = false;
+                    }
+                )
+            );
+
+        $mock->expects($this->any())
+            ->method('transactionCheck')
+            ->will($this->returnCallback(function () use (&$transaction) { return $transaction; }));
 
         return $mock;
     }
@@ -124,9 +217,11 @@ class StorageQueryTest extends \PHPUnit_Framework_TestCase
     protected function mockBuilder()
     {
         $mock = $this->getMock('Moss\Storage\Builder\QueryBuilderInterface');
+
         $mock->expects($this->any())
             ->method('reset')
             ->will($this->returnSelf());
+
         $mock->expects($this->any())
             ->method('select')
             ->will($this->returnSelf());

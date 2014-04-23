@@ -107,6 +107,22 @@ WHERE c.table_name = \'table\'
 ORDER BY pos'
             ),
             array(
+                'create',
+                'CREATE TABLE table ( foo TEXT NOT NULL ) ; CREATE INDEX table_idx ON table ( foo )'
+            ),
+            array(
+                'add',
+                'ALTER TABLE table ADD foo TEXT NOT NULL; CREATE INDEX table_idx ON table ( foo )'
+            ),
+            array(
+                'change',
+                'ALTER TABLE table ALTER foo TYPE TEXT; ALTER TABLE table ALTER foo SET NOT NULL'
+            ),
+            array(
+                'remove',
+                'ALTER TABLE table DROP COLUMN foo; DROP INDEX table_idx'
+            ),
+            array(
                 'drop',
                 'DROP TABLE IF EXISTS table'
             )
@@ -140,7 +156,7 @@ ORDER BY pos'
     {
         $schema = new SchemaBuilder('table', 'change');
         $schema->column('foo', $actual);
-        $this->assertEquals('ALTER TABLE table ALTER foo TYPE '.$expected.'; ALTER TABLE table ALTER foo SET NOT NULL', $schema->build());
+        $this->assertEquals('ALTER TABLE table ALTER foo TYPE ' . $expected . '; ALTER TABLE table ALTER foo SET NOT NULL', $schema->build());
     }
 
     /**
@@ -266,6 +282,30 @@ ORDER BY pos'
         $this->assertEquals($expected, $schema->build());
     }
 
+    /**
+     * @dataProvider createIndexProvider
+     */
+    public function testCreateIndexAliases($type, $fields, $table, $expected)
+    {
+        $schema = new SchemaBuilder('table', 'create');
+        $schema->column('foo', 'integer');
+        switch ($type) {
+            case 'primary':
+                $schema->primary($fields);
+                break;
+            case 'unique':
+                $schema->unique('foo', $fields);
+                break;
+            case 'index':
+                $schema->index('foo', $fields);
+                break;
+            case 'foreign':
+                $schema->foreign('foo', $fields, $table);
+                break;
+        }
+        $this->assertEquals($expected, $schema->build());
+    }
+
     public function createIndexProvider()
     {
         return array(
@@ -303,6 +343,29 @@ ORDER BY pos'
     {
         $schema = new SchemaBuilder('table', 'add');
         $schema->index('foo', $fields, $type, $table);
+        $this->assertEquals($expected, $schema->build());
+    }
+
+    /**
+     * @dataProvider indexAlterProvider
+     */
+    public function testAddIndexAlias($type, $fields, $table, $expected)
+    {
+        $schema = new SchemaBuilder('table', 'add');
+        switch ($type) {
+            case 'primary':
+                $schema->primary($fields);
+                break;
+            case 'unique':
+                $schema->unique('foo', $fields);
+                break;
+            case 'index':
+                $schema->index('foo', $fields);
+                break;
+            case 'foreign':
+                $schema->foreign('foo', $fields, $table);
+                break;
+        }
         $this->assertEquals($expected, $schema->build());
     }
 
@@ -344,6 +407,29 @@ ORDER BY pos'
     {
         $schema = new SchemaBuilder('table', 'remove');
         $schema->index('foo', $fields, $type, $table);
+        $this->assertEquals($expected, $schema->build());
+    }
+
+    /**
+     * @dataProvider dropIndexProvider
+     */
+    public function testRemoveIndexAlias($type, $fields, $table, $expected)
+    {
+        $schema = new SchemaBuilder('table', 'remove');
+        switch ($type) {
+            case 'primary':
+                $schema->primary($fields);
+                break;
+            case 'unique':
+                $schema->unique('foo', $fields);
+                break;
+            case 'index':
+                $schema->index('foo', $fields);
+                break;
+            case 'foreign':
+                $schema->foreign('foo', $fields, $table);
+                break;
+        }
         $this->assertEquals($expected, $schema->build());
     }
 
@@ -525,7 +611,7 @@ ORDER BY pos'
             'column_nullable' => $this->get($attributes, 'null', 'NO'),
             'column_auto_increment' => $this->get($attributes, 'auto_increment', 'NO'),
             'column_default' => $this->get($attributes, 'default', null),
-            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null).$index['name'] : null,
+            'index_name' => array_key_exists('name', $index) ? (array_key_exists('type', $index) && $index['type'] !== 'primary' ? 'table_' : null) . $index['name'] : null,
             'index_type' => $this->get($index, 'type', null),
             'index_pos' => $this->get($index, 'pos', null),
             'ref_schema' => $this->get($ref, 'schema', null),

@@ -410,9 +410,14 @@ class PDO implements DriverInterface
      * Starts transaction
      *
      * @return $this
+     * @throws DriverException
      */
     public function transactionStart()
     {
+        if ($this->transactionCheck()) {
+            throw new DriverException(sprintf('Unable to start transaction, already started'));
+        }
+
         $this->pdo->beginTransaction();
 
         return $this;
@@ -427,7 +432,7 @@ class PDO implements DriverInterface
     public function transactionCommit()
     {
         if (!$this->transactionCheck()) {
-            throw new DriverException(sprintf('No transactions to commit'));
+            throw new DriverException(sprintf('Unable to commit, no transactions started'));
         }
 
         $this->pdo->commit();
@@ -444,7 +449,7 @@ class PDO implements DriverInterface
     public function transactionRollback()
     {
         if (!$this->transactionCheck()) {
-            throw new DriverException(sprintf('No transactions to rollback'));
+            throw new DriverException(sprintf('Unable to rollback, no transactions started'));
         }
 
         $this->pdo->rollBack();
