@@ -22,9 +22,9 @@ class OneRelation extends Relation
     /**
      * Executes read for one-to-one relation
      *
-     * @param array|\ArrayAccess $result
+     * @param array|\Traversable $result
      *
-     * @return array|\ArrayAccess
+     * @return array|\Traversable
      */
     public function read(&$result)
     {
