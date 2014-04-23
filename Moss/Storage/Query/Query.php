@@ -174,7 +174,7 @@ class Query implements QueryInterface
     /**
      * Sets write operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -185,10 +185,11 @@ class Query implements QueryInterface
         $this->assertEntityInstance($entity, $instance);
 
         if ($this->checkIfEntityExists($entity, $instance)) {
-            $this->update($entity, $instance);
-        } else {
-            $this->insert($entity, $instance);
+            return $this->update($entity, $instance);
         }
+
+        return $this->insert($entity, $instance);
+
     }
 
     /**
@@ -221,7 +222,7 @@ class Query implements QueryInterface
     /**
      * Sets insert operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -243,7 +244,7 @@ class Query implements QueryInterface
     /**
      * Sets update operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -271,7 +272,7 @@ class Query implements QueryInterface
     /**
      * Sets delete operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -313,8 +314,8 @@ class Query implements QueryInterface
     /**
      * Sets query operation
      *
-     * @param string $operation
-     * @param string $entity
+     * @param string       $operation
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
