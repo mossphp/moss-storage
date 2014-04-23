@@ -13,7 +13,6 @@ namespace Moss\Storage\Query\Join;
 
 
 use Moss\Storage\Model\ModelBag;
-use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\QueryException;
 
 class JoinFactory
@@ -29,27 +28,30 @@ class JoinFactory
     /**
      * Creates join instance
      *
-     * @param ModelInterface $model
-     * @param string         $type
-     * @param string         $entity
+     * @param string $entity
+     * @param string $type
+     * @param string $join
      *
      * @return JoinInterface
      * @throws QueryException
      */
-    public function create(ModelInterface $model, $type, $entity)
+    public function create($entity, $type, $join)
     {
-        if (!$model->hasRelation($entity)) {
-            throw new QueryException(sprintf('Unable to join "%s" in query "%s" undefined relation', $entity, $model->entity()));
+        $model = $this->bag->get($entity);
+
+        if (!$model->hasRelation($join)) {
+            throw new QueryException(sprintf('Unable to join "%s" in query "%s" undefined relation', $join, $model->entity()));
         }
 
-        $relation = $model->relation($entity);
+        $relation = $model->relation($join);
 
         return new Join(
             $type,
             $relation,
             $this->bag->get($entity),
-            $relation->mediator() ? $this->bag->get($relation->mediator()) : null,
-            $entity
+            $this->bag->get($join),
+            in_array($relation->type(), array('oneTrough', 'manyTrough')) ? $this->bag->get($relation->mediator()) : null,
+            $join
         );
     }
 } 

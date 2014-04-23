@@ -740,7 +740,7 @@ class Query implements QueryInterface
      */
     public function join($type, $entity)
     {
-        $this->joins[] = $this->joinFactory->create($this->model, $type, $entity);
+        $this->joins[] = $this->joinFactory->create($this->model->entity(), $type, $entity);
 
         return $this;
     }
