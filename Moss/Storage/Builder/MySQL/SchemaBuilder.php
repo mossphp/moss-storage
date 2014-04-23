@@ -153,10 +153,9 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 } else {
                     return sprintf('CHAR(%u)', $len);
                 }
-                break;
-            default:
-                throw new BuilderException(sprintf('Invalid type "%s" for field "%s"', $type, $name));
         }
+
+        throw new BuilderException(sprintf('Invalid type "%s" for field "%s"', $type, $name));
     }
 
     /**
