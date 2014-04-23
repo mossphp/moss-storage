@@ -532,7 +532,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      * Adds join to query
      *
      * @param string $type
-     * @param array  $table
+     * @param string  $table
      * @param array  $joins
      * @param string $alias
      *
