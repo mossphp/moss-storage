@@ -215,6 +215,14 @@ abstract class Relation implements RelationInterface
         return;
     }
 
+    /**
+     * Returns array with entities that should be deleted or false otherwise
+     *
+     * @param $entity
+     * @param $conditions
+     *
+     * @return array|bool
+     */
     private function isCleanupNecessary($entity, $conditions)
     {
         if (empty($collection) || empty($conditions)) {

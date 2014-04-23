@@ -17,34 +17,82 @@ use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\RelationInterface;
 use Moss\Storage\Query\QueryException;
 
+/**
+ * Table join definition
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 class Join implements JoinInterface
 {
 
-
     protected $type;
+
+    /** @var RelationInterface */
     protected $relation;
-    protected $entity;
+
+    /** @var ModelInterface */
+    protected $source;
+
+    /** @var ModelInterface */
+    protected $target;
+
+    /** @var ModelInterface */
     protected $mediator;
 
     private $joints = array();
     private $conditions = array();
 
-    public function __construct($type, RelationInterface $relation, ModelInterface $entity, ModelInterface $mediator = null, $alias = null)
+    /**
+     * Constructor
+     *
+     * @param string            $type
+     * @param RelationInterface $relation
+     * @param ModelInterface    $source
+     * @param ModelInterface    $target
+     * @param ModelInterface    $mediator
+     *
+     * @throws QueryException
+     */
+    public function __construct($type, RelationInterface $relation, ModelInterface $source, ModelInterface $target, ModelInterface $mediator = null)
     {
-        $this->name = $alias ? $alias : preg_replace('/_?[^\w\d]+/i', '_', $entity->table());
         $this->type = $type;
         $this->relation = $relation;
-        $this->entity = $entity;
+        $this->source = $source;
+        $this->target = $target;
         $this->mediator = $mediator;
 
+        $this->buildConditions($this->relation->localValues(), $this->source->table(), $this->conditions);
+        $this->buildConditions($this->relation->foreignValues(), $this->target->table(), $this->conditions);
+
         if (in_array($relation->type(), array('one', 'many'))) {
-            $this->joinSimpleRelations($type, $entity, $relation);
+            $this->joints[] = $this->buildJoint(
+                $this->type,
+                $this->target->table(),
+                $this->relation->keys(),
+                $this->source->table(),
+                $this->target->table()
+            );
 
             return;
         }
 
         if (in_array($relation->type(), array('oneTrough', 'manyTrough'))) {
-            $this->joinTroughRelations($type, $entity, $relation);
+            $this->joints[] = $this->buildJoint(
+                $this->type,
+                $this->mediator->table(),
+                $this->relation->localKeys(),
+                $this->source->table(),
+                $this->mediator->table()
+            );
+
+            $this->joints[] = $this->buildJoint(
+                $this->type,
+                $this->target->table(),
+                $this->relation->foreignKeys(),
+                $this->mediator->table(),
+                $this->target->table()
+            );
 
             return;
         }
@@ -69,7 +117,7 @@ class Join implements JoinInterface
      */
     public function alias()
     {
-        return $this->entity->alias();
+        return $this->target->alias();
     }
 
     /**
@@ -81,7 +129,7 @@ class Join implements JoinInterface
      */
     public function isNamed($name)
     {
-        return $this->entity->isNamed($name);
+        return $this->target->isNamed($name);
     }
 
     /**
@@ -91,7 +139,7 @@ class Join implements JoinInterface
      */
     public function entity()
     {
-        return $this->entity->entity();
+        return $this->target->entity();
     }
 
     /**
@@ -101,7 +149,7 @@ class Join implements JoinInterface
      */
     public function fields()
     {
-        return $this->entity->fields();
+        return $this->target->fields();
     }
 
 
@@ -114,7 +162,7 @@ class Join implements JoinInterface
      */
     public function field($field)
     {
-        return $this->entity->field($field);
+        return $this->target->field($field);
     }
 
     /**
@@ -137,44 +185,20 @@ class Join implements JoinInterface
         return $this->conditions;
     }
 
-    protected function joinSimpleRelations()
+    /**
+     * Builds joint definition
+     *
+     * @param string $type
+     * @param string $table
+     * @param array  $keys
+     * @param string $source
+     * @param string $target
+     *
+     * @return array
+     */
+    protected function buildJoint($type, $table, $keys, $source, $target)
     {
-        $this->joints[] = array(
-            $this->type,
-            $this->entity->table(),
-            $this->relation->keys()
-        );
-
-        foreach ($this->relation->localValues() as $field => $value) {
-            $this->conditions[] = array($field, $value, '=', 'and');
-        }
-
-        foreach ($this->relation->foreignValues() as $field => $value) {
-            $this->conditions[] = array($this->buildField($field, $this->relation->container()), $value, '=', 'and');
-        }
-    }
-
-    protected function joinTroughRelations()
-    {
-        $this->joints[] = array(
-            $this->type,
-            $this->mediator->table(),
-            $this->prefixKeys($this->relation->localKeys(), null, $this->mediator->table())
-        );
-
-        $this->joints[] = array(
-            $this->type,
-            $this->entity->table(),
-            $this->prefixKeys($this->relation->foreignKeys(), $this->mediator->table(), $this->entity->table())
-        );
-
-        foreach ($this->relation->localValues() as $field => $value) {
-            $this->conditions[] = array($this->buildField($field, $this->entity->table()), $value, '=', 'and');
-        }
-
-        foreach ($this->relation->foreignValues() as $field => $value) {
-            $this->conditions[] = array($this->buildField($field, $this->relation->container()), $value, '=', 'and');
-        }
+        return array($type, $table, $this->prefixKeys($keys, $source, $target));
     }
 
     /**
@@ -194,6 +218,18 @@ class Join implements JoinInterface
         }
 
         return $result;
+    }
+
+    /**
+     * @param array  $keys
+     * @param string $table
+     * @param array  $conditions
+     */
+    protected function buildConditions($keys, $table, &$conditions = array())
+    {
+        foreach ($keys as $field => $value) {
+            $conditions[] = array($this->buildField($field, $table), $value, '=', 'and');
+        }
     }
 
     /**

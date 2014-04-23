@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
-use Moss\Storage\Model\Definition\DefinitionException;
-
 /**
  * One to one relation
  *
@@ -21,15 +19,20 @@ use Moss\Storage\Model\Definition\DefinitionException;
  */
 class One extends Relation
 {
+    /**
+     * Constructor
+     *
+     * @param string      $entity
+     * @param array       $keys
+     * @param null|string $container
+     */
     public function __construct($entity, array $keys, $container = null)
     {
         $this->entity = $entity ? ltrim($entity, '\\') : null;
         $this->type = 'one';
         $this->container = $this->containerName($container);
 
-        if (empty($keys)) {
-            throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
-        }
+        $this->assertKeys($keys);
 
         $this->assignKeys($keys, $this->keys);
         $this->in = array_keys($this->keys);

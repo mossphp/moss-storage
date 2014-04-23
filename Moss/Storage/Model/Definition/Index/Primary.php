@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Model\Definition\Index;
 
-use Moss\Storage\Model\Definition\DefinitionException;
-
 /**
  * Defines primary key
  *
@@ -21,14 +19,17 @@ use Moss\Storage\Model\Definition\DefinitionException;
  */
 class Primary extends Index
 {
+    /**
+     * Constructor
+     *
+     * @param array $fields
+     */
     public function __construct(array $fields)
     {
         $this->name = 'primary';
         $this->type = 'primary';
 
-        if (empty($fields)) {
-            throw new DefinitionException('No fields in primary key definition');
-        }
+        $this->assertFields($fields);
 
         $this->fields = $fields;
     }

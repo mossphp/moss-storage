@@ -27,16 +27,34 @@ class Index implements IndexInterface
     protected $type;
     protected $fields = array();
 
+    /**
+     * Constructor
+     *
+     * @param string $name
+     * @param array $fields
+     */
     public function __construct($name, array $fields)
     {
         $this->name = $name;
         $this->type = 'index';
 
+        $this->assertFields($fields);
+
+        $this->fields = $fields;
+    }
+
+    /**
+     * Asserts index fields
+     *
+     * @param array $fields
+     *
+     * @throws DefinitionException
+     */
+    protected function assertFields($fields)
+    {
         if (empty($fields)) {
             throw new DefinitionException(sprintf('No fields in index "%s" definition', $this->name));
         }
-
-        $this->fields = $fields;
     }
 
     /**

@@ -22,9 +22,9 @@ class ManyTroughRelation extends Relation
     /**
      * Executes read for one-to-many relation
      *
-     * @param array|\ArrayAccess $result
+     * @param array|\Traversable $result
      *
-     * @return array|\ArrayAccess
+     * @return array|\Traversable
      */
     public function read(&$result)
     {
@@ -141,7 +141,7 @@ class ManyTroughRelation extends Relation
 
         $conditions = array();
         foreach ($this->relation->localKeys() as $foreign) {
-            foreach($mediators as $mediator) {
+            foreach ($mediators as $mediator) {
                 $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
             }
         }

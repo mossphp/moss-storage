@@ -14,6 +14,7 @@ namespace Moss\Storage;
 use Moss\Storage\Builder\QueryBuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\ModelBag;
+use Moss\Storage\Query\QueryInterface;
 use Moss\Storage\Query\Query;
 
 /**
@@ -22,8 +23,11 @@ use Moss\Storage\Query\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class StorageQuery extends Storage
+class StorageQuery extends AbstractStorage
 {
+    /** @var QueryInterface|Query */
+    protected $instance;
+
     /**
      * Constructor
      *

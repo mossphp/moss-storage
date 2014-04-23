@@ -102,12 +102,30 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         return $nodes;
     }
 
-
+    /**
+     * Builds column
+     *
+     * @param string $name
+     * @param string $type
+     * @param array  $attributes
+     *
+     * @return string
+     */
     private function buildColumn($name, $type, array $attributes)
     {
         return $name . ' ' . $this->buildColumnType($name, $type, $attributes) . ' ' . $this->buildColumnAttributes($type, $attributes);
     }
 
+    /**
+     * Builds column type part
+     *
+     * @param string $name
+     * @param string $type
+     * @param array  $attributes
+     *
+     * @return string
+     * @throws BuilderException
+     */
     private function buildColumnType($name, $type, array $attributes)
     {
         switch ($type) {
@@ -135,11 +153,19 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
                 } else {
                     return sprintf('CHAR(%u)', $len);
                 }
-            default:
-                throw new BuilderException(sprintf('Invalid type "%s" for field "%s"', $type, $name));
         }
+
+        throw new BuilderException(sprintf('Invalid type "%s" for field "%s"', $type, $name));
     }
 
+    /**
+     * Builds columns attributes part
+     *
+     * @param string $type
+     * @param array  $attributes
+     *
+     * @return string
+     */
     private function buildColumnAttributes($type, array $attributes)
     {
         $node = array();
@@ -220,6 +246,17 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
         return $nodes;
     }
 
+    /**
+     * Builds index
+     *
+     * @param string      $name
+     * @param array       $fields
+     * @param string      $type
+     * @param null|string $table
+     *
+     * @return string
+     * @throws BuilderException
+     */
     private function buildIndex($name, array $fields, $type = 'index', $table = null)
     {
         switch ($type) {

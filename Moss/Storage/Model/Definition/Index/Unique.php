@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Model\Definition\Index;
 
-use Moss\Storage\Model\Definition\DefinitionException;
-
 /**
  * Defines unique index for model
  *
@@ -26,14 +24,18 @@ class Unique extends Index
     protected $type;
     protected $fields = array();
 
+    /**
+     * Constructor
+     *
+     * @param string $name
+     * @param array  $fields
+     */
     public function __construct($name, array $fields)
     {
         $this->name = $name;
         $this->type = 'unique';
 
-        if (empty($fields)) {
-            throw new DefinitionException(sprintf('No fields in index "%s" definition', $this->name));
-        }
+        $this->assertFields($fields);
 
         $this->fields = $fields;
     }

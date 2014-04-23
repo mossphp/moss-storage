@@ -208,6 +208,11 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
+    /**
+     * Returns table alias if exists or its name
+     *
+     * @return string
+     */
     protected function mapping()
     {
         return $this->table[1] ? $this->table[1] : $this->table[0];
@@ -527,7 +532,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      * Adds join to query
      *
      * @param string $type
-     * @param array  $table
+     * @param string  $table
      * @param array  $joins
      * @param string $alias
      *
@@ -876,4 +881,4 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
     {
         return $this->build();
     }
-} 
+}

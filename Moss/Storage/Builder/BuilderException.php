@@ -22,3 +22,4 @@ use Moss\Storage\StorageException;
 class BuilderException extends StorageException
 {
 }
+

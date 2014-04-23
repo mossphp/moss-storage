@@ -19,6 +19,13 @@ namespace Moss\Storage\Model\Definition\Field;
  */
 class Boolean extends Field
 {
+    /**
+     * Constructor
+     *
+     * @param string $field
+     * @param array  $attributes
+     * @param null|string $mapping
+     */
     public function __construct($field, $attributes = array(), $mapping = null)
     {
         $this->name = $field;

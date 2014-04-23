@@ -13,6 +13,12 @@ namespace Moss\Storage\Query\Join;
 
 use Moss\Storage\Model\Definition\FieldInterface;
 
+/**
+ * Table join definition interface
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 interface JoinInterface
 {
     /**

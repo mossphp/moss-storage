@@ -158,6 +158,44 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $query->queryString());
     }
 
+    /**
+     * @dataProvider fieldsProvider
+     */
+    public function testReadFieldsSimpleJoinWithConditions($fields, $queryPart)
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag('one', array('id' => ':foo'), array('id' => ':bar')));
+        $query->reset()
+            ->read('table')
+            ->join('left', 'other')
+            ->fields($fields);
+
+        $expected = array(
+            'SELECT ' . $queryPart . ' FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id WHERE test_table.id = :foo AND test_other.id = :bar',
+            array()
+        );
+
+        $this->assertEquals($expected, $query->queryString());
+    }
+
+    /**
+     * @dataProvider fieldsProvider
+     */
+    public function testReadFieldsTroughJoinWithConditions($fields, $queryPart)
+    {
+        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag('oneTrough', array('id' => ':foo'), array('id' => ':bar')));
+        $query->reset()
+            ->read('table')
+            ->join('left', 'other')
+            ->fields($fields);
+
+        $expected = array(
+            'SELECT ' . $queryPart . ' FROM test_table LEFT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id LEFT OUTER JOIN test_other ON test_mediator.out_id = test_other.id WHERE test_table.id = :foo AND test_other.id = :bar',
+            array()
+        );
+
+        $this->assertEquals($expected, $query->queryString());
+    }
+
     public function fieldsProvider()
     {
         return array(
@@ -257,7 +295,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
         $query->reset()
             ->read('table')
-            ->where('id', 1, '=', 'foo');
+            ->where('id', 1, '=', ':foo');
     }
 
     /**
@@ -686,7 +724,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         return $builder;
     }
 
-    protected function mockModelBag($relType = 'one')
+    protected function mockModelBag($relType = 'one', $localValues = array(), $foreignValues= array())
     {
         $table = new Model(
             '\stdClass',
@@ -699,7 +737,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
                 new Primary(array('id')),
             ),
             array(
-                $this->mockRelation($relType)
+                $this->mockRelation($relType, $localValues, $foreignValues)
             )
         );
 
@@ -735,19 +773,33 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         return $bag;
     }
 
-    protected function mockRelation($relType)
+    protected function mockRelation($relType, $localValues = array(), $foreignValues= array())
     {
         switch ($relType) {
             case 'one':
             default:
-                return new One('\altClass', array('id' => 'id'), 'other');
+                $relation= new One('\altClass', array('id' => 'id'), 'other');
+                break;
             case 'many':
-                return new Many('\altClass', array('id' => 'id'), 'other');
+                $relation = new Many('\altClass', array('id' => 'id'), 'other');
+                break;
             case 'oneTrough':
-                return new OneTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
+                $relation = new OneTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
+                break;
             case 'manyTrough':
-                return new ManyTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
+                $relation = new ManyTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
+                break;
         }
+
+        if($localValues) {
+            $relation->localValues($localValues);
+        }
+
+        if($foreignValues) {
+            $relation->foreignValues($foreignValues);
+        }
+
+        return $relation;
     }
 }
  

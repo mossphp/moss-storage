@@ -36,7 +36,14 @@ abstract class Relation implements RelationInterface
     protected $local = array();
     protected $foreign = array();
 
-    protected function containerName($container)
+    /**
+     * Returns container name or builds it from namespaced class name if passed name is empty string
+     *
+     * @param null|string $container
+     *
+     * @return string
+     */
+    protected function containerName($container = null)
     {
         if ($container) {
             return $container;
@@ -50,6 +57,12 @@ abstract class Relation implements RelationInterface
         return substr($this->entity, strrpos($this->entity, '\\') + 1);
     }
 
+    /**
+     * Assigns key pairs to passed container
+     *
+     * @param array $keys
+     * @param array $container
+     */
     protected function assignKeys(array $keys, array &$container)
     {
         foreach ($keys as $local => $foreign) {
@@ -60,6 +73,29 @@ abstract class Relation implements RelationInterface
         }
     }
 
+    /**
+     * Asserts keys (non empty array)
+     *
+     * @param $keys
+     *
+     * @throws DefinitionException
+     */
+    protected function assertKeys($keys)
+    {
+        if (empty($keys)) {
+            throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
+        }
+
+    }
+
+    /**
+     * Asserts trough keys, must be same number in both arrays
+     *
+     * @param array $inKeys
+     * @param array $outKeys
+     *
+     * @throws DefinitionException
+     */
     protected function assertTroughKeys($inKeys, $outKeys)
     {
         if (empty($inKeys) || empty($outKeys)) {
@@ -71,6 +107,13 @@ abstract class Relation implements RelationInterface
         }
     }
 
+    /**
+     * Asserts field name
+     *
+     * @param string $field
+     *
+     * @throws DefinitionException
+     */
     protected function assertField($field)
     {
         if (empty($field)) {

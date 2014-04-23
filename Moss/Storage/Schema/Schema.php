@@ -373,7 +373,7 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Builds actual index altering queriers
+     * Builds actual index altering queries
      *
      * @param string      $operation
      * @param string      $table

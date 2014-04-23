@@ -13,13 +13,29 @@ namespace Moss\Storage\Driver;
 
 use Psr\Log\LoggerInterface;
 
+/**
+ * Logging decorator used to bind PSR logger interfaces to drivers
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 class LoggingDecorator implements DriverInterface
 {
 
+    /** @var DriverInterface  */
     private $driver;
+
+    /** @var LoggerInterface  */
     private $logger;
     private $echo;
 
+    /**
+     * Constructor
+     *
+     * @param DriverInterface $driver
+     * @param LoggerInterface $logger
+     * @param bool            $echo
+     */
     public function __construct(DriverInterface $driver, LoggerInterface $logger = null, $echo = false)
     {
         $this->driver = $driver;
@@ -238,4 +254,4 @@ class LoggingDecorator implements DriverInterface
 
         return $this;
     }
-} 
+}

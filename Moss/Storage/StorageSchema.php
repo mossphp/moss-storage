@@ -14,6 +14,7 @@ namespace Moss\Storage;
 use Moss\Storage\Builder\SchemaBuilderInterface;
 use Moss\Storage\Driver\DriverInterface;
 use Moss\Storage\Model\ModelBag;
+use Moss\Storage\Schema\SchemaInterface;
 use Moss\Storage\Schema\Schema;
 
 /**
@@ -22,8 +23,11 @@ use Moss\Storage\Schema\Schema;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class StorageSchema extends Storage
+class StorageSchema extends AbstractStorage
 {
+    /** @var SchemaInterface|Schema */
+    protected $instance;
+
     /**
      * Constructor
      *

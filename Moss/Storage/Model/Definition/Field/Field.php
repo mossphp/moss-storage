@@ -28,6 +28,13 @@ abstract class Field implements FieldInterface
     protected $mapping;
     protected $attributes;
 
+    /**
+     * Prepares attributes, changes them into key value pairs
+     *
+     * @param array $attributes
+     *
+     * @return array
+     */
     protected function prepareAttributes(array $attributes)
     {
         foreach ($attributes as $key => $value) {
@@ -37,7 +44,7 @@ abstract class Field implements FieldInterface
                 continue;
             }
 
-            if($key == 'default') {
+            if ($key == 'default') {
                 $attributes['null'] = true;
             }
         }
@@ -45,6 +52,13 @@ abstract class Field implements FieldInterface
         return $attributes;
     }
 
+    /**
+     * Checks if attributes contain forbidden keys
+     *
+     * @param array $allowed
+     *
+     * @throws DefinitionException
+     */
     protected function verifyAttribute($allowed = array())
     {
         foreach (array_keys($this->attributes) as $attr) {
@@ -54,6 +68,13 @@ abstract class Field implements FieldInterface
         }
     }
 
+    /**
+     * Returns table owning the field
+     *
+     * @param null|string $table
+     *
+     * @return string
+     */
     public function table($table = null)
     {
         if ($table !== null) {

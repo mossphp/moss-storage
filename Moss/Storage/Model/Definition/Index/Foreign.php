@@ -23,14 +23,21 @@ class Foreign extends Index
 {
     protected $table;
 
+    /**
+     * Constructor
+     *
+     * @param string $name
+     * @param array  $fields
+     * @param string $table
+     *
+     * @throws DefinitionException
+     */
     public function __construct($name, array $fields, $table)
     {
         $this->name = $name;
         $this->type = 'foreign';
 
-        if (empty($fields)) {
-            throw new DefinitionException('No fields in foreign key definition');
-        }
+        $this->assertFields($fields);
 
         $this->fields = $fields;
 

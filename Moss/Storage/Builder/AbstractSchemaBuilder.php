@@ -206,6 +206,13 @@ abstract class AbstractSchemaBuilder
         return $this;
     }
 
+    /**
+     * Asserts column type
+     *
+     * @param string $type
+     *
+     * @throws BuilderException
+     */
     protected function assertColumnType($type)
     {
         if (!isset($this->fieldTypes[$type])) {
@@ -213,6 +220,14 @@ abstract class AbstractSchemaBuilder
         }
     }
 
+    /**
+     * Prepares attributes
+     * Changes values to key value pairs
+     *
+     * @param array $attributes
+     *
+     * @return array
+     */
     protected function prepareAttributes(array $attributes)
     {
         foreach ($attributes as $key => $value) {
@@ -344,6 +359,13 @@ abstract class AbstractSchemaBuilder
         return $this;
     }
 
+    /**
+     * Asserts index type
+     *
+     * @param string $type
+     *
+     * @throws BuilderException
+     */
     protected function assertIndexType($type)
     {
         if (!in_array($type, array('primary', 'index', 'unique', 'foreign'))) {
@@ -351,7 +373,14 @@ abstract class AbstractSchemaBuilder
         }
     }
 
-    protected function assertIndexFields($fields)
+    /**
+     * Asserts index fields (there must be at least one)
+     *
+     * @param array $fields
+     *
+     * @throws BuilderException
+     */
+    protected function assertIndexFields(array $fields)
     {
         if (empty($fields)) {
             throw new BuilderException(sprintf('Missing fields for index in "%s"', $this->table));

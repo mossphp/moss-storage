@@ -67,7 +67,7 @@ interface QueryInterface
      * Sets write operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
@@ -77,7 +77,7 @@ interface QueryInterface
      * Sets insert operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
@@ -87,7 +87,7 @@ interface QueryInterface
      * Sets update operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
@@ -97,7 +97,7 @@ interface QueryInterface
      * Sets delete operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
@@ -117,7 +117,7 @@ interface QueryInterface
      *
      * @param string $operation
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
