@@ -28,16 +28,16 @@ class Join implements JoinInterface
 
     protected $type;
 
-    /** @var RelationInterface  */
+    /** @var RelationInterface */
     protected $relation;
 
-    /** @var ModelInterface  */
+    /** @var ModelInterface */
     protected $source;
 
-    /** @var ModelInterface  */
+    /** @var ModelInterface */
     protected $target;
 
-    /** @var ModelInterface  */
+    /** @var ModelInterface */
     protected $mediator;
 
     private $joints = array();
@@ -62,14 +62,37 @@ class Join implements JoinInterface
         $this->target = $target;
         $this->mediator = $mediator;
 
+        $this->buildConditions($this->relation->localValues(), $this->source, $this->conditions);
+        $this->buildConditions($this->relation->foreignValues(), $this->target, $this->conditions);
+
         if (in_array($relation->type(), array('one', 'many'))) {
-            $this->joinSimpleRelations($type, $source, $relation);
+            $this->joints[] = $this->buildJoint(
+                $this->type,
+                $this->target->table(),
+                $this->relation->keys(),
+                $this->source->table(),
+                $this->target->table()
+            );
 
             return;
         }
 
         if (in_array($relation->type(), array('oneTrough', 'manyTrough'))) {
-            $this->joinTroughRelations($type, $source, $relation);
+            $this->joints[] = $this->buildJoint(
+                $this->type,
+                $this->mediator->table(),
+                $this->relation->localKeys(),
+                $this->source->table(),
+                $this->mediator->table()
+            );
+
+            $this->joints[] = $this->buildJoint(
+                $this->type,
+                $this->target->table(),
+                $this->relation->foreignKeys(),
+                $this->mediator->table(),
+                $this->target->table()
+            );
 
             return;
         }
@@ -162,32 +185,20 @@ class Join implements JoinInterface
         return $this->conditions;
     }
 
-    protected function joinSimpleRelations()
+    /**
+     * Builds joint definition
+     *
+     * @param string $type
+     * @param string $table
+     * @param array  $keys
+     * @param string $source
+     * @param string $target
+     *
+     * @return array
+     */
+    protected function buildJoint($type, $table, $keys, $source, $target)
     {
-        $this->joints[] = array(
-            $this->type,
-            $this->target->table(),
-            $this->prefixKeys($this->relation->keys(), $this->source->table(), $this->target->table())
-        );
-
-        $this->joinConditions();
-    }
-
-    protected function joinTroughRelations()
-    {
-        $this->joints[] = array(
-            $this->type,
-            $this->mediator->table(),
-            $this->prefixKeys($this->relation->localKeys(), $this->source->table(), $this->mediator->table())
-        );
-
-        $this->joints[] = array(
-            $this->type,
-            $this->target->table(),
-            $this->prefixKeys($this->relation->foreignKeys(), $this->mediator->table(), $this->target->table())
-        );
-
-        $this->joinConditions();
+        return array($type, $table(), $this->prefixKeys($keys, $source, $target));
     }
 
     /**
@@ -209,14 +220,15 @@ class Join implements JoinInterface
         return $result;
     }
 
-    protected function joinConditions()
+    /**
+     * @param array  $keys
+     * @param string $table
+     * @param array  $conditions
+     */
+    protected function buildConditions($keys, $table, &$conditions = array())
     {
-        foreach ($this->relation->localValues() as $field => $value) {
-            $this->conditions[] = array($this->buildField($field, $this->source->table()), $value, '=', 'and');
-        }
-
-        foreach ($this->relation->foreignValues() as $field => $value) {
-            $this->conditions[] = array($this->buildField($field, $this->target->table()), $value, '=', 'and');
+        foreach ($keys as $field => $value) {
+            $conditions[] = array($this->buildField($field, $this->source->table()), $value, '=', 'and');
         }
     }
 
