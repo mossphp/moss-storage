@@ -61,8 +61,7 @@ class JoinFactory
             $relation,
             $this->bag->get($entity),
             $this->bag->get($join),
-            in_array($relation->type(), array('oneTrough', 'manyTrough')) ? $this->bag->get($relation->mediator()) : null,
-            $join
+            in_array($relation->type(), array('oneTrough', 'manyTrough')) ? $this->bag->get($relation->mediator()) : null
         );
     }
 }
