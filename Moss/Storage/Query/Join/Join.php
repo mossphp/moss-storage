@@ -20,7 +20,7 @@ use Moss\Storage\Query\QueryException;
 class Join implements JoinInterface
 {
 
-
+    protected $name;
     protected $type;
     protected $relation;
     protected $entity;
