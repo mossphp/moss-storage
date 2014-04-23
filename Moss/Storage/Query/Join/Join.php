@@ -27,8 +27,17 @@ class Join implements JoinInterface
 {
 
     protected $type;
+
+    /** @var RelationInterface  */
     protected $relation;
+
+    /** @var ModelInterface  */
     protected $source;
+
+    /** @var ModelInterface  */
+    protected $target;
+
+    /** @var ModelInterface  */
     protected $mediator;
 
     private $joints = array();
