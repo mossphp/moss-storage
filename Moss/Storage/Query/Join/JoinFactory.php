@@ -15,11 +15,22 @@ namespace Moss\Storage\Query\Join;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\QueryException;
 
+/**
+ * Table join factory
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 class JoinFactory
 {
     /** @var ModelBag */
     private $bag;
 
+    /**
+     * Constructor
+     *
+     * @param ModelBag $bag
+     */
     public function __construct(ModelBag $bag)
     {
         $this->bag = & $bag;
@@ -54,4 +65,4 @@ class JoinFactory
             $join
         );
     }
-} 
+}

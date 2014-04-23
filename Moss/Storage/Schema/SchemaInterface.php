@@ -103,4 +103,4 @@ interface SchemaInterface
      * @return $this
      */
     public function reset();
-} 
+}

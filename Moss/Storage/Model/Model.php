@@ -58,6 +58,13 @@ class Model implements ModelInterface
         $this->assignRelations($relations);
     }
 
+    /**
+     * Assigns fields to model
+     *
+     * @param array $fields
+     *
+     * @throws ModelException
+     */
     protected function assignFields($fields)
     {
         foreach ($fields as $field) {
@@ -70,6 +77,13 @@ class Model implements ModelInterface
         }
     }
 
+    /**
+     * Assigns indexes to model
+     *
+     * @param array $indexes
+     *
+     * @throws ModelException
+     */
     protected function assignIndexes($indexes)
     {
         foreach ($indexes as $index) {
@@ -93,6 +107,13 @@ class Model implements ModelInterface
         }
     }
 
+    /**
+     * Assigns relations to model
+     *
+     * @param array $relations
+     *
+     * @throws ModelException
+     */
     protected function assignRelations($relations)
     {
         foreach ($relations as $relation) {
@@ -116,6 +137,13 @@ class Model implements ModelInterface
         }
     }
 
+    /**
+     * Returns variable type or its class
+     *
+     * @param mixed $var
+     *
+     * @return string
+     */
     private function getType($var)
     {
         if (is_object($var)) {
@@ -154,7 +182,7 @@ class Model implements ModelInterface
      */
     public function alias($alias = null)
     {
-        if($alias !== null) {
+        if ($alias !== null) {
             $this->alias = $alias;
         }
 
@@ -195,6 +223,13 @@ class Model implements ModelInterface
         return $this->fields;
     }
 
+    /**
+     * Asserts if model has field
+     *
+     * @param string $field
+     *
+     * @throws ModelException
+     */
     protected function assertField($field)
     {
         if (!$this->hasField($field)) {

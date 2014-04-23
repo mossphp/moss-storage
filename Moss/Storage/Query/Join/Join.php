@@ -17,6 +17,12 @@ use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\RelationInterface;
 use Moss\Storage\Query\QueryException;
 
+/**
+ * Table join definition
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 class Join implements JoinInterface
 {
 
@@ -28,6 +34,17 @@ class Join implements JoinInterface
     private $joints = array();
     private $conditions = array();
 
+    /**
+     * Constructor
+     *
+     * @param string            $type
+     * @param RelationInterface $relation
+     * @param ModelInterface    $source
+     * @param ModelInterface    $target
+     * @param ModelInterface    $mediator
+     *
+     * @throws QueryException
+     */
     public function __construct($type, RelationInterface $relation, ModelInterface $source, ModelInterface $target, ModelInterface $mediator = null)
     {
         $this->type = $type;

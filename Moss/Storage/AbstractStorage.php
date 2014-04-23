@@ -62,7 +62,7 @@ abstract class AbstractStorage implements StorageInterface
      * @param string         $alias
      * @param ModelInterface $model
      *
-     * @return Storage
+     * @return $this
      */
     public function register(ModelInterface $model, $alias = null)
     {

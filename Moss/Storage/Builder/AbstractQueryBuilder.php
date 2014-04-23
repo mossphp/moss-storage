@@ -208,6 +208,11 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         return $this;
     }
 
+    /**
+     * Returns table alias if exists or its name
+     *
+     * @return string
+     */
     protected function mapping()
     {
         return $this->table[1] ? $this->table[1] : $this->table[0];

@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
-use Moss\Storage\Model\Definition\DefinitionException;
-
 /**
  * One to one trough mediator table (with pivot table)
  *
@@ -21,6 +19,13 @@ use Moss\Storage\Model\Definition\DefinitionException;
  */
 class OneTrough extends Relation
 {
+    /**
+     * @param string      $entity
+     * @param array       $in
+     * @param array       $out
+     * @param null|string $mediator
+     * @param null|string $container
+     */
     public function __construct($entity, array $in, array $out, $mediator, $container = null)
     {
         $this->entity = $entity ? ltrim($entity, '\\') : null;

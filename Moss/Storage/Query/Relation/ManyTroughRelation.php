@@ -141,7 +141,7 @@ class ManyTroughRelation extends Relation
 
         $conditions = array();
         foreach ($this->relation->localKeys() as $foreign) {
-            foreach($mediators as $mediator) {
+            foreach ($mediators as $mediator) {
                 $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
             }
         }

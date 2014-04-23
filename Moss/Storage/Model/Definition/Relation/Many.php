@@ -21,15 +21,22 @@ use Moss\Storage\Model\Definition\DefinitionException;
  */
 class Many extends Relation
 {
+    /**
+     * Constructor
+     *
+     * @param string $entity
+     * @param array $keys
+     * @param null|string  $container
+     *
+     * @throws DefinitionException
+     */
     public function __construct($entity, array $keys, $container = null)
     {
         $this->entity = $entity ? ltrim($entity, '\\') : null;
         $this->type = 'many';
         $this->container = $this->containerName($container);
 
-        if (empty($keys)) {
-            throw new DefinitionException(sprintf('No keys in "%s" relation definition', $this->entity));
-        }
+        $this->assertKeys($keys);
 
         $this->assignKeys($keys, $this->keys);
         $this->in = array_keys($this->keys);

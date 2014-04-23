@@ -233,6 +233,15 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
         return $result;
     }
 
+    /**
+     * Builds condition string
+     *
+     * @param string $field
+     * @param string|array $bind
+     * @param string $operator
+     *
+     * @return string
+     */
     private function buildConditionString($field, $bind, $operator)
     {
         if (is_array($bind)) {

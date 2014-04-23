@@ -120,7 +120,16 @@ class Query implements QueryInterface
      */
     public function num($entity)
     {
-        return $this->operation('num', $entity);
+        $this->assertEntityString($entity);
+
+        $this->operation = 'num';
+        $this->model = $this->models->get($entity);
+
+        foreach ($this->model->primaryFields() as $field) {
+            $this->assignField($field);
+        }
+
+        return $this;
     }
 
     /**
@@ -132,7 +141,14 @@ class Query implements QueryInterface
      */
     public function read($entity)
     {
-        return $this->operation('read', $entity);
+        $this->assertEntityString($entity);
+
+        $this->operation = 'read';
+        $this->model = $this->models->get($entity);
+
+        $this->fields();
+
+        return $this;
     }
 
     /**
@@ -144,59 +160,139 @@ class Query implements QueryInterface
      */
     public function readOne($entity)
     {
-        return $this->operation('readOne', $entity);
+        $this->assertEntityString($entity);
+
+        $this->operation = 'readOne';
+        $this->model = $this->models->get($entity);
+
+        $this->fields();
+        $this->limit(1);
+
+        return $this;
     }
 
     /**
      * Sets write operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
     public function write($entity, $instance)
     {
-        return $this->operation('write', $entity, $instance);
+        $this->assertEntityString($entity);
+        $this->assertEntityInstance($entity, $instance);
+
+        if ($this->checkIfEntityExists($entity, $instance)) {
+            $this->update($entity, $instance);
+        } else {
+            $this->insert($entity, $instance);
+        }
+    }
+
+    /**
+     * Returns true if entity exists database
+     *
+     * @param string       $entity
+     * @param array|object $instance
+     *
+     * @return bool
+     */
+    protected function checkIfEntityExists($entity, $instance)
+    {
+        $query = new self($this->driver, $this->builder, $this->models);
+        $query->num($entity, $instance);
+
+        $model = $this->models->get($entity);
+        foreach ($model->primaryFields() as $field) {
+            $value = $this->accessProperty($instance, $field->name());
+
+            if ($value === null) {
+                return false;
+            }
+
+            $query->where($field->name(), $value);
+        }
+
+        return $query->execute() > 0;
     }
 
     /**
      * Sets insert operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
     public function insert($entity, $instance)
     {
-        return $this->operation('insert', $entity, $instance);
+        $this->assertEntityString($entity);
+        $this->assertEntityInstance($entity, $instance);
+
+        $this->operation = 'insert';
+        $this->model = $this->models->get($entity);
+        $this->instance = & $instance;
+
+        $this->values();
+
+        return $this;
     }
 
     /**
      * Sets update operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
     public function update($entity, $instance)
     {
-        return $this->operation('update', $entity, $instance);
+        $this->assertEntityString($entity);
+        $this->assertEntityInstance($entity, $instance);
+
+        $this->operation = 'update';
+        $this->model = $this->models->get($entity);
+        $this->instance = & $instance;
+        $this->values();
+
+        foreach ($this->model->primaryFields() as $field) {
+            $value = $this->accessProperty($this->instance, $field->name());
+            $value = $this->bind('condition', $field->name(), $field->type(), $value);
+
+            $this->where[] = array($field->mapping(), $value, '=', 'and');
+        }
+
+        return $this;
     }
 
     /**
      * Sets delete operation
      *
      * @param string $entity
-     * @param object $instance
+     * @param array|object $instance
      *
      * @return $this
      */
     public function delete($entity, $instance)
     {
-        return $this->operation('delete', $entity, $instance);
+        $this->assertEntityString($entity);
+        $this->assertEntityInstance($entity, $instance);
+
+        $this->operation = 'delete';
+        $this->model = $this->models->get($entity);
+        $this->instance = & $instance;
+
+        foreach ($this->model->primaryFields() as $field) {
+            $value = $this->accessProperty($this->instance, $field->name());
+            $value = $this->bind('condition', $field->name(), $field->type(), $value);
+
+            $this->where[] = array($field->mapping(), $value, '=', 'and');
+        }
+
+        return $this;
     }
 
     /**
@@ -208,9 +304,45 @@ class Query implements QueryInterface
      */
     public function clear($entity)
     {
-        return $this->operation('clear', $entity);
+        $this->operation = 'clear';
+        $this->model = $this->models->get($entity);
+
+        return $this;
     }
 
+    /**
+     * Sets query operation
+     *
+     * @param string $operation
+     * @param string $entity
+     * @param array|object $instance
+     *
+     * @return $this
+     * @throws QueryException
+     */
+    public function operation($operation, $entity, $instance = null)
+    {
+        switch ($operation) {
+            case 'num':
+                return $this->num($entity);
+            case 'read':
+                return $this->read($entity);
+            case 'readOne':
+                return $this->readOne($entity);
+            case 'write':
+                return $this->write($entity, $instance);
+            case 'insert':
+                return $this->insert($entity, $instance);
+            case 'update':
+                return $this->update($entity, $instance);
+            case 'delete':
+                return $this->delete($entity, $instance);
+            case 'clear':
+                return $this->clear($entity);
+            default:
+                throw new QueryException(sprintf('Unknown operation "%s" in query "%s"', $operation, $entity));
+        }
+    }
 
     /**
      * Returns var type
@@ -225,121 +357,42 @@ class Query implements QueryInterface
     }
 
     /**
-     * Sets query operation
+     * Asserts entity name
      *
-     * @param string $operation
      * @param string $entity
-     * @param object $instance
      *
-     * @return $this
      * @throws QueryException
      */
-    public function operation($operation, $entity, $instance = null)
+    protected function assertEntityString($entity)
     {
         if (!is_string($entity)) {
-            throw new QueryException(sprintf('Entity must be a namespaced class name, its alias or object, got "%s"', gettype($entity)));
+            throw new QueryException(sprintf('Entity must be a namespaced class name, its alias or object, got "%s"', $this->getType($entity)));
         }
 
-        $this->operation = $operation;
-        $this->model = $this->models->get($entity);
-
-        if ($this->operation == 'write') {
-            $this->operation = $this->checkIfEntityExists($entity, $instance) ? 'update' : 'insert';
+        if (!$this->models->has($entity)) {
+            throw new QueryException(sprintf('Missing entity model for "%s"', $entity));
         }
-
-        switch ($this->operation) {
-            case 'num':
-                foreach ($this->model->primaryFields() as $field) {
-                    $this->assignField($field);
-                }
-                break;
-            case 'read':
-                $this->fields();
-                break;
-            case 'readOne':
-                $this->fields();
-                $this->limit(1);
-                break;
-            case 'insert':
-                $this->assertEntity($instance);
-                $this->instance = & $instance;
-                $this->values();
-                break;
-            case 'update':
-                $this->assertEntity($instance);
-                $this->instance = & $instance;
-                $this->values();
-
-                foreach ($this->model->primaryFields() as $field) {
-                    $value = $this->accessProperty($this->instance, $field->name());
-                    $value = $this->bind('condition', $field->name(), $field->type(), $value);
-
-                    $this->where[] = array($field->mapping(), $value, '=', 'and');
-                }
-                break;
-            case 'delete':
-                $this->assertEntity($instance);
-                $this->instance = & $instance;
-
-                foreach ($this->model->primaryFields() as $field) {
-                    $value = $this->accessProperty($this->instance, $field->name());
-                    $value = $this->bind('condition', $field->name(), $field->type(), $value);
-
-                    $this->where[] = array($field->mapping(), $value, '=', 'and');
-                }
-                break;
-            case 'clear':
-                break;
-            default:
-                throw new QueryException(sprintf('Unknown operation "%s" in query "%s"', $this->operation, $this->model->entity()));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Returns true if entity exists database
-     *
-     * @param string       $entity
-     * @param array|object $instance
-     *
-     * @return bool
-     */
-    protected function checkIfEntityExists($entity, $instance)
-    {
-        $this->assertEntity($instance);
-
-        $query = new self($this->driver, $this->builder, $this->models);
-        $query->operation('num', $entity, $instance);
-
-        foreach ($this->model->primaryFields() as $field) {
-            $value = $this->accessProperty($instance, $field->name());
-
-            if ($value === null) {
-                return false;
-            }
-
-            $query->where($field->name(), $value);
-        }
-
-        return $query->execute() > 0;
     }
 
     /**
      * Asserts entity instance
      *
+     * @param string       $entity
      * @param array|object $instance
      *
      * @throws QueryException
      */
-    protected function assertEntity($instance)
+    protected function assertEntityInstance($entity, $instance)
     {
+        $entityClass = $this->models->get($entity)
+            ->entity();
+
         if ($instance === null) {
-            throw new QueryException(sprintf('Missing required entity for operation "%s" in query "%s"', $this->operation, $this->model->entity()));
+            throw new QueryException(sprintf('Missing required entity for operation "%s" in query "%s"', $this->operation, $entityClass));
         }
 
-        if (!is_object($instance) && !is_array($instance)) {
-            throw new QueryException(sprintf('Entity for operation "%s" must be an instance of "%s" or array got "%s"', $this->operation, $this->model->entity(), $this->getType($instance)));
+        if (!is_array($instance) && !$instance instanceof $entityClass) {
+            throw new QueryException(sprintf('Entity for operation "%s" must be an instance of "%s" or array got "%s"', $this->operation, $entityClass, $this->getType($instance)));
         }
 
         // todo - if array - check if has primary fields
@@ -984,7 +1037,7 @@ class Query implements QueryInterface
     /**
      * Asserts correct order
      *
-     * @param string $order
+     * @param string|array $order
      *
      * @throws QueryException
      */
