@@ -219,11 +219,11 @@ class Schema implements SchemaInterface
         $this->queries[] = $this->builder->build();
 
         $this->builder->reset()
-            ->add($model->table());
+            ->addTo($model->table());
 
         foreach ($foreign as $index) {
             $this->after[] = $this->builder->reset()
-                ->add($model->table())
+                ->addTo($model->table())
                 ->index($index->name(), $index->fields(), $index->type(), $index->table())
                 ->build();
         }
@@ -275,7 +275,7 @@ class Schema implements SchemaInterface
         foreach ($current['indexes'] as $index) {
             if ($index['type'] === 'foreign') {
                 $this->before[] = $this->builder->reset()
-                    ->remove($model->table())
+                    ->removeFrom($model->table())
                     ->index($index['name'], $index['fields'], $index['type'], $index['table'])
                     ->build();
             }
@@ -284,7 +284,7 @@ class Schema implements SchemaInterface
         foreach ($model->indexes() as $index) {
             if ($index->type() === 'foreign') {
                 $this->after[] = $this->builder->reset()
-                    ->add($model->table())
+                    ->addTo($model->table())
                     ->index($index->name(), $index->fields(), $index->type(), $index->table())
                     ->build();
             }
@@ -516,7 +516,7 @@ class Schema implements SchemaInterface
                 }
 
                 $this->before[] = $this->builder->reset()
-                    ->remove($model->table())
+                    ->removeFrom($model->table())
                     ->index($index['name'], $index['fields'], $index['type'])
                     ->build();
             }

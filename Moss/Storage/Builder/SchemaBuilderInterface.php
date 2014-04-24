@@ -53,7 +53,7 @@ interface SchemaBuilderInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function add($table);
+    public function addTo($table);
 
     /**
      * Sets change operation on table
@@ -62,7 +62,7 @@ interface SchemaBuilderInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function change($table);
+    public function changeIn($table);
 
     /**
      * Sets remove operation on table
@@ -71,7 +71,7 @@ interface SchemaBuilderInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function remove($table);
+    public function removeFrom($table);
 
     /**
      * Sets drop operation on table
