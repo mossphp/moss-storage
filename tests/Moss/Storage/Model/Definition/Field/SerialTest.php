@@ -40,7 +40,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Serial('foo', array('length' => 10), $mapping);
+        $field = new Serial('foo', array(), $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
@@ -57,7 +57,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
 
     public function testNonExistentAttribute()
     {
-        $field = new Serial('foo', array('length' => 128), 'bar');
+        $field = new Serial('foo', array(), 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -74,7 +74,6 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(array('null'), 'null'),
-            array(array('length' => 4), 'length', 4),
         );
     }
 
@@ -91,7 +90,6 @@ class SerialTest extends \PHPUnit_Framework_TestCase
     {
         return array(
             array(array('null'), array('null' => true)),
-            array(array('length' => 4), array('null' => true, 'length' => 4)),
         );
     }
 

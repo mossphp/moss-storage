@@ -34,6 +34,6 @@ class Serial extends Field
 
         $default = array('null');
         $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('length', 'null'));
+        $this->verifyAttribute(array('null'));
     }
 }
