@@ -2,12 +2,11 @@
 
 ## About
 
-`Storage` is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss) as completely independent library.
-In philosophy similar to _Data Mapper_ pattern that allows moving data from object instances to database, while keeping them independent of each other.
-_Active Record_ brakes single responsibility principle (by extending some some base class), bloats entire design... and adds unnecessary coupling.
+**Storage** is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss) as completely independent library. In philosophy similar to _Data Mapper_ pattern that allows moving data from object instances to database, while keeping them independent of each other.
 
-`Storage` approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by repositories.
-The only connection between entities and database is in `Storage` itself - in models that describe how entities relate to repositories.
+_Active Record_ brakes single responsibility principle (by extending some some base class), bloats entire design... and adds unnecessary coupling.
+**Storage** approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by repositories.
+The only connection between entities and database is in **Storage** itself - in models that describe how entities relate to repositories.
 
 Two examples (assuming that corresponding model exists):
 
@@ -46,7 +45,7 @@ Storage has no external dependencies.
 
 ## Operations
 
-`Storage` is represented two classes:
+**Storage** is represented two classes:
 
  * `StorageQuery` that will preform all those boring inserts or updates and nice and simple data retrieval,
 	* `::num($entityClass)`

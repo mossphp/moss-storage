@@ -24,7 +24,7 @@ $model = new Model(
 )
 ```
 
-Each entity class must have separate model which must be registered in `Storage`:
+Each entity class must have separate model which must be registered in **Storage**:
 When creating query you can call entity by namespaced class name or by alias, as in example below:
 
 ```php
@@ -126,7 +126,7 @@ $index = new Index('i_id', array('id'));
 ## Relations
 
 Relations describe what other entities can be contained inside entity.
-So, `Storage` provides with basic `one-to-one` and `one-to-many` relations.
+So, **Storage** provides with basic `one-to-one` and `one-to-many` relations.
 
 ```php
 use Moss\Storage\Model\Definition\Relation\One;
@@ -142,7 +142,7 @@ Where:
  * `$keys` - array containing local fields as keys and referenced fields as corresponding values
  * `$container` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
 
-And more complicated `many-to-many` relation. Also `Storage` supports `one-to-one with mediator/pivot` relation.
+And more complicated `many-to-many` relation. Also **Storage** supports `one-to-one with mediator/pivot` relation.
 
 ```php
 use Moss\Storage\Model\Definition\Relation\OneTrough;
