@@ -1,6 +1,6 @@
 # StorageQuery
 
-`StorageQuery` should be sufficient to handle all _CRUD_ operations.
+`StorageQuery` should be sufficient to handle all _CRUD_ operations and much more.
 Operations described below assume that entity classes, models and tables exist.
 
 ## Create instance
@@ -18,14 +18,22 @@ $storage = new \Moss\Storage\StorageQuery($driver, $builder);
 $storage->register('...'); // register models
 ```
 
+**Important**
+You must register models, without them storage will be unable to work.
+
 ## Execute and queryString
 
-When `::execute()` method is called, build query is sent to database and executed.
-But in any moment you can call `::queryString()` method to retrieve array with build query string and all bind values.
+When `::execute()` method is called, build query is sent to database and executed. Database response is processed and returned according to operation type.
+In any moment you can call `::queryString()` method to retrieve array with current query string and all bound values.
 
-## Num
+## Operations
+
+Each operation will be described as SQL query, PHP example and result type.
+
+### Num
 
 Returns number of entities that will be read by query (reads only primary keys).
+Result: `integer`
 
 ```sql
 SELECT ... FROM ...
@@ -36,9 +44,10 @@ $count = $storage
 	->execute();
 ```
 
-## Read & read one
+### Read & read one
 
 Reads entities matching conditions, returns array of read entities
+Result: `array` of entities
 
 ```sql
 SELECT ... FROM ...
@@ -49,7 +58,8 @@ $result = $storage
 	->execute();
 ```
 
-Reads only first matching entity, will throw exception if none found.
+Reads only first matching entity, will throw exception if entity does not exists.
+Result: `entity`
 
 ```sql
 SELECT ... FROM ... LIMIT 1
@@ -60,9 +70,10 @@ $entity = $storage
 	->execute();
 ```
 
-## Insert
+### Insert
 
 Inserts entity into storage, will update passed entity primary keys
+Result: `entity`
 
 ```sql
 INSERT INTO ... VALUES ...
@@ -74,9 +85,10 @@ $bool = $storage
 	->execute();
 ```
 
-## Update
+### Update
 
 Updates existing entity
+Result: `entity`
 
 ```sql
 UPDATE ... SET ...
@@ -88,10 +100,11 @@ $entity = $storage
 	->execute();
 ```
 
-## Write
+### Write
 
 Writes entity, if entity with same primary keys exists will be updated, otherwise inserts new.
-Returns entity with updated primary fields
+Returns entity with updated primary keys
+Result: `entity`
 
 ```php
 $entity = new Entity();
@@ -100,9 +113,10 @@ $entity = $storage
 	->execute();
 ```
 
-## Delete
+### Delete
 
-Removes entity from storage, also removes values from entity primary fields
+Removes entity from storage, also removes values from entity primary keys
+Result: `entity`
 
 ```sql
 DELETE FROM ... WHERE
@@ -113,9 +127,10 @@ DELETE FROM ... WHERE
 		->delete($entity)
 		->execute();
 ```
-## Clear
+### Clear
 
 Removes all entities from storage (just like truncate table)
+Result: `bool`
 
 ```sql
 TRUNCATE TABLE ...
@@ -134,7 +149,7 @@ Storage provides modifiers for operations, such as `where`, `having`, `limit`, `
 ### Conditions
 
 The `where` and `having` clauses allow to add as many conditions as needed to count/read operations.
-Both work in same way, accept same kind of attributes.
+Both work in same way, accept same kind of attributes, but `having` allows to refer to aggregation results.
 
 ```sql
 SELECT ... FROM ... WHERE [condition]
@@ -166,12 +181,12 @@ Where
     * `>=` - less or equal than
     * `<=` - greater or equal than
     * `like` - like
-    * `regex` - regex
+    * `regex` - regex (case insensitive)
  * `$logical`:
     * `and` - and (default)
     * `or` - or
 
-Examples:
+Examples with SQL representation:
 
 ```sql
 ... WHERE (`foo` = 'bar')
@@ -253,6 +268,17 @@ $result = $storage->read('entity')
 	->execute();
 ```
 
+Also, you can force order by passing array of values as second argument, eg:
+
+```php
+$result = $storage->read('entity')
+	->order('field', array(1,3,2)
+	->execute();
+```
+
+This will return `1` as first, `3` as second and `2` as third.
+
+
 ### Limit
 
 Limiting operation result
@@ -268,7 +294,7 @@ $result = $storage->read('entity')
 
 ### Fields
 
-Allows to restrain read fields.
+Allows to restrain read fields, if for any reason you don't need all data.
 
 ```sql
 SELECT `id`, `title`, `slug` FROM ...
@@ -278,6 +304,16 @@ $result = $storage->read('entity')
 	->fields(array('id', 'title', 'slug'))
 	->execute();
 ```
+
+There is also similar command for restraining fields in `write`/`insert`/`update` operations
+
+```php
+$result = $storage->write('entity')
+	->values(array('id', 'title', 'slug'))
+	->execute();
+```
+
+Only `id`, `title` and `slug` will be written.
 
 ### Aggregate
 
@@ -309,6 +345,8 @@ $result = $storage->read('entity')
 	->group($field)
 	->execute();
 ```
+
+`Group` method is optional.
 
 ## Relations
 
@@ -354,7 +392,7 @@ Conditions are represented as arrays with values in same order as those passed t
 
 ```php
 	$result = $storage->read('article')
-		->with('comment', array(array('published', true)))
+		->with('comment', array(array('published' => true)))
 		->execute();
 ```
 
@@ -394,7 +432,7 @@ Or simpler way:
 	$result = $storage->execute();
 ```
 
-### Join
+## Join
 
 When relation definition exists, it is possible to join data from relating entity.
 
