@@ -4,24 +4,33 @@
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/quality-score.png?s=6b11b311a9dfe2d150f9b2ac8568426b2ed3bc9f)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
 [![Code Coverage](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/coverage.png?s=f1e8ae97cb136068a9592fbb8f694cb392ec2a24)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
 
-`Storage` is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss) but can be used in other projects.
-In philosophy similar to _Data Mapper_ pattern, that moves data between objects and database and tries to keep them independent of each other.
+**Storage** is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss) as completely independent library. In philosophy similar to _Data Mapper_ pattern that allows moving data from object instances to database, while keeping them independent of each other.
 
-_Active Record_ brakes single responsibility principle. Entities in _Active Record_ often extend some base class.
-That base class adds functionality to read from / write into database but also bloats entire design... and adds unnecessary tight coupling.
+_Active Record_ brakes single responsibility principle (by extending some some base class), bloats entire design... and adds unnecessary coupling.
+**Storage** approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by repositories.
+The only connection between entities and database is in **Storage** itself - in models that describe how entities relate to repositories.
 
-`Storage` approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by database (repository).
-Entities can be written independently from any databases or other weird base classes.
-The only connection between entities and database is in `Storage` itself.
+Two examples (assuming that corresponding model exists):
 
 ```php
-$result = $storage->readOne('article')
-	->where('id', 1)
-	->with(array('comments', 'tags'))
+$article = $storage->readOne('article')
+	->where('id', 123)
+	->with('comment', array(array('visible' => true)))
 	->execute();
 ```
+This will read article entity with `id=123` and with all its visible comments.
 
-This simple code, will read one `article` with `id = 1` with any comments and tags.
+
+```php
+$obj = new Article('title', 'text');
+$obj->comments = array(
+	new Comment('It\'s so simple!', 'comment_author@mail'),
+	new Comment('Yup, it is.', 'different_author@mail'),
+);
+
+$storage->write($obj)->with('comment')->execute();
+```
+This would write article entity into database with set comments.
 
 For licence details see LICENCE.md
 Documentation is available in ./docs/
@@ -34,7 +43,7 @@ And if you submit fix - this would be truly amazing!
 
 ### How to Contribute
 
- * Fork the `Storage` repository;
+ * Fork the **Storage** repository;
  * Create a new branch for each feature/improvement/issue;
  * Send a pull request from branch
 
