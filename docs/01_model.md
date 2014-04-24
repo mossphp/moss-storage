@@ -24,7 +24,7 @@ $model = new Model(
 )
 ```
 
-Each entity class must have separate model which must be registered in `Storage`:
+Each entity class must have separate model which must be registered in **Storage**:
 When creating query you can call entity by namespaced class name or by alias, as in example below:
 
 ```php
@@ -37,43 +37,47 @@ $result = $storage->read('someAlias')->execute();
 ## Fields
 
 Object mapping means that entity properties are represented as table fields.
-Therefore `Model` must contain at least one field definition:
+Therefore `Model` must contain at least one field definition.
 
 ```php
-use Moss\Storage\Model\Definition\Field\Boolean;
 use Moss\Storage\Model\Definition\Field\Integer;
-use Moss\Storage\Model\Definition\Field\Decimal;
-use Moss\Storage\Model\Definition\Field\String;
-use Moss\Storage\Model\Definition\Field\DateTime;
-use Moss\Storage\Model\Definition\Field\Serial;
 
-$bool = new Boolean('name', $attributes, $mapping);
-$int = new Integer('name', $attributes, $mapping);
-$dec = new Decimal('name', $attributes, $mapping);
-$str = new String('name', $attributes, $mapping);
-$date = new DateTime('name', $attributes, $mapping);
-$serial = new Serial('name', $attributes, $mapping);
+$field = new Integer($name, $attributes, $mapping);
 ```
 
-Where `$attributes` variable is an array containing field attributes, should contain all additional field informations.
-Supported attributes:
+Each field definition consists of its name (`$name`), array with attributes (`$attribute`) and mapping.
+Only name is required.
 
-  * `null` - marks field as nullable
-  * `default` - sets default value
-  * `auto_increment` - field is auto incremented
-  * `length` - field length
-  * `precision` - field precision (used only in numeric)
+Attributes array is different for each field, eg only `integer` fields can have `auto_increment` attribute, but `integers` do not support `precision`.
 
 Parameter `$mapping` is provided for situations where field name is different than property name.
 For instance property `companyAddress` can be represented as `company_address` field.
 
-For example - decimal field, with 4 digits, 2 of which on the fractional, entity property is called `fooBar` but stored in `foo_bar` field:
+Field types:
+  * `Boolean` - boolean field (attributes: `null`, `default`)
+  * `Integer` - signed integer (attributes: `length`, `null`, `auto_increment`, `default`)
+  * `Decimal` - decimal field (attributes: `length`, `precision`, `null`, `default`)
+  * `String` - string, text (attributes: `length`, `null`)
+  * `DateTime` - datatime field, can convert itself from and into `\DateTime` instance (attributes: `null`, `default`)
+  * `Serial` - serialized data: array, object or maybe file (attributes: `null`)
+
+Supported attributes:
+
+  * `null` - marks field as nullable
+  * `default` - sets default value
+  * `auto_increment` - field is auto incremented (only `Integer`)
+  * `length` - field length
+  * `precision` - field precision (used only in `Decimal`)
+
+For example - decimal field, with 4 digits, 2 of which on the fractional, can be null, entity property is called `fooBar` but stored in `foo_bar` field:
 
 ```php
-$field = new Field('fooBar', 'decimal', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
+use Moss\Storage\Model\Definition\Field\Decimal;
+
+$field = new Decimal('fooBar', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
 ```
 
-## Indexes & Keys
+## Indexes, Constraints & Keys
 
 Model may contain index or key definitions
 
@@ -89,7 +93,7 @@ $primary = new Primary(array('id'));
 
 ### Foreign key
 
-Foreign key definition must include its name - unique within entire database, array containing fields from local and foreign table - as key-value pairs and foreign table name.
+Foreign key definition must include its name, array containing fields from local and foreign table - as key-value pairs and foreign table name.
 
 ```php
 use Moss\Storage\Model\Definition\Index\Foreign;
@@ -101,7 +105,7 @@ Above definition says that foreign key `fk_other_id` will constrain field `other
 
 ### Unique
 
-To define unique index just type its name and array with columns
+To define unique constraint just type its name and array with columns
 
 ```php
 use Moss\Storage\Model\Definition\Index\Unique;
@@ -122,7 +126,7 @@ $index = new Index('i_id', array('id'));
 ## Relations
 
 Relations describe what other entities can be contained inside entity.
-So, `Storage` provides with basic `one-to-one` and `one-to-many` relations.
+So, **Storage** provides with basic `one-to-one` and `one-to-many` relations.
 
 ```php
 use Moss\Storage\Model\Definition\Relation\One;
@@ -138,7 +142,7 @@ Where:
  * `$keys` - array containing local fields as keys and referenced fields as corresponding values
  * `$container` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
 
-And more complicated `many-to-many` relation. Also `Storage` supports `one-to-one with mediator/pivot` relation.
+And more complicated `many-to-many` relation. Also **Storage** supports `one-to-one with mediator/pivot` relation.
 
 ```php
 use Moss\Storage\Model\Definition\Relation\OneTrough;
@@ -155,6 +159,7 @@ Also, `$mediator` must point to mediator/pivot table that binds both entities.
 **Important**
 Table acting as mediator/pivot must be described by `Model` as any other table, but does not require class representing entity.
 In such cache, while defining `Model` its class name can be omitted wit `null` value.
+Results from such table, will be represented as associative arrays (if there should be any need for them).
 
 For example, one `BlogEntry` can contain `Author` entity and many `Comment` entities.
 To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`, `Author` will be available in `Author` property.:
@@ -169,7 +174,6 @@ If `BlogEntry` should have tags:
 ```php
 $tagRelation = new ManyTrough('\cms\Tag', array('id' => 'article_id'), array('tag_id' => 'id'), 'article_tag`);
 ```
-
 
 **Important**
 Relation definitions are unidirectional, therefore if `Author` should point to `BlogEntry`, new relation in `Author` model must be defined.
