@@ -20,11 +20,14 @@ namespace Moss\Storage\Model\Definition;
 interface IndexInterface
 {
     /**
-     * Returns table that field belongs to
+     * Returns indexes/keys table name
+     * Foreign keys return their relational table name
+     *
+     * @param null|string $table
      *
      * @return string
      */
-    public function table();
+    public function table($table = null);
 
     /**
      * Returns relation name in entity
