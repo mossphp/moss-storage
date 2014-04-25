@@ -21,11 +21,13 @@ interface FieldInterface
 {
 
     /**
-     * Returns table that field belongs to
+     * Returns that field belongs to
+     *
+     * @param string $table
      *
      * @return string
      */
-    public function table();
+    public function table($table = null);
 
     /**
      * Returns relation name in entity
