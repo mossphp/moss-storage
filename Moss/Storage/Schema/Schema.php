@@ -139,7 +139,7 @@ class Schema implements SchemaInterface
      * @return $this
      * @throws SchemaException
      */
-    public function operation($operation, array $entity = array())
+    public function operation($operation, $entity = array())
     {
         $this->operation = $operation;
         $models = $this->retrieveModels($entity);
