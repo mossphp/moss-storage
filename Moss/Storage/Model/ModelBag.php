@@ -19,16 +19,24 @@ namespace Moss\Storage\Model;
  */
 class ModelBag
 {
-    /** @var array|ModelInterface */
+    /**
+     * @var array|ModelInterface
+     */
     protected $collection = array();
 
-    /** @var array|ModelInterface */
+    /**
+     * @var array|ModelInterface
+     */
     protected $byAlias = array();
 
-    /** @var array|ModelInterface */
+    /**
+     * @var array|ModelInterface
+     */
     protected $byEntity = array();
 
-    /** @var array|ModelInterface */
+    /**
+     * @var array|ModelInterface
+     */
     protected $byTable = array();
 
     /**

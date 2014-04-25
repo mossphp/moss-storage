@@ -22,13 +22,19 @@ class PDO implements DriverInterface
 
     protected $prefix;
 
-    /** @var MutatorInterface */
+    /**
+     * @var MutatorInterface
+     */
     protected $mutator;
 
-    /** @var \PDO */
+    /**
+     * @var \PDO
+     */
     protected $pdo;
 
-    /** @var \PDOStatement */
+    /**
+     * @var \PDOStatement
+     */
     protected $statement;
 
     /**

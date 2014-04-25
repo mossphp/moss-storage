@@ -25,7 +25,9 @@ use Moss\Storage\Query\Query;
  */
 class StorageQuery extends AbstractStorage
 {
-    /** @var QueryInterface|Query */
+    /**
+     * @var QueryInterface|Query
+     */
     protected $instance;
 
     /**
@@ -83,7 +85,7 @@ class StorageQuery extends AbstractStorage
     /**
      * Returns write query for passed entity object or entity class
      *
-     * @param string|object $instance
+     * @param object $instance
      *
      * @return Query
      */
@@ -96,7 +98,7 @@ class StorageQuery extends AbstractStorage
     /**
      * Returns insert query for passed entity object or entity class
      *
-     * @param string|object $instance
+     * @param object $instance
      *
      * @return Query
      */
@@ -109,7 +111,7 @@ class StorageQuery extends AbstractStorage
     /**
      * Returns update query for passed entity object or entity class
      *
-     * @param string|object $instance
+     * @param object $instance
      *
      * @return Query
      */
@@ -122,7 +124,7 @@ class StorageQuery extends AbstractStorage
     /**
      * Returns delete query for passed entity object or entity class
      *
-     * @param string|object $instance
+     * @param object $instance
      *
      * @return Query
      */

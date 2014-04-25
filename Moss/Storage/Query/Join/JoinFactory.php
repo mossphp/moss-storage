@@ -23,7 +23,9 @@ use Moss\Storage\Query\QueryException;
  */
 class JoinFactory
 {
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     private $bag;
 
     /**

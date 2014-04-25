@@ -22,10 +22,14 @@ use Psr\Log\LoggerInterface;
 class LoggingDecorator implements DriverInterface
 {
 
-    /** @var DriverInterface  */
+    /**
+     * @var DriverInterface
+     */
     private $driver;
 
-    /** @var LoggerInterface  */
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
     private $echo;
 
