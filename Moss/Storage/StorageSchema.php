@@ -44,7 +44,7 @@ class StorageSchema extends AbstractStorage
     /**
      * Returns true if entity table exists
      *
-     * @param string|object $entity
+     * @param array|string $entity
      *
      * @return Schema
      */
@@ -57,7 +57,7 @@ class StorageSchema extends AbstractStorage
     /**
      * Returns query creating entity table
      *
-     * @param string|object $entity
+     * @param array|string $entity
      *
      * @return Schema
      */
@@ -70,7 +70,7 @@ class StorageSchema extends AbstractStorage
     /**
      * Returns query altering entity table
      *
-     * @param string|object $entity
+     * @param array|string $entity
      *
      * @return Schema
      */
@@ -83,7 +83,7 @@ class StorageSchema extends AbstractStorage
     /**
      * Returns query removing entity table
      *
-     * @param string|object $entity
+     * @param array|string $entity
      *
      * @return Schema
      */

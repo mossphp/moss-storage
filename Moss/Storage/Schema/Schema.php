@@ -79,56 +79,56 @@ class Schema implements SchemaInterface
     /**
      * Sets check operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function check($entity = array())
     {
-        return $this->operation('check', (array) $entity);
+        return $this->operation('check', $entity);
     }
 
     /**
      * Sets create operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function create($entity = array())
     {
-        return $this->operation('create', (array) $entity);
+        return $this->operation('create', $entity);
     }
 
     /**
      * Sets alter operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function alter($entity = array())
     {
-        return $this->operation('alter', (array) $entity);
+        return $this->operation('alter', $entity);
     }
 
     /**
      * Sets drop operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function drop($entity = array())
     {
-        return $this->operation('drop', (array) $entity);
+        return $this->operation('drop', $entity);
     }
 
     /**
      * Sets query operation
      *
      * @param string $operation
-     * @param array  $entity
+     * @param array|string  $entity
      *
      * @return $this
      * @throws SchemaException
@@ -175,7 +175,7 @@ class Schema implements SchemaInterface
      */
     protected function retrieveModels($entity = array()) {
         $models = array();
-        foreach ($entity as $node) {
+        foreach ((array) $entity as $node) {
             $models[] = $this->models->get($node);
         }
 
