@@ -136,15 +136,7 @@ class Schema implements SchemaInterface
     public function operation($operation, array $entity = array())
     {
         $this->operation = $operation;
-
-        $models = array();
-        foreach ($entity as $node) {
-            $models[] = $this->models->get($node);
-        }
-
-        if (empty($models)) {
-            $models = $this->models->all();
-        }
+        $models = $this->retrieveModels($entity);
 
         switch ($this->operation) {
             case 'check':
@@ -172,6 +164,26 @@ class Schema implements SchemaInterface
         }
 
         return $this;
+    }
+
+    /**
+     * Returns array with models for operation
+     *
+     * @param array $entity
+     *
+     * @return array|ModelInterface[]
+     */
+    protected function retrieveModels($entity = array()) {
+        $models = array();
+        foreach ($entity as $node) {
+            $models[] = $this->models->get($node);
+        }
+
+        if (empty($models)) {
+            $models = $this->models->all();
+        }
+
+        return $models;
     }
 
     /**
