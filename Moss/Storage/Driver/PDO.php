@@ -22,6 +22,9 @@ class PDO implements DriverInterface
 
     protected $prefix;
 
+    /** @var MutatorInterface */
+    protected $mutator;
+
     /** @var \PDO */
     protected $pdo;
 
@@ -31,14 +34,15 @@ class PDO implements DriverInterface
     /**
      * Constructor
      *
-     * @param string $dsn
-     * @param string $username
-     * @param string $password
-     * @param string $prefix
+     * @param string           $dsn
+     * @param string           $username
+     * @param string           $password
+     * @param MutatorInterface $mutator
+     * @param string           $prefix
      *
      * @throws DriverException
      */
-    public function __construct($dsn, $username, $password, $prefix = null)
+    public function __construct($dsn, $username, $password, MutatorInterface $mutator = null, $prefix = null)
     {
         $initCmd = array(
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
@@ -60,6 +64,8 @@ class PDO implements DriverInterface
             $this->pdo->setAttribute(\PDO::MYSQL_ATTR_INIT_COMMAND, 'SET NAMES ' . $encoding); // re-connect
             $this->pdo->exec(' SET NAMES ' . $encoding); // current
         }
+
+        $this->mutator = $mutator;
     }
 
     /**
@@ -121,24 +127,11 @@ class PDO implements DriverInterface
             return null;
         }
 
-        switch ($type) {
-            case 'boolean':
-            case 'integer':
-                return (int) $value;
-            case 'decimal':
-                $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
-                $value = str_replace(',', '.', $value);
-
-                return (float) $value;
-            case 'datetime' && $value instanceof \DateTime:
-                return $value->format('Y-m-d H:i:s');
-            case 'serial':
-                return base64_encode(serialize($value));
-
-
-            default:
-                return $value;
+        if (!$this->mutator) {
+            return $value;
         }
+
+        return $this->mutator->store($value, $type);
     }
 
     /**
@@ -155,24 +148,11 @@ class PDO implements DriverInterface
             return null;
         }
 
-        switch ($type) {
-            case 'boolean':
-                return (bool) $value;
-            case 'integer':
-                return (int) $value;
-            case 'decimal':
-                $value = preg_replace('/[^0-9,.\-]+/i', null, $value);
-                $value = str_replace(',', '.', $value);
-                $value = strpos($value, '.') === false ? (int) $value : (float) $value;
-
-                return $value;
-            case 'datetime':
-                return new \DateTime($value);
-            case 'serial':
-                return unserialize(base64_decode($value));
-            default:
-                return $value;
+        if (!$this->mutator) {
+            return $value;
         }
+
+        return $this->mutator->store($value, $type);
     }
 
     /**

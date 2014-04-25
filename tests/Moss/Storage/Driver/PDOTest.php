@@ -27,6 +27,26 @@ class PDOMock extends \PDO
 class PDOTest extends \PHPUnit_Framework_TestCase
 {
 
+    /**
+     * @expectedException \Moss\Storage\Driver\DriverException
+     * @expectedExceptionMessage No statement to execute
+     */
+    public function testExecuteWithoutPrepare()
+    {
+        $driver = new PDODriverMock($this->mockPDO(array('rowCount' => 10)));
+        $driver->execute();
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Driver\DriverException
+     * @expectedExceptionMessage Statement error
+     */
+    public function testExecuteFails()
+    {
+        $driver = new PDODriverMock($this->mockPDO(array('execute' => false)));
+        $driver->prepare('')->execute();
+    }
+
     public function testAffectedRows()
     {
         $driver = new PDODriverMock($this->mockPDO(array('rowCount' => 10)));
@@ -136,6 +156,18 @@ class PDOTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testStore()
+    {
+        $driver = new PDODriverMock($this->mockPDO(array('result' => 1)));
+        $this->assertEquals(1, $driver->store(1, 'whatever'));
+    }
+
+    public function testRestore()
+    {
+        $driver = new PDODriverMock($this->mockPDO(array('result' => 1)));
+        $this->assertEquals(1, $driver->restore(1, 'whatever'));
+    }
+
     public function testTransactionStart()
     {
         $driver = new PDODriverMock($this->mockPDO());
@@ -187,11 +219,18 @@ class PDOTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($driver->transactionCheck());
     }
 
+    public function testReset()
+    {
+        $driver = new PDODriverMock($this->mockPDO(array('transaction' => true)));
+        $driver->reset();
+        $this->assertFalse($driver->transactionCheck());
+    }
+
     protected function mockPDO($args = array())
     {
         $args = array_merge(
             array(
-                'queryString' => null,
+                'execute' => true,
                 'transaction' => false,
                 'rowCount' => 0,
                 'lastInsertId' => null,
@@ -203,8 +242,12 @@ class PDOTest extends \PHPUnit_Framework_TestCase
         $mock = $this->getMock('\Moss\Storage\Driver\PDOMock');
 
         $mock->expects($this->any())
+            ->method('errorInfo')
+            ->will($this->returnValue(array()));
+
+        $mock->expects($this->any())
             ->method('prepare')
-            ->will($this->returnValue($this->mockPDOStatement($args['queryString'], $args['rowCount'], $args['result'])));
+            ->will($this->returnValue($this->mockPDOStatement($args['execute'], $args['rowCount'], $args['result'])));
 
         $mock->expects($this->any())
             ->method('lastInsertId')
@@ -259,7 +302,7 @@ class PDOTest extends \PHPUnit_Framework_TestCase
         return $mock;
     }
 
-    protected function mockPDOStatement($queryString = null, $rowCount = 0, $result = array())
+    protected function mockPDOStatement($execute = true, $rowCount = 0, $result = array())
     {
         $mock = $this->getMock('\PDOStatement');
 
@@ -271,6 +314,10 @@ class PDOTest extends \PHPUnit_Framework_TestCase
 
             return false;
         };
+
+        $mock->expects($this->any())
+            ->method('execute')
+            ->will($this->returnValue($execute));
 
         $mock->expects($this->any())
             ->method('rowCount')
