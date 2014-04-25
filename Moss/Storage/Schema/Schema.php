@@ -27,13 +27,19 @@ use Moss\Storage\Model\ModelInterface;
 class Schema implements SchemaInterface
 {
 
-    /** @var DriverInterface */
+    /**
+     * @var DriverInterface
+     */
     protected $driver;
 
-    /** @var SchemaBuilderInterface */
+    /**
+     * @var SchemaBuilderInterface
+     */
     protected $builder;
 
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     protected $models;
 
     private $operation;

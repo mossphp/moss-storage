@@ -25,7 +25,9 @@ use Moss\Storage\Schema\Schema;
  */
 class StorageSchema extends AbstractStorage
 {
-    /** @var SchemaInterface|Schema */
+    /**
+     * @var SchemaInterface|Schema
+     */
     protected $instance;
 
     /**

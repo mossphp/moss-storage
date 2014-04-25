@@ -26,10 +26,14 @@ use Moss\Storage\Query\QueryInterface;
 class RelationFactory
 {
 
-    /** @var QueryInterface */
+    /**
+     * @var QueryInterface
+     */
     private $query;
 
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     private $bag;
 
     /**

@@ -28,13 +28,19 @@ class Model implements ModelInterface
     protected $entity;
     protected $alias;
 
-    /** @var array|FieldInterface[] */
+    /**
+     * @var array|FieldInterface[]
+     */
     protected $fields = array();
 
-    /** @var array|IndexInterface[] */
+    /**
+     * @var array|IndexInterface[]
+     */
     protected $indexes = array();
 
-    /** @var array|RelationInterface[] */
+    /**
+     * @var array|RelationInterface[]
+     */
     protected $relations = array();
 
     /**
