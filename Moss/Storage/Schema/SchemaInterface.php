@@ -80,7 +80,7 @@ interface SchemaInterface
      *
      * @return $this
      */
-    public function operation($operation, array $entity = array());
+    public function operation($operation, $entity = array());
 
     /**
      * Executes query

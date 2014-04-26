@@ -29,16 +29,24 @@ use Moss\Storage\Query\Relation\RelationInterface;
  */
 class Query implements QueryInterface
 {
-    /** @var DriverInterface */
+    /**
+     * @var DriverInterface
+     */
     protected $driver;
 
-    /** @var QueryBuilderInterface */
+    /**
+     * @var QueryBuilderInterface
+     */
     protected $builder;
 
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     protected $models;
 
-    /** @var ModelInterface */
+    /**
+     * @var ModelInterface
+     */
     protected $model;
 
     private $instance;
@@ -62,16 +70,24 @@ class Query implements QueryInterface
     private $binds = array();
     private $casts = array();
 
-    /** @var JoinInterface[] */
+    /**
+     * @var JoinInterface[]
+     */
     private $joins = array();
 
-    /** @var JoinFactory */
+    /**
+     * @var JoinFactory
+     */
     private $joinFactory;
 
-    /** @var RelationInterface[] */
+    /**
+     * @var RelationInterface[]
+     */
     private $relations = array();
 
-    /** @var RelationFactory */
+    /**
+     * @var RelationFactory
+     */
     private $relationFactory;
 
     /**
@@ -1090,6 +1106,10 @@ class Query implements QueryInterface
      */
     public function with($relation, array $conditions = array(), array $order = array())
     {
+        if (!$this->model) {
+            throw new QueryException('Unable to create relation, missing entity model');
+        }
+
         foreach ($this->relationFactory->create($this->model, $relation, $conditions, $order) as $rel) {
             $this->relations[] = $rel;
         }
@@ -1507,13 +1527,18 @@ class Query implements QueryInterface
     /**
      * Returns property value
      *
-     * @param array|object $entity
-     * @param string       $field
+     * @param null|array|object $entity
+     * @param string            $field
      *
      * @return mixed
+     * @throws QueryException
      */
     private function accessProperty($entity, $field)
     {
+        if (!$entity) {
+            throw new QueryException('Unable to access entity properties, missing instance');
+        }
+
         if (is_array($entity) || $entity instanceof \ArrayAccess) {
             return isset($entity[$field]) ? $entity[$field] : null;
         }

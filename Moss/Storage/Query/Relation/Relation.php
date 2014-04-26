@@ -24,13 +24,19 @@ use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterfa
 abstract class Relation implements RelationInterface
 {
 
-    /** @var QueryInterface */
+    /**
+     * @var QueryInterface
+     */
     protected $query;
 
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     protected $models;
 
-    /** @var RelationDefinitionInterface */
+    /**
+     * @var RelationDefinitionInterface
+     */
     protected $relation;
 
     /**

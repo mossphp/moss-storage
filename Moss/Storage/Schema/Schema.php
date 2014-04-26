@@ -27,13 +27,19 @@ use Moss\Storage\Model\ModelInterface;
 class Schema implements SchemaInterface
 {
 
-    /** @var DriverInterface */
+    /**
+     * @var DriverInterface
+     */
     protected $driver;
 
-    /** @var SchemaBuilderInterface */
+    /**
+     * @var SchemaBuilderInterface
+     */
     protected $builder;
 
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     protected $models;
 
     private $operation;
@@ -79,72 +85,64 @@ class Schema implements SchemaInterface
     /**
      * Sets check operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function check($entity = array())
     {
-        return $this->operation('check', (array) $entity);
+        return $this->operation('check', $entity);
     }
 
     /**
      * Sets create operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function create($entity = array())
     {
-        return $this->operation('create', (array) $entity);
+        return $this->operation('create', $entity);
     }
 
     /**
      * Sets alter operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function alter($entity = array())
     {
-        return $this->operation('alter', (array) $entity);
+        return $this->operation('alter', $entity);
     }
 
     /**
      * Sets drop operation
      *
-     * @param array $entity
+     * @param array|string $entity
      *
      * @return $this
      */
     public function drop($entity = array())
     {
-        return $this->operation('drop', (array) $entity);
+        return $this->operation('drop', $entity);
     }
 
     /**
      * Sets query operation
      *
      * @param string $operation
-     * @param array  $entity
+     * @param array|string  $entity
      *
      * @return $this
      * @throws SchemaException
      */
-    public function operation($operation, array $entity = array())
+    public function operation($operation, $entity = array())
     {
         $this->operation = $operation;
-
-        $models = array();
-        foreach ($entity as $node) {
-            $models[] = $this->models->get($node);
-        }
-
-        if (empty($models)) {
-            $models = $this->models->all();
-        }
+        $models = $this->retrieveModels($entity);
 
         switch ($this->operation) {
             case 'check':
@@ -172,6 +170,26 @@ class Schema implements SchemaInterface
         }
 
         return $this;
+    }
+
+    /**
+     * Returns array with models for operation
+     *
+     * @param array $entity
+     *
+     * @return array|ModelInterface[]
+     */
+    protected function retrieveModels($entity = array()) {
+        $models = array();
+        foreach ((array) $entity as $node) {
+            $models[] = $this->models->get($node);
+        }
+
+        if (empty($models)) {
+            $models = $this->models->all();
+        }
+
+        return $models;
     }
 
     /**

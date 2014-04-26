@@ -12,7 +12,8 @@
 namespace Moss\Storage\Driver;
 
 
-class Mutator implements MutatorInterface {
+class Mutator implements MutatorInterface
+{
 
     /**
      * Converts set type to storable value
@@ -42,8 +43,6 @@ class Mutator implements MutatorInterface {
                 return $value->format('Y-m-d H:i:s');
             case 'serial':
                 return base64_encode(serialize($value));
-
-
             default:
                 return $value;
         }

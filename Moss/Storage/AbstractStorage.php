@@ -27,13 +27,19 @@ use Moss\Storage\Schema\SchemaInterface;
 abstract class AbstractStorage implements StorageInterface
 {
 
-    /** @var DriverInterface */
+    /**
+     * @var DriverInterface
+     */
     protected $driver;
 
-    /** @var ModelBag */
+    /**
+     * @var ModelBag
+     */
     protected $bag;
 
-    /** @var QueryInterface|SchemaInterface  */
+    /**
+     * @var QueryInterface|SchemaInterface
+     */
     protected $instance;
 
     /**
