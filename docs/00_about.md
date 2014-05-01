@@ -38,7 +38,13 @@ Just PHP >= 5.3.7, PDO with MySQL or PostgreSQL and that's it.
 ## Installation
 
 Download from [github](https://github.com/potfur/moss-storage)
-(Composer will be added shortly)
+Or via [Composer](https://getcomposer.org/)
+
+```json
+	"require": {
+		"moss/storage": ">=9"
+	}
+```
 
 Storage has no external dependencies.
 (Only PHPUnit for developement).

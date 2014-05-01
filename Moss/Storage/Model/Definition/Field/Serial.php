@@ -17,23 +17,23 @@ namespace Moss\Storage\Model\Definition\Field;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Serial extends Field
+class Serial extends String
 {
     /**
      * Constructor
      *
-     * @param string $field
-     * @param array  $attributes
+     * @param string      $field
+     * @param array       $attributes
      * @param null|string $mapping
      */
     public function __construct($field, $attributes = array(), $mapping = null)
     {
-        $this->name = $field;
-        $this->type = 'serial';
-        $this->mapping = $mapping;
-
-        $default = array('null');
-        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('null'));
+        $this->initialize(
+            'serial',
+            $field,
+            array_merge(array('null'), $attributes),
+            $mapping,
+            array('null')
+        );
     }
 }

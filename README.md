@@ -35,6 +35,25 @@ This would write article entity into database with set comments.
 For licence details see LICENCE.md
 Documentation is available in ./docs/
 
+## Requirements
+
+Just PHP >= 5.3.7, PDO with MySQL or PostgreSQL and that's it.
+(Other SQL engines will come later)
+
+## Installation
+
+Download from [github](https://github.com/potfur/moss-storage)
+Or via [Composer](https://getcomposer.org/)
+
+```json
+	"require": {
+		"moss/storage": ">=9"
+	}
+```
+
+Storage has no external dependencies.
+(Only PHPUnit for developement).
+
 ## Contribute
 
 If you want to submit fix or some other enhancements, feel free to do so.

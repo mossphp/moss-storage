@@ -17,23 +17,23 @@ namespace Moss\Storage\Model\Definition\Field;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Integer extends Field
+class Integer extends String
 {
     /**
      * Constructor
      *
-     * @param string $field
-     * @param array  $attributes
+     * @param string      $field
+     * @param array       $attributes
      * @param null|string $mapping
      */
     public function __construct($field, $attributes = array(), $mapping = null)
     {
-        $this->name = $field;
-        $this->type = 'integer';
-        $this->mapping = $mapping;
-
-        $default = array('length' => 11);
-        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('length', 'null', 'auto_increment', 'default'));
+        $this->initialize(
+            'integer',
+            $field,
+            array_merge(array('length' => 11), $attributes),
+            $mapping,
+            array('length', 'null', 'auto_increment', 'default')
+        );
     }
 }

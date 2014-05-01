@@ -17,22 +17,23 @@ namespace Moss\Storage\Model\Definition\Field;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class DateTime extends Field
+class DateTime extends String
 {
     /**
      * Constructor
      *
-     * @param string $field
-     * @param array  $attributes
+     * @param string      $field
+     * @param array       $attributes
      * @param null|string $mapping
      */
     public function __construct($field, $attributes = array(), $mapping = null)
     {
-        $this->name = $field;
-        $this->type = 'datetime';
-        $this->mapping = $mapping;
-
-        $this->attributes = $this->prepareAttributes($attributes);
-        $this->verifyAttribute(array('null', 'default'));
+        $this->initialize(
+            'datetime',
+            $field,
+            $attributes,
+            $mapping,
+            array('null', 'default')
+        );
     }
 }
