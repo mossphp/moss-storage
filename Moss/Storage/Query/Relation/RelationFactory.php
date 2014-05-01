@@ -92,7 +92,7 @@ class RelationFactory
     {
         list($relation, $furtherRelations) = $this->splitRelationName($relation);
 
-        $instance = $this->buildRelationInstance($model->relation($relation));
+        $instance = $this->buildRelationInstance($this->fetchDefinition($model, $relation));
 
         foreach ($conditions as $node) {
             if (!is_array($node)) {
@@ -117,6 +117,36 @@ class RelationFactory
         }
 
         return $instance;
+    }
+
+    /**
+     * Fetches relation
+     *
+     * @param ModelInterface $model
+     * @param string         $relation
+     *
+     * @return RelationDefinitionInterface
+     * @throws QueryException
+     */
+    private function fetchDefinition(ModelInterface $model, $relation)
+    {
+        if ($model->hasRelation($relation)) {
+            return $model->relation($relation);
+        }
+
+        if ($this->bag->has($relation)) {
+            $entity = $this->bag->get($relation);
+
+            if ($model->hasRelation($entity->alias())) {
+                return $model->relation($entity->alias());
+            }
+
+            if ($model->hasRelation($entity->entity())) {
+                return $model->relation($entity->entity());
+            }
+        }
+
+        throw new QueryException(sprintf('Unable to resolve relation "%s" not found in model "%s"', $relation, $model->entity()));
     }
 
     /**

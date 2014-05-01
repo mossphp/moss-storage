@@ -399,7 +399,7 @@ class Model implements ModelInterface
      */
     public function hasRelation($relationName)
     {
-        return isset($this->relations[$relationName]);
+        return $this->findRelation($relationName) !== false;
     }
 
     /**
@@ -422,10 +422,28 @@ class Model implements ModelInterface
      */
     public function relation($relationName)
     {
-        if (!$this->hasRelation($relationName)) {
+        if (!$relation = $this->findRelation($relationName)) {
             throw new ModelException(sprintf('Unknown relation, relation "%s" not found in model "%s"', $relationName, $this->entity));
         }
 
-        return $this->relations[$relationName];
+        return $relation;
+    }
+
+    /**
+     *
+     *
+     * @param $relationName
+     *
+     * @return bool|RelationInterface
+     */
+    private function findRelation($relationName)
+    {
+        foreach ($this->relations as $relation) {
+            if ($relation->name() == $relationName || $relation->entity() == $relationName) {
+                return $relation;
+            }
+        }
+
+        return false;
     }
 }
