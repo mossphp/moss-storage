@@ -1,6 +1,6 @@
 # Moss Storage
 
-[![Build Status](https://travis-ci.org/potfur/moss-storage.svg?branch=master)](https://travis-ci.org/potfur/moss-storage)
+[![Build Status](https://travis-ci.org/potfur/moss-storage.png?branch=master)](https://travis-ci.org/potfur/moss-storage)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/quality-score.png?s=6b11b311a9dfe2d150f9b2ac8568426b2ed3bc9f)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
 [![Code Coverage](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/coverage.png?s=f1e8ae97cb136068a9592fbb8f694cb392ec2a24)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
 
@@ -34,6 +34,25 @@ This would write article entity into database with set comments.
 
 For licence details see LICENCE.md
 Documentation is available in ./docs/
+
+## Requirements
+
+Just PHP >= 5.3.7, PDO with MySQL or PostgreSQL and that's it.
+(Other SQL engines will come later)
+
+## Installation
+
+Download from [github](https://github.com/potfur/moss-storage)
+Or via [Composer](https://getcomposer.org/)
+
+```json
+	"require": {
+		"moss/storage": ">=9"
+	}
+```
+
+Storage has no external dependencies.
+(Only PHPUnit for developement).
 
 ## Contribute
 
