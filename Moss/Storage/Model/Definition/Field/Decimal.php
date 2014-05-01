@@ -17,7 +17,7 @@ namespace Moss\Storage\Model\Definition\Field;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Decimal extends Field
+class Decimal extends String
 {
     /**
      * Constructor
@@ -28,12 +28,12 @@ class Decimal extends Field
      */
     public function __construct($field, $attributes = array(), $mapping = null)
     {
-        $this->name = $field;
-        $this->type = 'decimal';
-        $this->mapping = $mapping;
-
-        $default = array('length' => 11, 'precision' => 4);
-        $this->attributes = $this->prepareAttributes(array_merge($default, $attributes));
-        $this->verifyAttribute(array('length', 'precision', 'null', 'default'));
+        $this->initialize(
+            'decimal',
+            $field,
+            array_merge(array('length' => 11, 'precision' => 4), $attributes),
+            $mapping,
+            array('length', 'precision', 'null', 'default')
+        );
     }
 }

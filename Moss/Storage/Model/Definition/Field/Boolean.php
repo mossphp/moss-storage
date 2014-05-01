@@ -17,7 +17,7 @@ namespace Moss\Storage\Model\Definition\Field;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Boolean extends Field
+class Boolean extends String
 {
     /**
      * Constructor
@@ -28,11 +28,12 @@ class Boolean extends Field
      */
     public function __construct($field, $attributes = array(), $mapping = null)
     {
-        $this->name = $field;
-        $this->type = 'boolean';
-        $this->mapping = $mapping;
-
-        $this->attributes = $this->prepareAttributes($attributes);
-        $this->verifyAttribute(array('null', 'default'));
+        $this->initialize(
+            'boolean',
+            $field,
+            $attributes,
+            $mapping,
+            array('null', 'default')
+        );
     }
 }
