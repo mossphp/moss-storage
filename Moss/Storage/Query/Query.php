@@ -299,7 +299,7 @@ class Query implements QueryInterface
     {
         $this->assertEntityString($entity);
         $this->assignModel($entity);
-        $this->assertEntityInstance($entity, $instance);
+        $this->assertEntityInstance($entity, $instance, $operation);
 
         if ($operation == 'write') {
             $operation = $this->checkIfEntityExists($entity, $instance) ? 'update' : 'insert';
@@ -359,20 +359,21 @@ class Query implements QueryInterface
      *
      * @param string       $entity
      * @param array|object $instance
+     * @param string $operation
      *
      * @throws QueryException
      */
-    protected function assertEntityInstance($entity, $instance)
+    protected function assertEntityInstance($entity, $instance, $operation)
     {
         $entityClass = $this->models->get($entity)
             ->entity();
 
         if ($instance === null) {
-            throw new QueryException(sprintf('Missing required entity for operation "%s" in query "%s"', $this->operation, $entityClass));
+            throw new QueryException(sprintf('Missing required entity for operation "%s" in query "%s"', $operation, $entityClass));
         }
 
         if (!is_array($instance) && !$instance instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for operation "%s" must be an instance of "%s" or array got "%s"', $this->operation, $entityClass, $this->getType($instance)));
+            throw new QueryException(sprintf('Entity for operation "%s" must be an instance of "%s" or array got "%s"', $operation, $entityClass, $this->getType($instance)));
         }
 
         // todo - if array - check if has primary fields
