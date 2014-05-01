@@ -1,6 +1,6 @@
 {
 	"name": "moss/storage",
-	"version": "v0.9.3-RC1",
+	"version": "v0.9.4",
 	"description": "moss storage",
 	"keywords": ["orm", "storage", "data mapper", "database"],
 	"type": "orm",
