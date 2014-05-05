@@ -188,7 +188,7 @@ class PDO implements DriverInterface
         }
 
         if ($this->statement->execute($parameters) === false) {
-            throw new DriverException(sprintf("Statement error!\n%s\n%s", implode(', ', $this->pdo->errorInfo()), $this->statement->queryString));
+            throw new DriverException(sprintf('Statement error!%1$s%2$s%1$%3$s', PHP_EOL, implode(', ', $this->pdo->errorInfo()), $this->statement->queryString));
         }
 
         return $this;
