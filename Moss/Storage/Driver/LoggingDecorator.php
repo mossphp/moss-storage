@@ -113,7 +113,7 @@ class LoggingDecorator implements DriverInterface
         }
 
         if ($this->echo) {
-            echo $this->queryString() . "\n";
+            echo $this->queryString() . PHP_EOL;
         }
 
         $this->driver->execute($parameters);
