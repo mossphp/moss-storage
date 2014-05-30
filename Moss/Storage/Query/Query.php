@@ -239,11 +239,16 @@ class Query implements QueryInterface
      */
     public function operation($operation, $entity, $instance = null)
     {
+        $this->assertEntityString($entity);
+        $this->assignModel($entity);
+
         if (in_array($operation, array('num', 'read', 'readOne', 'clear'))) {
             return $this->entityOperation($operation, $entity);
         }
 
         if (in_array($operation, array('write', 'insert', 'update', 'delete'))) {
+            $this->assertEntityInstance($entity, $instance, $operation);
+
             return $this->instanceOperation($operation, $entity, $instance);
         }
 
@@ -254,14 +259,11 @@ class Query implements QueryInterface
      * Prepares operations with entity name
      *
      * @param string $operation
-     * @param string $entity
      *
      * @return $this
      */
-    protected function entityOperation($operation, $entity)
+    protected function entityOperation($operation)
     {
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
         $this->operation = $operation;
 
         switch ($operation) {
@@ -297,10 +299,6 @@ class Query implements QueryInterface
      */
     protected function instanceOperation($operation, $entity, $instance)
     {
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
-        $this->assertEntityInstance($entity, $instance, $operation);
-
         if ($operation == 'write') {
             $operation = $this->checkIfEntityExists($entity, $instance) ? 'update' : 'insert';
         }
@@ -359,7 +357,7 @@ class Query implements QueryInterface
      *
      * @param string       $entity
      * @param array|object $instance
-     * @param string $operation
+     * @param string       $operation
      *
      * @throws QueryException
      */
@@ -878,7 +876,7 @@ class Query implements QueryInterface
         $this->assertComparison($comparison);
         $this->assertLogical($logical);
 
-        if (!is_array($field) && is_array($value)) {
+        if (!is_array($field)) {
             list($fields, $values) = $this->buildSingularFieldCondition($field, $value);
         } else {
             list($fields, $values) = $this->buildMultipleFieldsCondition($field, $value);
@@ -890,10 +888,10 @@ class Query implements QueryInterface
     /**
      * Builds condition for singular field
      *
-     * @param string       $field
-     * @param string|array $value
-     * @param array        $resultFields
-     * @param array        $resultValues
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $resultFields
+     * @param array  $resultValues
      *
      * @return array
      */
@@ -902,9 +900,14 @@ class Query implements QueryInterface
         $this->assertFieldName($field);
         $f = $this->resolveFieldAsArray($this->resolveField($field));
 
-        foreach ($value as $i => $v) {
-            $resultFields[$i] = $this->buildField($f['mapping'], $f['table']);
-            $resultValues[] = $v === null ? null : $this->bindValues($f['mapping'], $f['type'], $v);
+        if (!is_array($value)) {
+            $resultFields[] = $this->buildField($f['mapping'], $f['table']);
+            $resultValues[] = $value === null ? null : $this->bindValues($f['mapping'], $f['type'], $value);
+        } else {
+            foreach ($value as $i => $v) {
+                $resultFields[$i] = $this->buildField($f['mapping'], $f['table']);
+                $resultValues[] = $v === null ? null : $this->bindValues($f['mapping'], $f['type'], $v);
+            }
         }
 
         return array(
@@ -916,10 +919,10 @@ class Query implements QueryInterface
     /**
      * Builds conditions for multiple fields
      *
-     * @param array        $field
-     * @param string|array $value
-     * @param array        $resultFields
-     * @param array        $resultValues
+     * @param array $field
+     * @param mixed $value
+     * @param array $resultFields
+     * @param array $resultValues
      *
      * @return array
      */
