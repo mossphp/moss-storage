@@ -1,12 +1,5 @@
- - tests
-    - phpUnit
-    - phpSpec
  - migrations
- - seeds (?)
+ - fixtures
  - drivers:
     - sqlite
     - mongo (?)
- - separate
-    - mutators (from drivers)
-    - relation factory (from query)
- - PSR logging

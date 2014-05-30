@@ -375,9 +375,6 @@ class Query implements QueryInterface
         if (!is_array($instance) && !$instance instanceof $entityClass) {
             throw new QueryException(sprintf('Entity for operation "%s" must be an instance of "%s" or array got "%s"', $operation, $entityClass, $this->getType($instance)));
         }
-
-        // todo - if array - check if has primary fields
-        // todo - if object - check if it is instance of required entity
     }
 
     /**
