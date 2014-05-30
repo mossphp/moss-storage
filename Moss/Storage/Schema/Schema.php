@@ -134,7 +134,7 @@ class Schema implements SchemaInterface
      * Sets query operation
      *
      * @param string $operation
-     * @param array|string  $entity
+     * @param string|array  $entity
      *
      * @return $this
      * @throws SchemaException
@@ -175,11 +175,12 @@ class Schema implements SchemaInterface
     /**
      * Returns array with models for operation
      *
-     * @param array $entity
+     * @param string|array $entity
      *
      * @return array|ModelInterface[]
      */
-    protected function retrieveModels($entity = array()) {
+    protected function retrieveModels($entity = array())
+    {
         $models = array();
         foreach ((array) $entity as $node) {
             $models[] = $this->models->get($node);
