@@ -33,146 +33,200 @@ class PDOTest extends \PHPUnit_Framework_TestCase
      */
     public function testExecuteWithoutPrepare()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('rowCount' => 10)));
+        $mock = $this->getMock('Moss\Storage\Driver\PDOMock');
+
+        $driver = new PDODriverMock($mock);
         $driver->execute();
     }
 
     /**
      * @expectedException \Moss\Storage\Driver\DriverException
-     * @expectedExceptionMessage Statement error
+     * @expectedExceptionMessage Missing query string or query string is empty
      */
     public function testExecuteFails()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('execute' => false)));
-        $driver->prepare('')->execute();
+        $mock = $this->getMock('Moss\Storage\Driver\PDOMock');
+
+        $driver = new PDODriverMock($mock);
+        $driver->prepare('');
     }
 
     public function testAffectedRows()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('rowCount' => 10)));
-        $result = $driver->prepare('SELECT foo, bar FROM table')
+        $stmt = $this->getMock('\PDOStatement');
+        $stmt->expects($this->once())
+            ->method('rowCount')
+            ->will($this->returnValue(10));
+
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $driver = new PDODriverMock($pdo);
+        $rows = $driver->prepare('SELECT * FROM table')
             ->execute()
             ->affectedRows();
-        $this->assertEquals(10, $result);
+
+        $this->assertEquals(10, $rows);
     }
 
     public function testLastInsertId()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('lastInsertId' => 10)));
-        $result = $driver->prepare('INSERT INTO table (foo, bar) VALUES (\'foo\', \'bar\')')
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($this->getMock('\PDOStatement')));
+
+        $pdo->expects($this->once())
+            ->method('lastInsertId')
+            ->will($this->returnValue(1));
+
+        $driver = new PDODriverMock($pdo);
+        $rows = $driver->prepare('INSERT INTO table (id, text) VALUES (1, foo)')
             ->execute()
             ->lastInsertId();
-        $this->assertEquals(10, $result);
+
+        $this->assertEquals(1, $rows);
     }
 
-    /**
-     * @dataProvider objectProvider
-     */
-    public function testFetchObject($expected)
+    public function testFetchObject()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('result' => $expected)));
-        $result = $driver->prepare('SELECT foo, bar FROM table')
+        $obj = new \stdClass();
+        $obj->id = 1;
+        $obj->text = 'foo';
+
+        $stmt = $this->getMock('\PDOStatement');
+        $stmt->expects($this->once())
+            ->method('fetchObject')
+            ->will($this->returnValue($obj));
+
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $driver = new PDODriverMock($pdo);
+        $result = $driver->prepare('SELECT * FROM table')
             ->execute()
             ->fetchObject('\stdClass');
 
-        $this->assertEquals($expected[0], $result);
+        $this->assertEquals($obj, $result);
     }
 
-    /**
-     * @dataProvider objectProvider
-     */
-    public function testFetchAllAsObject($expected)
+    public function testFetchAllAsObject()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('result' => $expected)));
-        $result = $driver->prepare('SELECT foo, bar FROM table')
+        $obj1 = new \stdClass();
+        $obj1->id = 1;
+        $obj1->text = 'foo';
+
+        $obj2 = new \stdClass();
+        $obj2->id = 2;
+        $obj2->text = 'bar';
+
+        $stmt = $this->getMock('\PDOStatement');
+        $stmt->expects($this->once())
+            ->method('fetchAll')
+            ->will($this->returnValue(array($obj1, $obj2)));
+
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $driver = new PDODriverMock($pdo);
+        $result = $driver->prepare('SELECT * FROM table')
             ->execute()
-            ->fetchAll();
-        $this->assertEquals($expected, $result);
+            ->fetchAll('\stdClass');
+
+        $this->assertEquals(array($obj1, $obj2), $result);
     }
 
-    public function objectProvider()
+    public function testFetchAssoc()
     {
-        $obj = new \stdClass();
-        $obj->foo = 'foo';
-        $obj->bar = 'bar';
+        $row = array('id' => 1, 'text' => 'foo');
 
-        return array(
-            array(array($obj)),
-            array(array($obj))
-        );
-    }
+        $stmt = $this->getMock('\PDOStatement');
+        $stmt->expects($this->once())
+            ->method('fetch')
+            ->will($this->returnValue($row));
 
-    /**
-     * @dataProvider assocProvider
-     */
-    public function testFetchAssoc($expected)
-    {
-        $driver = new PDODriverMock($this->mockPDO(array('result' => $expected)));
-        $result = $driver->prepare('SELECT foo, bar FROM table')
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $driver = new PDODriverMock($pdo);
+        $result = $driver->prepare('SELECT * FROM table')
             ->execute()
             ->fetchAssoc();
 
-        $this->assertEquals($expected[0], $result);
+        $this->assertEquals($row, $result);
     }
 
     public function testFetchAllAsAssoc()
     {
-        $expected = $this->assocProvider();
+        $row1 = array('id' => 1, 'text' => 'foo');
+        $row2 = array('id' => 2, 'text' => 'bar');
 
-        $driver = new PDODriverMock($this->mockPDO(array('result' => $expected)));
-        $result = $driver->prepare('SELECT foo, bar FROM table')
+        $stmt = $this->getMock('\PDOStatement');
+        $stmt->expects($this->once())
+            ->method('fetchAll')
+            ->will($this->returnValue(array($row1, $row2)));
+
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $driver = new PDODriverMock($pdo);
+        $result = $driver->prepare('SELECT * FROM table')
             ->execute()
             ->fetchAll();
 
-        $this->assertEquals($expected, $result);
+        $this->assertEquals(array($row1, $row2), $result);
     }
 
-    public function assocProvider()
+    public function testFetchField()
     {
-        return array(
-            array(array(array('foo' => 'foo', 'bar' => 'bar'))),
-            array(array(array('foo' => 'foo', 'bar' => 'bar')))
-        );
-    }
+        $row = array(1, 'foo');
 
-    /**
-     * @dataProvider fieldProvider
-     */
-    public function testFetchField($expected)
-    {
-        $driver = new PDODriverMock($this->mockPDO(array('result' => $expected)));
-        $result = $driver->prepare('SELECT foo, bar FROM table')
+        $stmt = $this->getMock('\PDOStatement');
+        $stmt->expects($this->once())
+            ->method('fetchColumn')
+            ->will(
+                $this->returnCallback(
+                    function ($fieldNum) use ($row) {
+                        return $row[$fieldNum];
+                    }
+                )
+            );
+
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $driver = new PDODriverMock($pdo);
+        $result = $driver->prepare('SELECT * FROM table')
             ->execute()
             ->fetchField(1);
 
-        $this->assertEquals($expected[0], $result);
-    }
-
-    public function fieldProvider()
-    {
-        return array(
-            array(array('foo', 'bar')),
-            array(array('foo', 'bar')),
-        );
-    }
-
-    public function testStore()
-    {
-        $driver = new PDODriverMock($this->mockPDO(array('result' => 1)));
-        $this->assertEquals(1, $driver->store(1, 'whatever'));
-    }
-
-    public function testRestore()
-    {
-        $driver = new PDODriverMock($this->mockPDO(array('result' => 1)));
-        $this->assertEquals(1, $driver->restore(1, 'whatever'));
+        $this->assertEquals('foo', $result);
     }
 
     public function testTransactionStart()
     {
-        $driver = new PDODriverMock($this->mockPDO());
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('inTransaction')
+            ->will($this->returnValue(false));
+
+        $pdo->expects($this->once())
+            ->method('beginTransaction');
+
+        $driver = new PDODriverMock($pdo);
         $driver->transactionStart();
-        $this->assertTrue($driver->transactionCheck());
     }
 
     /**
@@ -181,8 +235,27 @@ class PDOTest extends \PHPUnit_Framework_TestCase
      */
     public function testTransactionStartAlreadyStarted()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('transaction' => true)));
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('inTransaction')
+            ->will($this->returnValue(true));
+
+        $driver = new PDODriverMock($pdo);
         $driver->transactionStart();
+    }
+
+    public function testTransactionCommit()
+    {
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('inTransaction')
+            ->will($this->returnValue(true));
+
+        $pdo->expects($this->once())
+            ->method('commit');
+
+        $driver = new PDODriverMock($pdo);
+        $driver->transactionCommit();
     }
 
     /**
@@ -191,15 +264,27 @@ class PDOTest extends \PHPUnit_Framework_TestCase
      */
     public function testTransactionCommitWithoutStart()
     {
-        $driver = new PDODriverMock($this->mockPDO());
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('inTransaction')
+            ->will($this->returnValue(false));
+
+        $driver = new PDODriverMock($pdo);
         $driver->transactionCommit();
     }
 
-    public function testTransactionCommit()
+    public function testTransactionRollback()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('transaction' => true)));
-        $driver->transactionCommit();
-        $this->assertFalse($driver->transactionCheck());
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('inTransaction')
+            ->will($this->returnValue(true));
+
+        $pdo->expects($this->once())
+            ->method('rollback');
+
+        $driver = new PDODriverMock($pdo);
+        $driver->transactionRollback();
     }
 
     /**
@@ -208,134 +293,27 @@ class PDOTest extends \PHPUnit_Framework_TestCase
      */
     public function testTransactionRollbackWithoutStart()
     {
-        $driver = new PDODriverMock($this->mockPDO());
-        $driver->transactionRollback();
-    }
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->once())
+            ->method('inTransaction')
+            ->will($this->returnValue(false));
 
-    public function testTransactionRollback()
-    {
-        $driver = new PDODriverMock($this->mockPDO(array('transaction' => true)));
+        $driver = new PDODriverMock($pdo);
         $driver->transactionRollback();
-        $this->assertFalse($driver->transactionCheck());
     }
 
     public function testReset()
     {
-        $driver = new PDODriverMock($this->mockPDO(array('transaction' => true)));
-        $driver->reset();
-        $this->assertFalse($driver->transactionCheck());
-    }
-
-    protected function mockPDO($args = array())
-    {
-        $args = array_merge(
-            array(
-                'execute' => true,
-                'transaction' => false,
-                'rowCount' => 0,
-                'lastInsertId' => null,
-                'result' => array(),
-            ),
-            $args
-        );
-
-        $mock = $this->getMock('\Moss\Storage\Driver\PDOMock');
-
-        $mock->expects($this->any())
-            ->method('errorInfo')
-            ->will($this->returnValue(array()));
-
-        $mock->expects($this->any())
-            ->method('prepare')
-            ->will($this->returnValue($this->mockPDOStatement($args['execute'], $args['rowCount'], $args['result'])));
-
-        $mock->expects($this->any())
-            ->method('lastInsertId')
-            ->will($this->returnValue($args['lastInsertId']));
-
-        $mock->expects($this->any())
-            ->method('beginTransaction')
-            ->will(
-                $this->returnCallback(
-                    function () use (&$args) {
-                        if ($args['transaction']) {
-                            throw new \PDOException();
-                        }
-
-                        return $args['transaction'] = true;
-                    }
-                )
-            );
-
-        $mock->expects($this->any())
-            ->method('commit')
-            ->will(
-                $this->returnCallback(
-                    function () use (&$args) {
-                        if (!$args['transaction']) {
-                            throw new \PDOException();
-                        }
-
-                        return $args['transaction'] = false;
-                    }
-                )
-            );
-
-        $mock->expects($this->any())
-            ->method('rollBack')
-            ->will(
-                $this->returnCallback(
-                    function () use (&$args) {
-                        if (!$args['transaction']) {
-                            throw new \PDOException();
-                        }
-
-                        return $args['transaction'] = false;
-                    }
-                )
-            );
-
-        $mock->expects($this->any())
+        $pdo = $this->getMock('Moss\Storage\Driver\PDOMock');
+        $pdo->expects($this->exactly(2))
             ->method('inTransaction')
-            ->will($this->returnCallback(function () use (&$args) { return $args['transaction']; }));
+            ->will($this->returnValue(true));
 
-        return $mock;
-    }
+        $pdo->expects($this->once())
+            ->method('rollback');
 
-    protected function mockPDOStatement($execute = true, $rowCount = 0, $result = array())
-    {
-        $mock = $this->getMock('\PDOStatement');
-
-        $i = 0;
-        $callback = function () use (&$result, &$i) {
-            if (isset($result[$i])) {
-                return $result[$i++];
-            }
-
-            return false;
-        };
-
-        $mock->expects($this->any())
-            ->method('execute')
-            ->will($this->returnValue($execute));
-
-        $mock->expects($this->any())
-            ->method('rowCount')
-            ->will($this->returnValue($rowCount));
-
-        $mock->expects($this->any())
-            ->method('fetchObject')
-            ->will($this->returnCallback($callback));
-
-        $mock->expects($this->any())
-            ->method('fetch')
-            ->will($this->returnCallback($callback));
-
-        $mock->expects($this->any())
-            ->method('fetchColumn')
-            ->will($this->returnCallback($callback));
-
-        return $mock;
+        $driver = new PDODriverMock($pdo);
+        $driver->reset();
     }
 }
  

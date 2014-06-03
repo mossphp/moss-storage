@@ -103,9 +103,14 @@ class PDO implements DriverInterface
      * @param string $comment
      *
      * @return $this
+     * @throws DriverException
      */
     public function prepare($queryString, $comment = null)
     {
+        if(empty($queryString)) {
+            throw new DriverException('Missing query string or query string is empty');
+        }
+
         $queryString = str_replace('{prefix}', $this->prefix, $queryString);
 
         if ($comment !== null) {
@@ -239,25 +244,36 @@ class PDO implements DriverInterface
             throw new DriverException('Result instance missing');
         }
 
-        if (!$row = $this->statement->fetchObject($className)) {
+        if (!$entity = $this->statement->fetchObject($className)) {
             return false;
         }
 
         if (empty($restore)) {
-            return $row;
+            return $entity;
         }
 
-        $ref = new \ReflectionObject($row);
+        $entity = $this->restoreObject($entity, $restore, new \ReflectionClass($className));
+
+        return $entity;
+    }
+
+    protected function restoreObject($entity, array $restore, \ReflectionClass $ref)
+    {
         foreach ($restore as $field => $type) {
+            if (!$ref->hasProperty($field)) {
+                $entity->$field = $this->restore($entity->$field, $type);
+                continue;
+            }
+
             $prop = $ref->getProperty($field);
             $prop->setAccessible(true);
 
-            $value = $prop->getValue($row);
+            $value = $prop->getValue($entity);
             $value = $this->restore($value, $type);
-            $prop->setValue($row, $value);
+            $prop->setValue($entity, $value);
         }
 
-        return $row;
+        return $entity;
     }
 
     /**
@@ -274,19 +290,26 @@ class PDO implements DriverInterface
             throw new DriverException('Result instance missing');
         }
 
-        if (!$row = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
+        if (!$entity = $this->statement->fetch(\PDO::FETCH_ASSOC)) {
             return false;
         }
 
         if (empty($restore)) {
-            return $row;
+            return $entity;
         }
 
+        $entity = $this->restoreArray($entity, $restore);
+
+        return $entity;
+    }
+
+    protected function restoreArray($entity, array $restore)
+    {
         foreach ($restore as $field => $type) {
-            $row[$field] = $this->restore($row[$field], $type);
+            $entity[$field] = $this->restore($entity[$field], $type);
         }
 
-        return $row;
+        return $entity;
     }
 
     /**
@@ -350,9 +373,10 @@ class PDO implements DriverInterface
      */
     protected function fetchAllAssoc($restore = array())
     {
-        $result = array();
-        while ($row = $this->fetchAssoc($restore)) {
-            $result[] = $row;
+        $result = $this->statement->fetchAll();
+        foreach ($result as $entity) {
+            $entity = $this->restoreArray($entity, $restore);
+            unset($entity);
         }
 
         return $result;
@@ -368,25 +392,11 @@ class PDO implements DriverInterface
      */
     protected function fetchAllObject($className, $restore = array())
     {
-        $result = array();
+        $result = $this->statement->fetchAll(\PDO::FETCH_CLASS, $className);
         $ref = new \ReflectionClass($className);
 
-        while ($row = $this->statement->fetchObject($className)) {
-            foreach ($restore as $field => $type) {
-                if (!$ref->hasProperty($field)) {
-                    $row->$field = $this->restore($row->$field, $type);
-                    continue;
-                }
-
-                $prop = $ref->getProperty($field);
-                $prop->setAccessible(true);
-
-                $value = $prop->getValue($row);
-                $value = $this->restore($value, $type);
-                $prop->setValue($row, $value);
-            }
-
-            $result[] = $row;
+        foreach ($result as &$entity) {
+            $entity = $this->restoreObject($entity, $restore, $ref);
         }
 
         return $result;
