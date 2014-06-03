@@ -204,7 +204,7 @@ class Model implements ModelInterface
      */
     public function isNamed($name)
     {
-        return $this->table == $name || $this->entity == $name || $this->alias == $name;
+        return $this->table == $name || $this->entity == ltrim($name, '\\') || $this->alias == $name;
     }
 
     /**
@@ -332,7 +332,7 @@ class Model implements ModelInterface
     }
 
     /**
-     * Returns array containing names of indexes
+     * Returns array of fields from indexes
      *
      * @return array|FieldInterface[]
      */
@@ -340,16 +340,27 @@ class Model implements ModelInterface
     {
         $fields = array();
         foreach ($this->indexes as $index) {
-            foreach ($index->fields() as $field) {
-                if (isset($fields[$field])) {
-                    continue;
-                }
-
-                $fields[$field] = $this->field($field);
-            }
+            $fields = array_merge($fields, $index->fields());
         }
 
-        return array_values($fields);
+        $result = array();
+        foreach (array_unique($fields) as $field) {
+            $result[] = $this->field($field);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns true if index with set name is defined
+     *
+     * @param string $index
+     *
+     * @return bool
+     */
+    public function hasIndex($index)
+    {
+        return isset($this->indexes[$index]);
     }
 
     /**

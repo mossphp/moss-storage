@@ -7,337 +7,432 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      * @expectedException \Moss\Storage\Model\ModelException
      * @expectedExceptionMessage Field must be an instance of FieldInterface
      */
-    public function testConstructorInvalidFieldInstance()
+    public function testConstructorWithInvalidFieldInstance()
     {
-        new Model('foo', 'Foo', array(new \stdClass()));
+        new Model('Foo', 'foo', array(new \stdClass()));
     }
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
      * @expectedExceptionMessage Index must be an instance of IndexInterface
      */
-    public function testConstructorInvalidIndexInstance()
+    public function testConstructorWithInvalidIndexInstance()
     {
-        new Model('foo', 'Foo', array($this->mockField('foo')), array(new \stdClass()));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        new Model('Foo', 'foo', array($field), array(new \stdClass()));
     }
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
      * @expectedExceptionMessage Relation must be an instance of RelationInterface
      */
-    public function testConstructorInvalidRelationInstance()
+    public function testConstructorWithInvalidRelationInstance()
     {
-        new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('foo'))), array(new \stdClass()));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+
+        new Model('Foo', 'foo', array($field), array($index), array(new \stdClass()));
     }
 
     public function testTable()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')));
-        $this->assertEquals('Foo', $model->table());
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        $model = new Model('Foo', 'foo', array($field));
+        $this->assertEquals('foo', $model->table());
     }
 
     public function testEntity()
     {
-        $model = new Model('\Foo', 'Foo', array($this->mockField('foo')));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        $model = new Model('\Foo', 'foo', array($field));
         $this->assertEquals('Foo', $model->entity());
+    }
+
+    public function testAlias()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        $model = new Model('\Foo', 'foo', array($field));
+        $this->assertEquals('foofoo', $model->alias('foofoo'));
+    }
+
+    public function testIsNamedByEntityName()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        $model = new Model('\Foo', 'foo', array($field));
+
+        $this->assertTrue($model->isNamed('\Foo'));
+    }
+
+    public function testIsNamedByTableName()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        $model = new Model('\Foo', 'foo', array($field));
+
+        $this->assertTrue($model->isNamed('foo'));
+    }
+
+    public function testIsNamedByItsAlias()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+
+        $model = new Model('\Foo', 'foo', array($field));
+        $model->alias('foofoo');
+
+        $this->assertTrue($model->isNamed('foofoo'));
     }
 
     public function testHasField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $model = new Model('Foo', 'foo', array($field));
         $this->assertTrue($model->hasField('foo'));
     }
 
     public function testFields()
     {
-        $field = $this->mockField('foo');
-        $model = new Model('foo', 'Foo', array($field));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $model = new Model('Foo', 'foo', array($field));
         $this->assertEquals(array('foo' => $field), $model->fields());
     }
 
     public function testField()
     {
-        $field = $this->mockField('foo');
-        $model = new Model('foo', 'Foo', array($field));
-        $this->assertEquals($field, $model->field('foo'));
-    }
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Unknown field, field "yada" not found in model "foo"
-     */
-    public function testUndefinedField()
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')));
-        $model->field('yada');
+        $model = new Model('Foo', 'foo', array($field));
+        $this->assertEquals($field, $model->field('foo'));
     }
 
     public function testIsPrimary()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'primary', array('foo'))));
-        $this->assertTrue($model->isPrimary('foo'));
-        $this->assertFalse($model->isPrimary('bar'));
-    }
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     */
-    public function testIsNonExistingPrimaryField()
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'primary', array('foo'))));
-        $model->isPrimary('yada');
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('isPrimary')
+            ->will($this->returnValue(true));
+        $index->expects($this->exactly(2))
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+
+        $model = new Model('Foo', 'foo', array($field), array($index));
+        $this->assertTrue($model->isPrimary('foo'));
     }
 
     public function testPrimaryFields()
     {
-        $fields = array($this->mockField('foo'), $this->mockField('bar'));
+        $foo = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $foo->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', 'primary', array('foo'))));
-        $this->assertEquals(array($fields[0]), $model->primaryFields());
+        $bar = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $bar->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('bar'));
+
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('isPrimary')
+            ->will($this->returnValue(true));
+        $index->expects($this->exactly(2))
+            ->method('fields')
+            ->will($this->returnValue(array('foo', 'bar')));
+
+        $model = new Model('Foo', 'foo', array($foo, $bar), array($index));
+        $this->assertEquals(array($foo, $bar), $model->primaryFields());
     }
 
-    /**
-     * @dataProvider isIndexProvider
-     */
-    public function testIsIndex($field, $expected)
+    public function testIsIndex()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
-        $this->assertEquals($expected, $model->isIndex($field));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->exactly(2))
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+
+        $model = new Model('Foo', 'foo', array($field), array($index));
+        $this->assertTrue($model->isIndex('foo'));
     }
 
-    public function isIndexProvider()
+    public function testInIndex()
     {
-        return array(
-            array('foo', true),
-            array('bar', false)
-        );
-    }
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Unknown field, field "yada" not found in model "foo"
-     */
-    public function testIsIndexWithInvalidField()
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
-        $model->isIndex('yada');
-    }
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+        $index->expects($this->once())
+            ->method('hasField')
+            ->will($this->returnValue(true));
 
-    /**
-     * @dataProvider inIndexProvider
-     */
-    public function testInIndex($field, $expected)
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
-        $this->assertEquals($expected, $model->inIndex($field));
-    }
-
-    public function inIndexProvider()
-    {
-        return array(
-            array('foo', array($this->mockIndex('foo', 'index', array('foo')))),
-            array('bar', array())
-        );
-    }
-
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Unknown field
-     */
-    public function testInIndexWithInvalidField()
-    {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo'), $this->mockField('bar')), array($this->mockIndex('foo', 'index', array('foo'))));
-        $model->inIndex('yada');
-    }
-
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     */
-    public function testIsNonExistingIndexField()
-    {
-        new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('bar'))));
+        $model = new Model('Foo', 'foo', array($field), array($index));
+        $this->assertEquals(array($index), $model->inIndex('foo'));
     }
 
     public function testIndexFields()
     {
-        $fields = array($this->mockField('foo'), $this->mockField('bar'));
+        $foo = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $foo->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-        $model = new Model('foo', 'Foo', $fields, array($this->mockIndex('foo', 'index', array('foo'))));
-        $this->assertEquals(array($fields[0]), $model->indexFields());
+        $bar = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $bar->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('bar'));
+
+        $yada = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $yada->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('yada'));
+
+        $fooBar = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $fooBar->expects($this->exactly(1))
+            ->method('name')
+            ->will($this->returnValue('fooBar'));
+        $fooBar->expects($this->exactly(2))
+            ->method('fields')
+            ->will($this->returnValue(array('foo', 'bar')));
+
+        $barYada = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $barYada->expects($this->exactly(1))
+            ->method('name')
+            ->will($this->returnValue('barYada'));
+        $barYada->expects($this->exactly(2))
+            ->method('fields')
+            ->will($this->returnValue(array('bar', 'yada')));
+
+        $model = new Model('Foo', 'foo', array($foo, $bar, $yada), array($fooBar, $barYada));
+        $this->assertEquals(array($foo, $bar, $yada), $model->indexFields());
     }
 
-    public function testIndexFieldsWithoutReps()
+    public function testHasIndex()
     {
-        $fields = array($this->mockField('foo'), $this->mockField('bar'));
-        $indexes = array($this->mockIndex('foo', 'index', array('foo')), $this->mockIndex('foobar', 'index', array('foo', 'bar')), $this->mockIndex('bar', 'index', array('bar')));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-        $model = new Model('foo', 'Foo', $fields, $indexes);
-        $this->assertEquals($fields, $model->indexFields());
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+        $index->expects($this->once())
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+
+        $model = new Model('Foo', 'foo', array($field), array($index));
+        $this->assertTrue($model->hasIndex('foo'));
+    }
+
+    public function testIndexes()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+        $index->expects($this->once())
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+
+        $model = new Model('Foo', 'foo', array($field), array($index));
+        $this->assertEquals(array('foo' => $index), $model->indexes());
     }
 
     public function testIndex()
     {
-        $index = $this->mockIndex('foo', 'index', array('foo'));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($index));
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+        $index->expects($this->once())
+            ->method('fields')
+            ->will($this->returnValue(array('foo')));
+
+        $model = new Model('Foo', 'foo', array($field), array($index));
         $this->assertEquals($index, $model->index('foo'));
     }
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
+     * @expectedExceptionMessage Unknown index, index "yada" not found in model "Foo"
      */
     public function testUndefinedIndex()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array($this->mockIndex('foo', 'index', array('foo'))));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $model = new Model('Foo', 'foo', array($field));
         $model->index('yada');
     }
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
+     * @expectedExceptionMessage Relation field "yada" does not exist in entity model "Foo"
      */
     public function testUndefinedRelationKeyField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', 'one', array('bar' => 'bar'))));
-        $model->index('yada');
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
+        $relation->expects($this->once())
+            ->method('keys')
+            ->will($this->returnValue(array('yada' => 'yada')));
+
+        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
     }
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
+     * @expectedExceptionMessage Relation field "yada" does not exist in entity model "Foo"
      */
     public function testUndefinedRelationLocalField()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', 'one', array('foo' => 'bar'), array('bar' => 'bar'))));
-        $model->index('yada');
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
+        $relation->expects($this->once())
+            ->method('keys')
+            ->will($this->returnValue(array('foo' => 'foo')));
+        $relation->expects($this->once())
+            ->method('localValues')
+            ->will($this->returnValue(array('yada' => 'yada')));
+
+        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
     }
 
     public function testRelations()
     {
-        $rel = $this->mockRelation('bar', 'one', array('foo' => 'bar'));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($rel));
-        $this->assertEquals(array($rel->name() => $rel), $model->relations());
+        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
+        $relation->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('Bar'));
+        $relation->expects($this->once())
+            ->method('keys')
+            ->will($this->returnValue(array('foo' => 'foo')));
+        $relation->expects($this->once())
+            ->method('localValues')
+            ->will($this->returnValue(array()));
+
+        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
+        $this->assertEquals(array('Bar' => $relation), $model->relations());
+    }
+
+    public function testHasRelations()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
+        $relation->expects($this->once())
+            ->method('entity')
+            ->will($this->returnValue('Bar'));
+        $relation->expects($this->once())
+            ->method('keys')
+            ->will($this->returnValue(array('foo' => 'foo')));
+        $relation->expects($this->once())
+            ->method('localValues')
+            ->will($this->returnValue(array()));
+
+        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
+        $this->assertTrue($model->hasRelation('Bar'));
     }
 
     public function testRelation()
     {
-        $rel = $this->mockRelation('bar', 'one', array('foo' => 'bar'));
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
+            ->method('name')
+            ->will($this->returnValue('foo'));
 
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($rel));
-        $this->assertEquals($rel, $model->relation($rel->name()));
+        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
+        $relation->expects($this->once())
+            ->method('entity')
+            ->will($this->returnValue('Bar'));
+        $relation->expects($this->once())
+            ->method('keys')
+            ->will($this->returnValue(array('foo' => 'foo')));
+        $relation->expects($this->once())
+            ->method('localValues')
+            ->will($this->returnValue(array()));
+
+        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
+        $this->assertEquals($relation, $model->relation('Bar'));
     }
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
+     * @expectedExceptionMessage Unknown relation, relation "Bar" not found in model "Foo"
      */
     public function testUndefinedRelation()
     {
-        $model = new Model('foo', 'Foo', array($this->mockField('foo')), array(), array($this->mockRelation('bar', 'one', array('foo' => 'bar'))));
-        $model->relation('yada');
-    }
-
-    // mocks
-
-    /**
-     * @param string $field
-     *
-     * @return \Moss\Storage\Model\Definition\FieldInterface
-     */
-    protected function mockField($field)
-    {
-        $mock = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $mock->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue(null));
-
-        $mock->expects($this->any())
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->once())
             ->method('name')
-            ->will($this->returnValue($field));
+            ->will($this->returnValue('foo'));
 
-        return $mock;
-    }
-
-    /**
-     * @param string $index
-     * @param string $type
-     * @param array  $fields
-     *
-     * @return \Moss\Storage\Model\Definition\IndexInterface
-     */
-    protected function mockIndex($index, $type, $fields)
-    {
-        $mock = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
-
-        $mock->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue(null));
-
-        $mock->expects($this->any())
-            ->method('name')
-            ->will($this->returnValue($index));
-
-        $mock->expects($this->any())
-            ->method('type')
-            ->will($this->returnValue($type));
-
-        $mock->expects($this->any())
-            ->method('isPrimary')
-            ->will($this->returnValue($type =='primary'));
-
-        $mock->expects($this->any())
-            ->method('fields')
-            ->will($this->returnValue($fields));
-
-        $mock->expects($this->any())
-            ->method('hasField')
-            ->will(
-                $this->returnCallback(
-                    function ($field) use ($fields) {
-                        return in_array($field, $fields);
-                    }
-                )
-            );
-
-        return $mock;
-    }
-
-    /**
-     * @param string $relation
-     * @param string $type
-     * @param array  $keys
-     * @param array  $local
-     * @param array  $foreign
-     *
-     * @return \Moss\Storage\Model\Definition\RelationInterface
-     */
-    protected function mockRelation($relation, $type, $keys, $local = array(), $foreign = array())
-    {
-        $mock = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
-
-        $mock->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue(null));
-
-        $mock->expects($this->any())
-            ->method('name')
-            ->will($this->returnValue($relation));
-
-        $mock->expects($this->any())
-            ->method('type')
-            ->will($this->returnValue($type));
-
-        $mock->expects($this->any())
-            ->method('keys')
-            ->will($this->returnValue($keys));
-
-        $mock->expects($this->any())
-            ->method('localValues')
-            ->will($this->returnValue($local));
-
-        $mock->expects($this->any())
-            ->method('foreignValues')
-            ->will($this->returnValue($foreign));
-
-        return $mock;
+        $model = new Model('Foo', 'foo', array($field));
+        $model->relation('Bar');
     }
 }
