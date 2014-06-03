@@ -4,78 +4,91 @@ namespace Moss\Storage\Model;
 class ModelBagTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @dataProvider nameProvider
-     */
-    public function testGetSet($name, $expected)
-    {
-        $bag = new ModelBag();
-        $bag->set($this->mockModel('\stdClass', 'table_std'), 'std');
-        $bag->set($this->mockModel('\splFileObject', 'table_spl'), 'spl');
-        $bag->set($this->mockModel('\foo\bar\Yada', 'table_yada'), 'yada');
-
-        $model = $bag->get($name);
-        $this->assertEquals($model->entity(), $expected);
-    }
-
-    /**
      * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage does not exists
-     * @dataProvider             nameProvider
+     * @expectedExceptionMessage Model for entity "Yada" does not exists
      */
-    public function testGetUndefined($name)
+    public function testGetUndefined()
     {
         $bag = new ModelBag();
-        $bag->get($name);
+        $bag->get('Yada');
     }
 
-    /**
-     * @dataProvider nameProvider
-     */
-    public function testHas($name)
+    public function testGetByEntityName()
     {
-        $bag = new ModelBag();
-        $bag->set($this->mockModel('\stdClass', 'table_std'), 'std');
-        $bag->set($this->mockModel('\splFileObject', 'table_spl'), 'spl');
-        $bag->set($this->mockModel('\foo\bar\Yada', 'table_yada'), 'yada');
-
-        $this->assertTrue($bag->has($name));
-    }
-
-    public function nameProvider()
-    {
-        return array(
-            array('\stdClass', 'stdClass'),
-            array('\splFileObject', 'splFileObject'),
-            array('\foo\bar\Yada', 'foo\bar\Yada'),
-
-            array('std', 'stdClass'),
-            array('spl', 'splFileObject'),
-            array('yada', 'foo\bar\Yada'),
-
-            array('table_std', 'stdClass'),
-            array('table_spl', 'splFileObject'),
-            array('table_yada', 'foo\bar\Yada')
-        );
-    }
-
-    protected function mockModel($entity, $table, $alias = null)
-    {
-        $mock = $this->getMock('Moss\Storage\Model\ModelInterface');
-
-        $mock->expects($this->any())
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->any())
             ->method('entity')
-            ->will($this->returnValue(ltrim($entity, '\\')));
+            ->will($this->returnValue('Foo'));
 
-        $mock->expects($this->any())
-            ->method('alias')
-            ->will($this->returnCallback(function ($arg = null) use (&$alias) { return $alias = $arg; }));
-
-        $mock->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue($table));
-
-        return $mock;
+        $bag = new ModelBag();
+        $bag->set($model);
+        $this->assertEquals($model, $bag->get('Foo'));
     }
 
+    public function testGetByTableName()
+    {
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->any())
+            ->method('table')
+            ->will($this->returnValue('foo'));
+
+        $bag = new ModelBag();
+        $bag->set($model);
+        $this->assertEquals($model, $bag->get('foo'));
+    }
+
+    public function testGetByAlias()
+    {
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->any())
+            ->method('alias')
+            ->will($this->returnValue('foofoo'));
+
+        $bag = new ModelBag();
+        $bag->set($model, 'foofoo');
+        $this->assertEquals($model, $bag->get('foofoo'));
+    }
+
+    public function testDoesNotHaveModel()
+    {
+        $bag = new ModelBag();
+        $this->assertFalse($bag->has('Foo'));
+    }
+
+    public function testHasByEntityName()
+    {
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->any())
+            ->method('entity')
+            ->will($this->returnValue('Foo'));
+
+        $bag = new ModelBag();
+        $bag->set($model);
+        $this->assertTrue($bag->has('Foo'));
+    }
+
+    public function testHasByTableName()
+    {
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->any())
+            ->method('table')
+            ->will($this->returnValue('foo'));
+
+        $bag = new ModelBag();
+        $bag->set($model);
+        $this->assertTrue($bag->has('foo'));
+    }
+
+    public function testHasByAlias()
+    {
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->any())
+            ->method('alias')
+            ->will($this->returnValue('foofoo'));
+
+        $bag = new ModelBag();
+        $bag->set($model, 'foofoo');
+        $this->assertTrue($bag->has('foofoo'));
+    }
 }
  
