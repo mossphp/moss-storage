@@ -11,7 +11,12 @@
 
 namespace Moss\Storage\Driver;
 
-
+/**
+ * Mutator interface
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 interface MutatorInterface {
 
     /**

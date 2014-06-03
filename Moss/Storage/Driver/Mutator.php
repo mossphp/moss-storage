@@ -11,7 +11,12 @@
 
 namespace Moss\Storage\Driver;
 
-
+/**
+ * Mutator, transforms entity data to/from stored formats
+ *
+ * @author  Michal Wachowski <wachowski.michal@gmail.com>
+ * @package Moss\Storage
+ */
 class Mutator implements MutatorInterface
 {
 
