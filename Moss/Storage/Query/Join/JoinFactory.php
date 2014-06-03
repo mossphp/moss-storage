@@ -11,8 +11,9 @@
 
 namespace Moss\Storage\Query\Join;
 
-
+use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
 use Moss\Storage\Model\ModelBag;
+use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\QueryException;
 
 /**
@@ -51,12 +52,7 @@ class JoinFactory
     public function create($entity, $type, $join)
     {
         $model = $this->bag->get($entity);
-
-        if (!$model->hasRelation($join)) {
-            throw new QueryException(sprintf('Unable to join "%s" in query "%s" undefined relation', $join, $model->entity()));
-        }
-
-        $relation = $model->relation($join);
+        $relation = $this->fetchDefinition($model, $join);
 
         return new Join(
             $type,
@@ -65,5 +61,35 @@ class JoinFactory
             $this->bag->get($join),
             in_array($relation->type(), array('oneTrough', 'manyTrough')) ? $this->bag->get($relation->mediator()) : null
         );
+    }
+
+    /**
+     * Fetches relation
+     *
+     * @param ModelInterface $model
+     * @param string         $relation
+     *
+     * @return RelationDefinitionInterface
+     * @throws QueryException
+     */
+    private function fetchDefinition(ModelInterface $model, $relation)
+    {
+        if ($model->hasRelation($relation)) {
+            return $model->relation($relation);
+        }
+
+        if ($this->bag->has($relation)) {
+            $entity = $this->bag->get($relation);
+
+            if ($model->hasRelation($entity->alias())) {
+                return $model->relation($entity->alias());
+            }
+
+            if ($model->hasRelation($entity->entity())) {
+                return $model->relation($entity->entity());
+            }
+        }
+
+        throw new QueryException(sprintf('Unable to resolve relation "%s" for join in model "%s"', $relation, $model->entity()));
     }
 }
