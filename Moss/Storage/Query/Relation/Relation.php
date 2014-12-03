@@ -202,7 +202,7 @@ abstract class Relation implements RelationInterface
             return;
         }
 
-        $identifiers = array();
+        $identifiers = [];
         foreach ($collection as $instance) {
             $identifiers[] = $this->identifyEntity($entity, $instance);
         }
@@ -282,7 +282,7 @@ abstract class Relation implements RelationInterface
      */
     protected function buildKey($entity, array $pairs)
     {
-        $key = array();
+        $key = [];
         foreach ($pairs as $local => $refer) {
             $key[] = $local . ':' . $this->accessProperty($entity, $refer);
         }
@@ -341,7 +341,7 @@ abstract class Relation implements RelationInterface
         $indexes = $this->models->get($entity)
             ->primaryFields();
 
-        $id = array();
+        $id = [];
         foreach ($indexes as $field) {
             $id[] = $this->accessProperty($instance, $field->name());
         }

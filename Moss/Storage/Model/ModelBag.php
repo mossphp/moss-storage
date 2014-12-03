@@ -22,29 +22,29 @@ class ModelBag
     /**
      * @var array|ModelInterface
      */
-    protected $collection = array();
+    protected $collection = [];
 
     /**
      * @var array|ModelInterface
      */
-    protected $byAlias = array();
+    protected $byAlias = [];
 
     /**
      * @var array|ModelInterface
      */
-    protected $byEntity = array();
+    protected $byEntity = [];
 
     /**
      * @var array|ModelInterface
      */
-    protected $byTable = array();
+    protected $byTable = [];
 
     /**
      * Construct
      *
      * @param array $collection
      */
-    public function __construct($collection = array())
+    public function __construct($collection = [])
     {
         $this->all($collection);
     }
@@ -130,7 +130,7 @@ class ModelBag
      *
      * @return array|ModelInterface[]
      */
-    public function all($array = array())
+    public function all($array = [])
     {
         if (!empty($array)) {
             foreach ($array as $key => $model) {

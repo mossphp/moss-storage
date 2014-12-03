@@ -130,7 +130,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function fields($fields = array());
+    public function fields($fields = []);
 
     /**
      * Adds field to query
@@ -228,7 +228,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function values($fields = array());
+    public function values($fields = []);
 
     /**
      * Adds field which value will be written
@@ -330,7 +330,7 @@ interface QueryInterface
      * @return $this
      * @throws QueryException
      */
-    public function with($relation, array $conditions = array(), array $order = array());
+    public function with($relation, array $conditions = [], array $order = []);
 
     /**
      * Returns query instance from requested relation

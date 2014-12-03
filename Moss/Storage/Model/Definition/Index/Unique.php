@@ -22,7 +22,7 @@ class Unique extends Index
     protected $table;
     protected $name;
     protected $type;
-    protected $fields = array();
+    protected $fields = [];
 
     /**
      * Constructor

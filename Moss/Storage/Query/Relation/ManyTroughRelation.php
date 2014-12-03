@@ -28,8 +28,8 @@ class ManyTroughRelation extends Relation
      */
     public function read(&$result)
     {
-        $relations = array();
-        $conditions = array();
+        $relations = [];
+        $conditions = [];
 
         foreach ($this->relation->foreignValues() as $refer => $value) {
             $conditions[$refer][] = $value;
@@ -55,8 +55,8 @@ class ManyTroughRelation extends Relation
 
 // --- MEDIATOR START
 
-        $mediator = array();
-        $conditions = array();
+        $mediator = [];
+        $conditions = [];
         foreach ($collection as $entity) {
             foreach ($this->relation->foreignKeys() as $local => $refer) {
                 $conditions[$refer][] = $this->accessProperty($entity, $local);
@@ -117,10 +117,10 @@ class ManyTroughRelation extends Relation
         }
 
         $fields = array_merge(array_values($this->relation->localKeys()), array_keys($this->relation->foreignKeys()));
-        $mediators = array();
+        $mediators = [];
 
         foreach ($container as $entity) {
-            $mediator = array();
+            $mediator = [];
 
             foreach ($this->relation->localKeys() as $local => $foreign) {
                 $mediator[$foreign] = $this->accessProperty($result, $local);
@@ -139,7 +139,7 @@ class ManyTroughRelation extends Relation
             $mediators[] = $mediator;
         }
 
-        $conditions = array();
+        $conditions = [];
         foreach ($this->relation->localKeys() as $foreign) {
             foreach ($mediators as $mediator) {
                 $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
@@ -168,7 +168,7 @@ class ManyTroughRelation extends Relation
         $container = & $result->{$this->relation->container()};
 
         foreach ($container as $entity) {
-            $mediator = array();
+            $mediator = [];
 
             foreach ($this->relation->localKeys() as $local => $foreign) {
                 $mediator[$foreign] = $this->accessProperty($result, $local);

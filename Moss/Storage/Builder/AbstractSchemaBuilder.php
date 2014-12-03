@@ -19,21 +19,21 @@ namespace Moss\Storage\Builder;
  */
 abstract class AbstractSchemaBuilder
 {
-    protected $fieldTypes = array(
-        'boolean' => array(),
-        'integer' => array(),
-        'decimal' => array(),
-        'string' => array(),
-        'datetime' => array(),
-        'serial' => array()
-    );
+    protected $fieldTypes = [
+        'boolean' => [],
+        'integer' => [],
+        'decimal' => [],
+        'string' => [],
+        'datetime' => [],
+        'serial' => []
+    ];
 
     protected $operation;
 
     protected $table;
 
-    protected $columns = array();
-    protected $indexes = array();
+    protected $columns = [];
+    protected $indexes = [];
 
     /**
      * Constructor
@@ -172,7 +172,7 @@ abstract class AbstractSchemaBuilder
      */
     public function operation($operation)
     {
-        if (!in_array($operation, array('check', 'info', 'create', 'add', 'change', 'remove', 'drop'))) {
+        if (!in_array($operation, ['check', 'info', 'create', 'add', 'change', 'remove', 'drop'])) {
             throw new BuilderException(sprintf('Unknown operation "%s"', $operation));
         }
 
@@ -192,16 +192,16 @@ abstract class AbstractSchemaBuilder
      * @return $this
      * @throws BuilderException
      */
-    public function column($name, $type = 'string', $attributes = array(), $after = null)
+    public function column($name, $type = 'string', $attributes = [], $after = null)
     {
         $this->assertColumnType($type);
 
-        $this->columns[] = array(
+        $this->columns[] = [
             $name,
             $type,
             $this->prepareAttributes($attributes),
             $after
-        );
+        ];
 
         return $this;
     }
@@ -302,12 +302,12 @@ abstract class AbstractSchemaBuilder
     {
         $this->assertIndexFields($fields);
 
-        $this->indexes[] = array(
+        $this->indexes[] = [
             $name,
             (array) $fields,
             'foreign',
             $table,
-        );
+        ];
 
         return $this;
     }
@@ -324,12 +324,12 @@ abstract class AbstractSchemaBuilder
     {
         $this->assertIndexFields($fields);
 
-        $this->indexes[] = array(
+        $this->indexes[] = [
             $name,
             (array) $fields,
             'unique',
             null
-        );
+        ];
 
         return $this;
     }
@@ -349,12 +349,12 @@ abstract class AbstractSchemaBuilder
         $this->assertIndexType($type);
         $this->assertIndexFields($fields);
 
-        $this->indexes[] = array(
+        $this->indexes[] = [
             $name,
             (array) $fields,
             $type,
             $table,
-        );
+        ];
 
         return $this;
     }
@@ -368,7 +368,7 @@ abstract class AbstractSchemaBuilder
      */
     protected function assertIndexType($type)
     {
-        if (!in_array($type, array('primary', 'index', 'unique', 'foreign'))) {
+        if (!in_array($type, ['primary', 'index', 'unique', 'foreign'])) {
             throw new BuilderException(sprintf('Invalid index type "%s" in "%s"', $type, $this->table));
         }
     }
@@ -409,13 +409,6 @@ abstract class AbstractSchemaBuilder
     abstract protected function buildDropIndex();
 
     /**
-     * Builds query string
-     *
-     * @return string
-     */
-    abstract public function build();
-
-    /**
      * Parsers read table structure into model-like array
      *
      * @param array $struct
@@ -424,14 +417,14 @@ abstract class AbstractSchemaBuilder
      */
     public function parse(array $struct)
     {
-        $result = array(
+        $result = [
             'table' => $struct[0]['table_name'],
-            'fields' => array(),
-            'indexes' => array()
-        );
+            'fields' => [],
+            'indexes' => []
+        ];
 
-        $fields = array();
-        $indexes = array();
+        $fields = [];
+        $indexes = [];
         foreach ($struct as $node) {
             if (!isset($fields[$node['column_name']])) {
                 $fields[$node['column_name']] = $this->parseColumn($node);
@@ -495,8 +488,8 @@ abstract class AbstractSchemaBuilder
         $this->operation = null;
         $this->table = null;
 
-        $this->columns = array();
-        $this->indexes = array();
+        $this->columns = [];
+        $this->indexes = [];
 
         return $this;
     }

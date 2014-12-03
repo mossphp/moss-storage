@@ -23,14 +23,14 @@ use Moss\Storage\Builder\SchemaBuilderInterface;
  */
 class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterface
 {
-    protected $fieldTypes = array(
-        'boolean' => array('boolean'),
-        'integer' => array('smallint', 'integer', 'bigint'),
-        'decimal' => array('decimal', 'numeric', 'real', 'double precision'),
-        'string' => array('character', 'varchar', 'char', 'text'),
-        'datetime' => array('timestamp', 'date', 'time'),
-        'serial' => array('bytea')
-    );
+    protected $fieldTypes = [
+        'boolean' => ['boolean'],
+        'integer' => ['smallint', 'integer', 'bigint'],
+        'decimal' => ['decimal', 'numeric', 'real', 'double precision'],
+        'string' => ['character', 'varchar', 'char', 'text'],
+        'datetime' => ['timestamp', 'date', 'time'],
+        'serial' => ['bytea']
+    ];
 
     /**
      * Builds column definitions and return them as array
@@ -39,7 +39,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildColumns()
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->columns as $node) {
             $nodes[] = $this->buildColumn($node[0], $node[1], $node[2]);
@@ -55,7 +55,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildAddColumns()
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->columns as $node) {
             $str = 'ALTER TABLE ' . $this->table . ' ADD ' . $this->buildColumn($node[0], $node[1], $node[2]);
@@ -77,7 +77,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildChangeColumns()
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->columns as $node) {
             $nodes[] = 'ALTER TABLE ' . $this->table . ' ALTER ' . ($node[3] ? $node[3] : $node[0]) . ' TYPE ' . $this->buildColumnType($node[0], $node[1], $node[2], true);
@@ -94,7 +94,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildDropColumns()
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->columns as $node) {
             $nodes[] = 'ALTER TABLE ' . $this->table . ' DROP COLUMN ' . $node[0];
@@ -163,10 +163,10 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     private function buildColumnAttributes($type, array $attributes)
     {
-        $node = array();
+        $node = [];
 
         if (isset($attributes['default'])) {
-            if (!in_array($type, array('boolean', 'integer', 'decimal'))) {
+            if (!in_array($type, ['boolean', 'integer', 'decimal'])) {
                 $node[] = 'DEFAULT \'' . $attributes['default'] . '\'';
             } elseif ($type === 'boolean') {
                 $node[] = 'DEFAULT ' . ($attributes['default'] ? 'TRUE' : 'FALSE');
@@ -191,7 +191,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildIndexes($index = false)
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->indexes as $node) {
             if (($node[2] === 'index' && $index === true) || ($node[2] !== 'index' && $index === false)) {
@@ -209,7 +209,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildAddIndex()
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->indexes as $node) {
             if ($node[2] === 'index') {
@@ -230,7 +230,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
      */
     protected function buildDropIndex()
     {
-        $nodes = array();
+        $nodes = [];
 
         foreach ($this->indexes as $node) {
             switch ($node[2]) {
@@ -288,7 +288,7 @@ class SchemaBuilder extends AbstractSchemaBuilder implements SchemaBuilderInterf
             throw new BuilderException('Missing table name');
         }
 
-        $stmt = array();
+        $stmt = [];
 
         switch ($this->operation) {
             case 'check':
@@ -395,17 +395,17 @@ SQL;
     {
         $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['column_type']));
 
-        $result = array(
+        $result = [
             'name' => $node['column_name'],
             'type' => $node['column_type'],
-            'attributes' => array(
+            'attributes' => [
                 'length' => (int) $node['column_length'],
                 'precision' => (int) $node['column_precision'],
                 'null' => $node['column_nullable'] == 'YES',
                 'auto_increment' => $node['column_auto_increment'] === 'YES',
                 'default' => empty($node['column_default']) ? null : $node['column_default']
-            )
-        );
+            ]
+        ];
 
         switch ($type) {
             case in_array($type, $this->fieldTypes['boolean']):
@@ -445,13 +445,13 @@ SQL;
     {
         $type = strtolower(preg_replace('/^([^ (]+).*/i', '$1', $node['index_type']));
 
-        $result = array(
+        $result = [
             'name' => $node['index_name'],
             'type' => $node['index_type'],
-            'fields' => array($node['column_name']),
+            'fields' => [$node['column_name']],
             'table' => $node['ref_table'],
-            'foreign' => empty($node['ref_column']) ? array() : array($node['ref_column'])
-        );
+            'foreign' => empty($node['ref_column']) ? [] : [$node['ref_column']]
+        ];
 
         switch ($type) {
             case 'primary':

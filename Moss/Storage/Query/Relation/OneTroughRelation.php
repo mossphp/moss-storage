@@ -28,8 +28,8 @@ class OneTroughRelation extends Relation
      */
     public function read(&$result)
     {
-        $relations = array();
-        $conditions = array();
+        $relations = [];
+        $conditions = [];
 
         foreach ($this->relation->foreignValues() as $refer => $value) {
             $conditions[$refer][] = $value;
@@ -55,8 +55,8 @@ class OneTroughRelation extends Relation
 
 // --- MEDIATOR START
 
-        $mediator = array();
-        $conditions = array();
+        $mediator = [];
+        $conditions = [];
         foreach ($collection as $entity) {
             foreach ($this->relation->foreignKeys() as $local => $refer) {
                 $conditions[$refer][] = $this->accessProperty($entity, $local);
@@ -107,7 +107,7 @@ class OneTroughRelation extends Relation
             ->execute();
 
         $fields = array_merge(array_values($this->relation->localKeys()), array_keys($this->relation->foreignKeys()));
-        $mediator = array();
+        $mediator = [];
 
         foreach ($this->relation->localKeys() as $local => $foreign) {
             $mediator[$foreign] = $this->accessProperty($result, $local);
@@ -122,12 +122,12 @@ class OneTroughRelation extends Relation
             ->fields($fields)
             ->execute();
 
-        $conditions = array();
+        $conditions = [];
         foreach ($this->relation->localKeys() as $foreign) {
             $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
         }
 
-        $this->cleanup($this->relation->mediator(), array($mediator), $conditions);
+        $this->cleanup($this->relation->mediator(), [$mediator], $conditions);
 
         return $result;
     }
@@ -145,7 +145,7 @@ class OneTroughRelation extends Relation
             return $result;
         }
 
-        $mediator = array();
+        $mediator = [];
 
         foreach ($this->relation->localKeys() as $entityField => $mediatorField) {
             $mediator[$mediatorField] = $this->accessProperty($result, $entityField);

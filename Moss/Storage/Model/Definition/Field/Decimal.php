@@ -26,14 +26,14 @@ class Decimal extends String
      * @param array  $attributes
      * @param null|string $mapping
      */
-    public function __construct($field, $attributes = array(), $mapping = null)
+    public function __construct($field, $attributes = [], $mapping = null)
     {
         $this->initialize(
             'decimal',
             $field,
-            array_merge(array('length' => 11, 'precision' => 4), $attributes),
+            array_merge(['length' => 11, 'precision' => 4], $attributes),
             $mapping,
-            array('length', 'precision', 'null', 'default')
+            ['length', 'precision', 'null', 'default']
         );
     }
 }

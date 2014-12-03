@@ -64,7 +64,7 @@ interface DriverInterface
      * @return $this
      * @throws DriverException
      */
-    public function execute($parameters = array());
+    public function execute($parameters = []);
 
     /**
      * Returns number of affected rows
@@ -91,7 +91,7 @@ interface DriverInterface
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchObject($className, $restore = array());
+    public function fetchObject($className, $restore = []);
 
     /**
      * Fetches result element as associative array
@@ -101,7 +101,7 @@ interface DriverInterface
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchAssoc($restore = array());
+    public function fetchAssoc($restore = []);
 
     /**
      * Fetches field from result element
@@ -123,7 +123,7 @@ interface DriverInterface
      * @return array
      * @throws DriverException
      */
-    public function fetchAll($className = null, $restore = array());
+    public function fetchAll($className = null, $restore = []);
 
     /**
      * Starts transaction

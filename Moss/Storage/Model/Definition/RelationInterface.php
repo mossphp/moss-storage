@@ -83,7 +83,7 @@ interface RelationInterface
      *
      * @return array
      */
-    public function localValues($localValues = array());
+    public function localValues($localValues = []);
 
     /**
      * Returns associative array containing foreign key - value pairs
@@ -92,5 +92,5 @@ interface RelationInterface
      *
      * @return array
      */
-    public function foreignValues($foreignValues = array());
+    public function foreignValues($foreignValues = []);
 }

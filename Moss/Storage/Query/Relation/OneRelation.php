@@ -28,7 +28,7 @@ class OneRelation extends Relation
      */
     public function read(&$result)
     {
-        $conditions = array();
+        $conditions = [];
 
         foreach ($this->relation->foreignValues() as $refer => $value) {
             $conditions[$refer][] = $value;
@@ -52,7 +52,7 @@ class OneRelation extends Relation
 
 // --- MEDIATOR START
 
-        $relations = array();
+        $relations = [];
         foreach ($result as $i => $entity) {
             $relations[$this->buildLocalKey($entity, $this->relation->keys())][] = & $result[$i];
         }
@@ -106,7 +106,7 @@ class OneRelation extends Relation
             ->write($this->relation->entity(), $entity)
             ->execute();
 
-        $conditions = array();
+        $conditions = [];
         foreach ($this->relation->foreignValues() as $field => $value) {
             $conditions[$field][] = $value;
         }
@@ -115,7 +115,7 @@ class OneRelation extends Relation
             $conditions[$foreign][] = $this->accessProperty($entity, $foreign);
         }
 
-        $this->cleanup($this->relation->entity(), array($entity), $conditions);
+        $this->cleanup($this->relation->entity(), [$entity], $conditions);
 
         return $result;
     }

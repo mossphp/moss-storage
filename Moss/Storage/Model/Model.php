@@ -31,17 +31,17 @@ class Model implements ModelInterface
     /**
      * @var array|FieldInterface[]
      */
-    protected $fields = array();
+    protected $fields = [];
 
     /**
      * @var array|IndexInterface[]
      */
-    protected $indexes = array();
+    protected $indexes = [];
 
     /**
      * @var array|RelationInterface[]
      */
-    protected $relations = array();
+    protected $relations = [];
 
     /**
      * Constructor
@@ -54,7 +54,7 @@ class Model implements ModelInterface
      *
      * @throws ModelException
      */
-    public function __construct($entityClass, $table, array $fields, array $indexes = array(), array $relations = array())
+    public function __construct($entityClass, $table, array $fields, array $indexes = [], array $relations = [])
     {
         $this->table = $table;
         $this->entity = $entityClass ? ltrim($entityClass, '\\') : null;
@@ -280,7 +280,7 @@ class Model implements ModelInterface
      */
     public function primaryFields()
     {
-        $result = array();
+        $result = [];
         foreach ($this->indexes as $index) {
             if (!$index->isPrimary()) {
                 continue;
@@ -321,7 +321,7 @@ class Model implements ModelInterface
     {
         $this->assertField($field);
 
-        $result = array();
+        $result = [];
         foreach ($this->indexes as $index) {
             if ($index->hasField($field)) {
                 $result[] = $index;
@@ -338,12 +338,12 @@ class Model implements ModelInterface
      */
     public function indexFields()
     {
-        $fields = array();
+        $fields = [];
         foreach ($this->indexes as $index) {
             $fields = array_merge($fields, $index->fields());
         }
 
-        $result = array();
+        $result = [];
         foreach (array_unique($fields) as $field) {
             $result[] = $this->field($field);
         }

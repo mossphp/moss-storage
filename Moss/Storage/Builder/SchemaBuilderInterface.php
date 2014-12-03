@@ -92,7 +92,7 @@ interface SchemaBuilderInterface extends BuilderInterface
      *
      * @return $this
      */
-    public function column($name, $type = 'string', $attributes = array(), $after = null);
+    public function column($name, $type = 'string', $attributes = [], $after = null);
 
     /**
      * Sets key/index to table

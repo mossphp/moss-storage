@@ -50,11 +50,11 @@ class PDO implements DriverInterface
      */
     public function __construct($dsn, $username, $password, MutatorInterface $mutator = null, $prefix = null)
     {
-        $initCmd = array(
+        $initCmd = [
             \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
             \PDO::ATTR_EMULATE_PREPARES => 1,
-        );
+        ];
 
         if (!$this->pdo = new \PDO($dsn, $username, $password, $initCmd)) {
             throw new DriverException('Database adapter error!');
@@ -186,7 +186,7 @@ class PDO implements DriverInterface
      * @return $this
      * @throws DriverException
      */
-    public function execute($parameters = array())
+    public function execute($parameters = [])
     {
         if (!$this->statement) {
             throw new DriverException('No statement to execute');
@@ -238,7 +238,7 @@ class PDO implements DriverInterface
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchObject($className, $restore = array())
+    public function fetchObject($className, $restore = [])
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -284,7 +284,7 @@ class PDO implements DriverInterface
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchAssoc($restore = array())
+    public function fetchAssoc($restore = [])
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -351,7 +351,7 @@ class PDO implements DriverInterface
      * @return array
      * @throws DriverException
      */
-    public function fetchAll($className = null, $restore = array())
+    public function fetchAll($className = null, $restore = [])
     {
         if (!$this->statement) {
             throw new DriverException('Result instance missing');
@@ -371,7 +371,7 @@ class PDO implements DriverInterface
      *
      * @return array
      */
-    protected function fetchAllAssoc($restore = array())
+    protected function fetchAllAssoc($restore = [])
     {
         $result = $this->statement->fetchAll();
         foreach ($result as $entity) {
@@ -390,7 +390,7 @@ class PDO implements DriverInterface
      *
      * @return array
      */
-    protected function fetchAllObject($className, $restore = array())
+    protected function fetchAllObject($className, $restore = [])
     {
         $result = $this->statement->fetchAll(\PDO::FETCH_CLASS, $className);
         $ref = new \ReflectionClass($className);

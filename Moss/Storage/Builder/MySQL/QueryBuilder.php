@@ -23,22 +23,22 @@ use Moss\Storage\Builder\QueryBuilderInterface;
  */
 class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
 {
-    protected $aggregateMethods = array(
+    protected $aggregateMethods = [
         'distinct' => 'DISTINCT(%s)',
         'count' => 'COUNT(%s)',
         'average' => 'AVERAGE(%s)',
         'max' => 'MAX(%s)',
         'min' => 'MIN(%s)',
         'sum' => 'SUM(%s)'
-    );
+    ];
 
-    protected $joinTypes = array(
+    protected $joinTypes = [
         'inner' => 'INNER JOIN',
         'left' => 'LEFT OUTER JOIN',
         'right' => 'RIGHT OUTER JOIN',
-    );
+    ];
 
-    protected $comparisonOperators = array(
+    protected $comparisonOperators = [
         '=' => '=',
         '!=' => '!=',
         '<' => '<',
@@ -47,17 +47,17 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
         '>=' => '>=',
         'like' => 'LIKE',
         'regex' => 'REGEXP'
-    );
+    ];
 
-    protected $logicalOperators = array(
+    protected $logicalOperators = [
         'and' => 'AND',
         'or' => 'OR',
-    );
+    ];
 
-    protected $orderMethods = array(
+    protected $orderMethods = [
         'asc' => 'ASC',
         'desc' => 'DESC',
-    );
+    ];
 
     /**
      * Builds table with all required joins
@@ -66,7 +66,7 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
      */
     protected function buildTable()
     {
-        $result = array();
+        $result = [];
         $result[] = $this->table[0];
 
         if ($this->operation !== 'select') {
@@ -122,7 +122,7 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
             return '*';
         }
 
-        $result = array();
+        $result = [];
 
         foreach ($this->aggregates as $node) {
             $result[] = sprintF(
@@ -160,8 +160,8 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
             throw new BuilderException('No values to insert');
         }
 
-        $fields = array();
-        $values = array();
+        $fields = [];
+        $values = [];
 
         foreach ($this->values as $node) {
             $fields[] = $node[0];
@@ -188,7 +188,7 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
             throw new BuilderException('No values to update');
         }
 
-        $result = array();
+        $result = [];
 
         foreach ($this->values as $node) {
             $result[] = $node[0] . ' = ' . ($node[1] === null ? 'NULL' : $node[1]);
@@ -207,10 +207,10 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
     protected function buildConditions(&$conditions)
     {
         if (empty($conditions)) {
-            return array();
+            return [];
         }
 
-        $result = array();
+        $result = [];
 
         foreach ($conditions as $node) {
             if (!is_array($node[0])) {
@@ -219,7 +219,7 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
                 continue;
             }
 
-            $condition = array();
+            $condition = [];
             foreach ($node[0] as $key => $field) {
                 $condition[] = $this->buildConditionString($node[0][$key], is_array($node[1]) ? $node[1][$key] : $node[1], $node[2]);
             }
@@ -277,7 +277,7 @@ class QueryBuilder extends AbstractQueryBuilder implements QueryBuilderInterface
             return null;
         }
 
-        $output = array();
+        $output = [];
         foreach ($this->order as $node) {
             if (!is_array($node[1])) {
                 $output[] = $node[0] . ' ' . $node[1];

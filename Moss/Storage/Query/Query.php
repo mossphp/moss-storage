@@ -53,27 +53,27 @@ class Query implements QueryInterface
 
     private $operation;
 
-    private $fields = array();
-    private $aggregates = array();
-    private $group = array();
+    private $fields = [];
+    private $aggregates = [];
+    private $group = [];
 
-    private $values = array();
+    private $values = [];
 
-    private $where = array();
-    private $having = array();
+    private $where = [];
+    private $having = [];
 
-    private $order = array();
+    private $order = [];
 
     private $limit = null;
     private $offset = null;
 
-    private $binds = array();
-    private $casts = array();
+    private $binds = [];
+    private $casts = [];
 
     /**
      * @var JoinInterface[]
      */
-    private $joins = array();
+    private $joins = [];
 
     /**
      * @var JoinFactory
@@ -83,7 +83,7 @@ class Query implements QueryInterface
     /**
      * @var RelationInterface[]
      */
-    private $relations = array();
+    private $relations = [];
 
     /**
      * @var RelationFactory
@@ -242,11 +242,11 @@ class Query implements QueryInterface
         $this->assertEntityString($entity);
         $this->assignModel($entity);
 
-        if (in_array($operation, array('num', 'read', 'readOne', 'clear'))) {
+        if (in_array($operation, ['num', 'read', 'readOne', 'clear'])) {
             return $this->entityOperation($operation, $entity);
         }
 
-        if (in_array($operation, array('write', 'insert', 'update', 'delete'))) {
+        if (in_array($operation, ['write', 'insert', 'update', 'delete'])) {
             $this->assertEntityInstance($entity, $instance, $operation);
 
             return $this->instanceOperation($operation, $entity, $instance);
@@ -394,7 +394,7 @@ class Query implements QueryInterface
             $value = $this->accessProperty($this->instance, $field->name());
             $value = $this->bind('condition', $field->name(), $field->type(), $value);
 
-            $this->where[] = array($field->mapping(), $value, '=', 'and');
+            $this->where[] = [$field->mapping(), $value, '=', 'and'];
         }
     }
 
@@ -437,7 +437,7 @@ class Query implements QueryInterface
      */
     protected function bind($operation, $field, $type, $value)
     {
-        $key = ':' . implode('_', array($operation, count($this->binds), $field));
+        $key = ':' . implode('_', [$operation, count($this->binds), $field]);
         $this->binds[$key] = $this->driver->store($value, $type);
 
         return $key;
@@ -471,11 +471,11 @@ class Query implements QueryInterface
 
         foreach ($this->aggregates as $node) {
             if ($node[2] === $field) {
-                return array(
+                return [
                     'table' => null,
                     'mapping' => $field,
                     'type' => 'decimal'
-                );
+                ];
             }
         }
 
@@ -506,10 +506,10 @@ class Query implements QueryInterface
      *
      * @return $this
      */
-    public function fields($fields = array())
+    public function fields($fields = [])
     {
-        $this->fields = array();
-        $this->casts = array();
+        $this->fields = [];
+        $this->casts = [];
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
@@ -547,10 +547,10 @@ class Query implements QueryInterface
      */
     private function assignField(FieldInterface $field)
     {
-        $this->fields[] = array(
+        $this->fields[] = [
             $this->buildField($field->name(), $field->table()),
             $field->name() == $field->mapping() ? null : $field->mapping()
-        );
+        ];
 
         $this->casts[$field->mapping()] = $field->type();
     }
@@ -661,11 +661,11 @@ class Query implements QueryInterface
 
         $field = $this->resolveField($field);
 
-        $this->aggregates[] = array(
+        $this->aggregates[] = [
             $method,
             $this->buildField($field->mapping(), $field->table()),
             $alias
-        );
+        ];
 
         return $this;
     }
@@ -679,7 +679,7 @@ class Query implements QueryInterface
      */
     private function assertAggregate($method)
     {
-        $aggregateMethods = array('distinct', 'count', 'average', 'max', 'min', 'sum');
+        $aggregateMethods = ['distinct', 'count', 'average', 'max', 'min', 'sum'];
 
         if (!in_array($method, $aggregateMethods)) {
             throw new QueryException(sprintf('Invalid aggregation method "%s" in query', $method, $this->model->entity()));
@@ -709,10 +709,10 @@ class Query implements QueryInterface
      *
      * @return $this
      */
-    public function values($fields = array())
+    public function values($fields = [])
     {
-        $this->values = array();
-        $this->binds = array();
+        $this->values = [];
+        $this->binds = [];
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
@@ -760,10 +760,10 @@ class Query implements QueryInterface
             return;
         }
 
-        $this->values[] = array(
+        $this->values[] = [
             $field->mapping(),
             $this->bind('value', $field->name(), $field->type(), $value)
-        );
+        ];
     }
 
     /**
@@ -882,7 +882,7 @@ class Query implements QueryInterface
             list($fields, $values) = $this->buildMultipleFieldsCondition($field, $value);
         }
 
-        return array($fields, $values, $comparison, $logical);
+        return [$fields, $values, $comparison, $logical];
     }
 
     /**
@@ -895,7 +895,7 @@ class Query implements QueryInterface
      *
      * @return array
      */
-    protected function buildSingularFieldCondition($field, $value, $resultFields = array(), $resultValues = array())
+    protected function buildSingularFieldCondition($field, $value, $resultFields = [], $resultValues = [])
     {
         $this->assertFieldName($field);
         $f = $this->resolveFieldAsArray($this->resolveField($field));
@@ -910,10 +910,10 @@ class Query implements QueryInterface
             }
         }
 
-        return array(
+        return [
             $resultFields,
             $resultValues
-        );
+        ];
     }
 
     /**
@@ -926,24 +926,24 @@ class Query implements QueryInterface
      *
      * @return array
      */
-    protected function buildMultipleFieldsCondition($field, $value, $resultFields = array(), $resultValues = array())
+    protected function buildMultipleFieldsCondition($field, $value, $resultFields = [], $resultValues = [])
     {
         foreach ((array) $field as $i => $f) {
             $this->assertFieldName($f);
             $f = $this->resolveFieldAsArray($this->resolveField($f));
 
             $resultFields[] = $this->buildField($f['mapping'], $f['table']);
-            if ($value === null || $value === array()) {
+            if ($value === null || $value === []) {
                 $resultValues[] = null;
             } else {
                 $resultValues[] = $this->bindValues($f['mapping'], $f['type'], is_array($value) ? $value[$i] : $value);
             }
         }
 
-        return array(
+        return [
             $resultFields,
             $resultValues
-        );
+        ];
     }
 
     /**
@@ -959,11 +959,11 @@ class Query implements QueryInterface
             return $field;
         }
 
-        return array(
+        return [
             'table' => $field->table(),
             'mapping' => $field->mapping(),
             'type' => $field->type(),
-        );
+        ];
     }
 
     /**
@@ -989,7 +989,7 @@ class Query implements QueryInterface
      */
     protected function assertComparison($operator)
     {
-        $comparisonOperators = array('=', '!=', '<', '<=', '>', '>=', 'like', 'regex');
+        $comparisonOperators = ['=', '!=', '<', '<=', '>', '>=', 'like', 'regex']; // TODO - get this from query builder
 
         if (!in_array($operator, $comparisonOperators)) {
             throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model->entity()));
@@ -1005,7 +1005,7 @@ class Query implements QueryInterface
      */
     protected function assertLogical($operator)
     {
-        $comparisonOperators = array('or', 'and');
+        $comparisonOperators = ['or', 'and']; // TODO - get this from query builder
 
         if (!in_array($operator, $comparisonOperators)) {
             throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model->entity()));
@@ -1057,10 +1057,10 @@ class Query implements QueryInterface
             }
         }
 
-        $this->order[] = array(
+        $this->order[] = [
             $field->mapping(),
             $order
-        );
+        ];
 
         return $this;
     }
@@ -1074,7 +1074,7 @@ class Query implements QueryInterface
      */
     private function assertOrder($order)
     {
-        if (!is_array($order) && !in_array($order, array('asc', 'desc'))) {
+        if (!is_array($order) && !in_array($order, ['asc', 'desc'])) {
             throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
         }
     }
@@ -1105,7 +1105,7 @@ class Query implements QueryInterface
      * @return $this
      * @throws QueryException
      */
-    public function with($relation, array $conditions = array(), array $order = array())
+    public function with($relation, array $conditions = [], array $order = [])
     {
         if (!$this->model) {
             throw new QueryException('Unable to create relation, missing entity model');
@@ -1586,10 +1586,10 @@ class Query implements QueryInterface
                 $queryString = null;
         }
 
-        return array(
+        return [
             $queryString,
             $this->binds
-        );
+        ];
     }
 
     /**
@@ -1605,29 +1605,29 @@ class Query implements QueryInterface
 
         $this->operation = null;
 
-        $this->joins = array();
+        $this->joins = [];
 
-        $this->fields = array();
-        $this->aggregates = array();
-        $this->group = array();
+        $this->fields = [];
+        $this->aggregates = [];
+        $this->group = [];
 
-        $this->values = array();
+        $this->values = [];
 
-        $this->where = array();
-        $this->having = array();
+        $this->where = [];
+        $this->having = [];
 
-        $this->order = array();
+        $this->order = [];
 
         $this->limit = null;
         $this->offset = null;
 
-        $this->binds = array();
-        $this->casts = array();
+        $this->binds = [];
+        $this->casts = [];
 
         $this->driver->reset();
         $this->builder->reset();
 
-        $this->relations = array();
+        $this->relations = [];
 
         return $this;
     }

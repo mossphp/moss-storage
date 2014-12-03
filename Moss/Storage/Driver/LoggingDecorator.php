@@ -106,7 +106,7 @@ class LoggingDecorator implements DriverInterface
      * @return $this
      * @throws DriverException
      */
-    public function execute($parameters = array())
+    public function execute($parameters = [])
     {
         if ($this->logger) {
             $this->logger->debug($this->queryString(), $parameters);
@@ -152,7 +152,7 @@ class LoggingDecorator implements DriverInterface
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchObject($className, $restore = array())
+    public function fetchObject($className, $restore = [])
     {
         return $this->driver->fetchObject($className, $restore);
     }
@@ -165,7 +165,7 @@ class LoggingDecorator implements DriverInterface
      * @return bool|mixed
      * @throws DriverException
      */
-    public function fetchAssoc($restore = array())
+    public function fetchAssoc($restore = [])
     {
         return $this->driver->fetchAssoc($restore);
     }
@@ -193,7 +193,7 @@ class LoggingDecorator implements DriverInterface
      * @return array
      * @throws DriverException
      */
-    public function fetchAll($className = null, $restore = array())
+    public function fetchAll($className = null, $restore = [])
     {
         return $this->driver->fetchAll($className, $restore);
     }

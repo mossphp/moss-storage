@@ -29,12 +29,12 @@ abstract class Relation implements RelationInterface
     protected $type;
     protected $container;
 
-    protected $keys = array();
-    protected $in = array();
-    protected $out = array();
+    protected $keys = [];
+    protected $in = [];
+    protected $out = [];
 
-    protected $local = array();
-    protected $foreign = array();
+    protected $local = [];
+    protected $foreign = [];
 
     /**
      * Returns container name or builds it from namespaced class name if passed name is empty string
@@ -217,9 +217,9 @@ abstract class Relation implements RelationInterface
      * @return array
      * @throws DefinitionException
      */
-    public function localValues($localValues = array())
+    public function localValues($localValues = [])
     {
-        if ($localValues !== array()) {
+        if ($localValues !== []) {
             foreach ($localValues as $field => $value) {
                 $this->assertField($field);
 
@@ -238,9 +238,9 @@ abstract class Relation implements RelationInterface
      * @return array
      * @throws DefinitionException
      */
-    public function foreignValues($foreignValues = array())
+    public function foreignValues($foreignValues = [])
     {
-        if ($foreignValues !== array()) {
+        if ($foreignValues !== []) {
             foreach ($foreignValues as $field => $value) {
                 $this->assertField($field);
 

@@ -26,14 +26,14 @@ class Integer extends String
      * @param array       $attributes
      * @param null|string $mapping
      */
-    public function __construct($field, $attributes = array(), $mapping = null)
+    public function __construct($field, $attributes = [], $mapping = null)
     {
         $this->initialize(
             'integer',
             $field,
-            array_merge(array('length' => 11), $attributes),
+            array_merge(['length' => 11], $attributes),
             $mapping,
-            array('length', 'null', 'auto_increment', 'default')
+            ['length', 'null', 'auto_increment', 'default']
         );
     }
 }

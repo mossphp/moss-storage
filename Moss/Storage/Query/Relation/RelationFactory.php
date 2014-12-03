@@ -58,19 +58,19 @@ class RelationFactory
      *
      * @return $this
      */
-    public function create(ModelInterface $model, $relation, array $conditions = array(), array $order = array())
+    public function create(ModelInterface $model, $relation, array $conditions = [], array $order = [])
     {
         if (!is_array($relation)) {
-            return array($this->assignRelation($model, $relation, $conditions, $order));
+            return [$this->assignRelation($model, $relation, $conditions, $order)];
         }
 
-        $instances = array();
+        $instances = [];
         foreach (array_keys($relation) as $i) {
             $instances[] = $this->assignRelation(
                 $model,
                 $relation[$i],
-                isset($conditions[$i]) ? $conditions[$i] : array(),
-                isset($order[$i]) ? $order[$i] : array()
+                isset($conditions[$i]) ? $conditions[$i] : [],
+                isset($order[$i]) ? $order[$i] : []
             );
         }
 
@@ -88,7 +88,7 @@ class RelationFactory
      * @return RelationInterface
      * @throws QueryException
      */
-    private function assignRelation($model, $relation, array $conditions = array(), array $order = array())
+    private function assignRelation($model, $relation, array $conditions = [], array $order = [])
     {
         list($relation, $furtherRelations) = $this->splitRelationName($relation);
 
@@ -186,6 +186,6 @@ class RelationFactory
             return explode('.', $relationName, 2);
         }
 
-        return array($relationName, null);
+        return [$relationName, null];
     }
 }

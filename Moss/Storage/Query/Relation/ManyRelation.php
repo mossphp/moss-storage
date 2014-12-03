@@ -28,8 +28,8 @@ class ManyRelation extends Relation
      */
     public function read(&$result)
     {
-        $relations = array();
-        $conditions = array();
+        $relations = [];
+        $conditions = [];
 
         foreach ($this->relation->foreignValues() as $refer => $value) {
             $conditions[$refer][] = $value;
@@ -41,7 +41,7 @@ class ManyRelation extends Relation
             }
 
             if (!isset($entity->{$this->relation->container()})) {
-                $entity->{$this->relation->container()} = array();
+                $entity->{$this->relation->container()} = [];
             }
 
             foreach ($this->relation->keys() as $local => $refer) {
@@ -102,7 +102,7 @@ class ManyRelation extends Relation
 
         // cleanup
 
-        $conditions = array();
+        $conditions = [];
         foreach ($this->relation->foreignValues() as $field => $value) {
             $conditions[$field] = $value;
         }

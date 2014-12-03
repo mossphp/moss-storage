@@ -48,8 +48,8 @@ class Join implements JoinInterface
      */
     protected $mediator;
 
-    private $joints = array();
-    private $conditions = array();
+    private $joints = [];
+    private $conditions = [];
 
     /**
      * Constructor
@@ -73,7 +73,7 @@ class Join implements JoinInterface
         $this->buildConditions($this->relation->localValues(), $this->source->table(), $this->conditions);
         $this->buildConditions($this->relation->foreignValues(), $this->target->table(), $this->conditions);
 
-        if (in_array($relation->type(), array('one', 'many'))) {
+        if (in_array($relation->type(), ['one', 'many'])) {
             $this->joints[] = $this->buildJoint(
                 $this->type,
                 $this->target->table(),
@@ -85,7 +85,7 @@ class Join implements JoinInterface
             return;
         }
 
-        if (in_array($relation->type(), array('oneTrough', 'manyTrough'))) {
+        if (in_array($relation->type(), ['oneTrough', 'manyTrough'])) {
             $this->joints[] = $this->buildJoint(
                 $this->type,
                 $this->mediator->table(),
@@ -206,7 +206,7 @@ class Join implements JoinInterface
      */
     protected function buildJoint($type, $table, $keys, $source, $target)
     {
-        return array($type, $table, $this->prefixKeys($keys, $source, $target));
+        return [$type, $table, $this->prefixKeys($keys, $source, $target)];
     }
 
     /**
@@ -220,7 +220,7 @@ class Join implements JoinInterface
      */
     protected function prefixKeys(array $keys, $localPrefix, $foreignPrefix)
     {
-        $result = array();
+        $result = [];
         foreach ($keys as $local => $foreign) {
             $result[$this->buildField($local, $localPrefix)] = $this->buildField($foreign, $foreignPrefix);
         }
@@ -233,10 +233,10 @@ class Join implements JoinInterface
      * @param string $table
      * @param array  $conditions
      */
-    protected function buildConditions($keys, $table, &$conditions = array())
+    protected function buildConditions($keys, $table, &$conditions = [])
     {
         foreach ($keys as $field => $value) {
-            $conditions[] = array($this->buildField($field, $table), $value, '=', 'and');
+            $conditions[] = [$this->buildField($field, $table), $value, '=', 'and'];
         }
     }
 

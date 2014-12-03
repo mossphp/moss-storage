@@ -43,7 +43,7 @@ interface SchemaInterface
      *
      * @return $this
      */
-    public function check($entity = array());
+    public function check($entity = []);
 
     /**
      * Sets create operation
@@ -52,7 +52,7 @@ interface SchemaInterface
      *
      * @return $this
      */
-    public function create($entity = array());
+    public function create($entity = []);
 
     /**
      * Sets alter operation
@@ -61,7 +61,7 @@ interface SchemaInterface
      *
      * @return $this
      */
-    public function alter($entity = array());
+    public function alter($entity = []);
 
     /**
      * Sets drop operation
@@ -70,7 +70,7 @@ interface SchemaInterface
      *
      * @return $this
      */
-    public function drop($entity = array());
+    public function drop($entity = []);
 
     /**
      * Sets query operation
@@ -80,7 +80,7 @@ interface SchemaInterface
      *
      * @return $this
      */
-    public function operation($operation, $entity = array());
+    public function operation($operation, $entity = []);
 
     /**
      * Executes query

@@ -44,9 +44,9 @@ class Schema implements SchemaInterface
 
     private $operation;
 
-    private $before = array();
-    private $queries = array();
-    private $after = array();
+    private $before = [];
+    private $queries = [];
+    private $after = [];
 
     /**
      * Constructor
@@ -89,7 +89,7 @@ class Schema implements SchemaInterface
      *
      * @return $this
      */
-    public function check($entity = array())
+    public function check($entity = [])
     {
         return $this->operation('check', $entity);
     }
@@ -101,7 +101,7 @@ class Schema implements SchemaInterface
      *
      * @return $this
      */
-    public function create($entity = array())
+    public function create($entity = [])
     {
         return $this->operation('create', $entity);
     }
@@ -113,7 +113,7 @@ class Schema implements SchemaInterface
      *
      * @return $this
      */
-    public function alter($entity = array())
+    public function alter($entity = [])
     {
         return $this->operation('alter', $entity);
     }
@@ -125,7 +125,7 @@ class Schema implements SchemaInterface
      *
      * @return $this
      */
-    public function drop($entity = array())
+    public function drop($entity = [])
     {
         return $this->operation('drop', $entity);
     }
@@ -139,7 +139,7 @@ class Schema implements SchemaInterface
      * @return $this
      * @throws SchemaException
      */
-    public function operation($operation, $entity = array())
+    public function operation($operation, $entity = [])
     {
         $this->operation = $operation;
         $models = $this->retrieveModels($entity);
@@ -179,9 +179,9 @@ class Schema implements SchemaInterface
      *
      * @return array|ModelInterface[]
      */
-    protected function retrieveModels($entity = array())
+    protected function retrieveModels($entity = [])
     {
-        $models = array();
+        $models = [];
         foreach ((array) $entity as $node) {
             $models[] = $this->models->get($node);
         }
@@ -225,7 +225,7 @@ class Schema implements SchemaInterface
             $this->builder->column($index->name(), $index->type(), $index->attributes());
         }
 
-        $foreign = array();
+        $foreign = [];
         foreach ($model->indexes() as $index) {
             if ($index->type() === 'foreign') {
                 $foreign[] = $index;
@@ -266,9 +266,9 @@ class Schema implements SchemaInterface
         // foreign keys
         $this->buildForeignKeysAlterations($model, $current);
 
-        $before = array();
-        $after = array();
-        $queries = array();
+        $before = [];
+        $after = [];
+        $queries = [];
 
         $this->buildColumnsAlterations($model, $current, $queries);
         $this->buildIndexesAlteration($model, $current, $before, $after);
@@ -317,7 +317,7 @@ class Schema implements SchemaInterface
      * @param                $current
      * @param array          $queries
      */
-    private function buildColumnsAlterations(ModelInterface $model, $current, &$queries = array())
+    private function buildColumnsAlterations(ModelInterface $model, $current, &$queries = [])
     {
         $fields = $current['fields'];
 
@@ -370,7 +370,7 @@ class Schema implements SchemaInterface
      * @param array          $before
      * @param array          $after
      */
-    private function buildIndexesAlteration(ModelInterface $model, $current, &$before = array(), &$after = array())
+    private function buildIndexesAlteration(ModelInterface $model, $current, &$before = [], &$after = [])
     {
         $indexes = $current['indexes'];
 
@@ -487,7 +487,7 @@ class Schema implements SchemaInterface
             return false;
         }
 
-        $attributes = array('length' => null, 'precision' => null, 'null' => false, 'auto_increment' => false, 'default' => null);
+        $attributes = ['length' => null, 'precision' => null, 'null' => false, 'auto_increment' => false, 'default' => null];
         foreach ($new->attributes() as $key => $value) {
             $attributes[$key] = $value;
         }
@@ -556,7 +556,7 @@ class Schema implements SchemaInterface
     {
         $queries = array_merge($this->before, $this->queries, $this->after);
 
-        $result = array();
+        $result = [];
         switch ($this->operation) {
             case 'check':
                 foreach ($queries as $table => $query) {
@@ -578,7 +578,7 @@ class Schema implements SchemaInterface
                 }
                 break;
             default:
-                $result = array();
+                $result = [];
         }
 
         $this->reset();
@@ -604,9 +604,9 @@ class Schema implements SchemaInterface
     public function reset()
     {
         $this->operation = null;
-        $this->before = array();
-        $this->queries = array();
-        $this->after = array();
+        $this->before = [];
+        $this->queries = [];
+        $this->after = [];
 
         return $this;
     }

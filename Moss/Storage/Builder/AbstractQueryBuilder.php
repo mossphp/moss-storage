@@ -19,22 +19,22 @@ namespace Moss\Storage\Builder;
  */
 abstract class AbstractQueryBuilder implements QueryBuilderInterface
 {
-    protected $aggregateMethods = array(
+    protected $aggregateMethods = [
         'distinct' => null,
         'count' => null,
         'average' => null,
         'max' => null,
         'min' => null,
         'sum' => null
-    );
+    ];
 
-    protected $joinTypes = array(
+    protected $joinTypes = [
         'inner' => null,
         'left' => null,
         'right' => null
-    );
+    ];
 
-    protected $comparisonOperators = array(
+    protected $comparisonOperators = [
         '=' => null,
         '!=' => null,
         '<' => null,
@@ -43,34 +43,34 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         '>=' => null,
         'like' => null,
         'regex' => null
-    );
+    ];
 
-    protected $logicalOperators = array(
+    protected $logicalOperators = [
         'and' => null,
         'or' => null
-    );
+    ];
 
-    protected $orderMethods = array(
+    protected $orderMethods = [
         'asc' => null,
         'desc' => null
-    );
+    ];
 
     protected $operation;
 
     protected $table;
-    protected $joins = array();
+    protected $joins = [];
 
-    protected $fields = array();
-    protected $aggregates = array();
-    protected $group = array();
-    protected $subs = array();
+    protected $fields = [];
+    protected $aggregates = [];
+    protected $group = [];
+    protected $subs = [];
 
-    protected $values = array();
+    protected $values = [];
 
-    protected $where = array();
-    protected $having = array();
+    protected $where = [];
+    protected $having = [];
 
-    protected $order = array();
+    protected $order = [];
 
     protected $limit = null;
     protected $offset = null;
@@ -200,10 +200,10 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
             throw new BuilderException('Missing table name');
         }
 
-        $this->table = array(
+        $this->table = [
             $this->quote($table),
             $alias ? $this->quote($alias) : null
-        );
+        ];
 
         return $this;
     }
@@ -260,7 +260,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function fields(array $fields)
     {
-        $this->fields = array();
+        $this->fields = [];
 
         foreach ($fields as $key => $val) {
             is_numeric($key) ? $this->field($val) : $this->field($key, $val);
@@ -279,10 +279,10 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function field($field, $alias = null)
     {
-        $this->fields[] = array(
+        $this->fields[] = [
             $this->quote($field, $this->mapping()),
             $alias ? $this->quote($alias) : null
-        );
+        ];
 
         return $this;
     }
@@ -383,11 +383,11 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
 
         $alias = $alias ? $alias : strtolower($method);
 
-        $this->aggregates[$alias] = array(
+        $this->aggregates[$alias] = [
             $method,
             $this->quote($field, $this->mapping()),
             $this->quote($alias),
-        );
+        ];
 
         return $this;
     }
@@ -424,7 +424,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function sub(QueryBuilderInterface $query, $alias)
     {
-        $this->subs[] = array($query, $this->quote($alias));
+        $this->subs[] = [$query, $this->quote($alias)];
 
         return $this;
     }
@@ -445,7 +445,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function values(array $values)
     {
-        $this->values = array();
+        $this->values = [];
 
         foreach ($values as $col => $value) {
             $this->value($col, $value);
@@ -464,10 +464,10 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function value($col, $value)
     {
-        $this->values[] = array(
+        $this->values[] = [
             $this->quote($col, $this->mapping()),
             $value
-        );
+        ];
 
         return $this;
     }
@@ -549,21 +549,21 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
             throw new BuilderException(sprintf('Empty join array for join type "%s"', $type));
         }
 
-        $join = array(
+        $join = [
             $type,
-            array(
+            [
                 $this->quote($table),
                 $alias ? $this->quote($alias) : null
-            ),
-            array()
-        );
+            ],
+            []
+        ];
 
         $mapping = isset($alias) ? $alias : $table;
         foreach ($joins as $local => $foreign) {
-            $join[2][] = array(
+            $join[2][] = [
                 $this->quote($local, $this->mapping()),
                 $this->quote($foreign, $mapping)
-            );
+            ];
         }
 
         $this->joins[] = $join;
@@ -584,7 +584,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function where($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->where[] = $this->condition($field, $value, $comparison, $logical, array($this, 'quoteWhereCallback'));
+        $this->where[] = $this->condition($field, $value, $comparison, $logical, [$this, 'quoteWhereCallback']);
 
         return $this;
     }
@@ -602,7 +602,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
      */
     public function having($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->having[] = $this->condition($field, $value, $comparison, $logical, array($this, 'quoteHavingCallback'));
+        $this->having[] = $this->condition($field, $value, $comparison, $logical, [$this, 'quoteHavingCallback']);
 
         return $this;
     }
@@ -624,15 +624,15 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         $this->assertLogicalOperator($logical);
 
         if ($quotingCallback) {
-            is_array($field) ? array_walk_recursive($field, $quotingCallback) : call_user_func_array($quotingCallback, array(&$field));
+            is_array($field) ? array_walk_recursive($field, $quotingCallback) : call_user_func_array($quotingCallback, [&$field]);
         }
 
-        return array(
+        return [
             $field,
             $value,
             $this->comparisonOperators[$comparison],
             $this->logicalOperators[$logical]
-        );
+        ];
     }
 
     /**
@@ -741,18 +741,18 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         $field = $this->quote($field, $this->mapping());
 
         if (is_array($order)) {
-            $this->order[] = array(
+            $this->order[] = [
                 $field,
                 $order
-            );
+            ];
 
             return $this;
         }
 
-        $this->order[] = array(
+        $this->order[] = [
             $field,
             $this->orderMethods[(string) $order]
-        );
+        ];
 
         return $this;
     }
@@ -799,7 +799,7 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
             throw new BuilderException('Missing table name');
         }
 
-        $stmt = array();
+        $stmt = [];
 
         switch ($this->operation) {
             case 'select':
@@ -852,19 +852,19 @@ abstract class AbstractQueryBuilder implements QueryBuilderInterface
         $this->operation = null;
 
         $this->table = null;
-        $this->joins = array();
+        $this->joins = [];
 
-        $this->fields = array();
-        $this->aggregates = array();
-        $this->group = array();
-        $this->subs = array();
+        $this->fields = [];
+        $this->aggregates = [];
+        $this->group = [];
+        $this->subs = [];
 
-        $this->values = array();
+        $this->values = [];
 
-        $this->where = array();
-        $this->having = array();
+        $this->where = [];
+        $this->having = [];
 
-        $this->order = array();
+        $this->order = [];
 
         $this->limit = null;
         $this->offset = null;

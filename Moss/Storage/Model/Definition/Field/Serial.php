@@ -26,14 +26,14 @@ class Serial extends String
      * @param array       $attributes
      * @param null|string $mapping
      */
-    public function __construct($field, $attributes = array(), $mapping = null)
+    public function __construct($field, $attributes = [], $mapping = null)
     {
         $this->initialize(
             'serial',
             $field,
-            array_merge(array('null'), $attributes),
+            array_merge(['null'], $attributes),
             $mapping,
-            array('null')
+            ['null']
         );
     }
 }
