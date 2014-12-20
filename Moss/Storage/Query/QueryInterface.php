@@ -11,8 +11,7 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
+use Doctrine\DBAL\Driver\Connection;
 
 /**
  * Query interface
@@ -25,16 +24,9 @@ interface QueryInterface
     /**
      * Returns driver instance
      *
-     * @return DriverInterface
+     * @return Connection
      */
-    public function driver();
-
-    /**
-     * Returns builder instance
-     *
-     * @return BuilderInterface
-     */
-    public function builder();
+    public function connection();
 
     /**
      * Sets counting operation
@@ -238,43 +230,6 @@ interface QueryInterface
      * @return $this
      */
     public function value($field);
-
-    /**
-     * Adds inner join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function innerJoin($entity);
-
-    /**
-     * Adds left join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function leftJoin($entity);
-
-    /**
-     * Adds right join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function rightJoin($entity);
-
-    /**
-     * Adds join to query
-     *
-     * @param string $type
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function join($type, $entity);
 
     /**
      * Adds where condition to builder

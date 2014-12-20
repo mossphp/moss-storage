@@ -9,7 +9,7 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Driver;
+namespace Moss\Storage\Mutator;
 
 
 class MutatorTest extends \PHPUnit_Framework_TestCase

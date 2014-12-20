@@ -11,15 +11,14 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Builder\QueryBuilderInterface;
-use Moss\Storage\Driver\DriverInterface;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\Definition\FieldInterface;
+use Moss\Storage\Model\Definition\RelationInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Join\JoinFactory;
-use Moss\Storage\Query\Join\JoinInterface;
+use Moss\Storage\Mutator\MutatorInterface;
 use Moss\Storage\Query\Relation\RelationFactory;
-use Moss\Storage\Query\Relation\RelationInterface;
 
 /**
  * Query used to create and execute CRUD operations on entities
@@ -30,14 +29,14 @@ use Moss\Storage\Query\Relation\RelationInterface;
 class Query implements QueryInterface
 {
     /**
-     * @var DriverInterface
+     * @var Connection
      */
-    protected $driver;
+    protected $connection;
 
     /**
-     * @var QueryBuilderInterface
+     * @var MutatorInterface
      */
-    protected $builder;
+    protected $mutator;
 
     /**
      * @var ModelBag
@@ -45,86 +44,70 @@ class Query implements QueryInterface
     protected $models;
 
     /**
+     * @var QueryBuilder
+     */
+    protected $query;
+
+    /**
      * @var ModelInterface
      */
     protected $model;
 
-    private $instance;
+    protected $instance;
 
-    private $operation;
+    protected $operation;
 
-    private $fields = [];
-    private $aggregates = [];
-    private $group = [];
+    protected $fields = [];
+    protected $aggregates = [];
+    protected $group = [];
 
-    private $values = [];
+    protected $values = [];
 
-    private $where = [];
-    private $having = [];
+    protected $where = [];
+    protected $having = [];
 
-    private $order = [];
+    protected $order = [];
 
-    private $limit = null;
-    private $offset = null;
+    protected $limit = null;
+    protected $offset = null;
 
-    private $binds = [];
-    private $casts = [];
-
-    /**
-     * @var JoinInterface[]
-     */
-    private $joins = [];
-
-    /**
-     * @var JoinFactory
-     */
-    private $joinFactory;
+    protected $binds = [];
+    protected $casts = [];
 
     /**
      * @var RelationInterface[]
      */
-    private $relations = [];
+    protected $relations = [];
 
     /**
      * @var RelationFactory
      */
-    private $relationFactory;
+    protected $relationFactory;
 
     /**
      * Constructor
      *
-     * @param DriverInterface       $driver
-     * @param QueryBuilderInterface $builder
-     * @param ModelBag              $models
+     * @param Connection       $connection
+     * @param ModelBag         $models
+     * @param MutatorInterface $mutator
      */
-    public function __construct(DriverInterface $driver, QueryBuilderInterface $builder, ModelBag $models)
+    public function __construct(Connection $connection, ModelBag $models, MutatorInterface $mutator)
     {
-        $this->driver = & $driver;
-        $this->builder = & $builder;
-        $this->models = & $models;
+        $this->connection = $connection;
+        $this->models = $models;
+        $this->mutator = $mutator;
 
-        $this->joinFactory = new JoinFactory($this->models);
         $this->relationFactory = new RelationFactory($this, $this->models);
     }
 
     /**
-     * Returns driver instance
+     * Returns connection
      *
-     * @return DriverInterface
+     * @return Connection
      */
-    public function driver()
+    public function connection()
     {
-        return $this->driver;
-    }
-
-    /**
-     * Returns builder instance
-     *
-     * @return QueryBuilderInterface
-     */
-    public function builder()
-    {
-        return $this->builder;
+        return $this->connection;
     }
 
     /**
@@ -239,6 +222,8 @@ class Query implements QueryInterface
      */
     public function operation($operation, $entity, $instance = null)
     {
+        $this->query = $this->connection->createQueryBuilder();
+
         $this->assertEntityString($entity);
         $this->assignModel($entity);
 
@@ -268,20 +253,26 @@ class Query implements QueryInterface
 
         switch ($operation) {
             case 'num':
+                $this->query->select();
+                $this->query->from($this->connection->quoteIdentifier($this->model->table()));
+
                 foreach ($this->model->primaryFields() as $field) {
-                    $this->assignField($field);
+                    $this->field($field);
                 }
                 break;
             case 'read':
+                $this->query->select();
+                $this->query->from($this->connection->quoteIdentifier($this->model->table()));
                 $this->fields();
-
                 break;
             case 'readOne':
+                $this->query->select();
+                $this->query->from($this->connection->quoteIdentifier($this->model->table()));
                 $this->fields();
                 $this->limit(1);
-
                 break;
             case 'clear':
+                $this->query->delete($this->model->table());
                 break;
         }
 
@@ -304,17 +295,20 @@ class Query implements QueryInterface
         }
 
         $this->operation = (string) $operation;
-        $this->instance = & $instance;
+        $this->instance = $instance;
 
         switch ($operation) {
             case 'insert':
+                $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 break;
             case 'update':
+                $this->query->update($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 $this->assignPrimaryConditions();
                 break;
             case 'delete':
+                $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
                 $this->assignPrimaryConditions();
                 break;
         }
@@ -329,7 +323,7 @@ class Query implements QueryInterface
      *
      * @return string
      */
-    private function getType($var)
+    protected function getType($var)
     {
         return is_object($var) ? get_class($var) : gettype($var);
     }
@@ -394,7 +388,7 @@ class Query implements QueryInterface
             $value = $this->accessProperty($this->instance, $field->name());
             $value = $this->bind('condition', $field->name(), $field->type(), $value);
 
-            $this->where[] = [$field->mapping(), $value, '=', 'and'];
+            $this->where($field->mapping(), $value, '=', 'and');
         }
     }
 
@@ -408,7 +402,7 @@ class Query implements QueryInterface
      */
     protected function checkIfEntityExists($entity, $instance)
     {
-        $query = new self($this->driver, $this->builder, $this->models);
+        $query = clone $this;
         $query->num($entity);
 
         $model = $this->models->get($entity);
@@ -438,65 +432,9 @@ class Query implements QueryInterface
     protected function bind($operation, $field, $type, $value)
     {
         $key = ':' . implode('_', [$operation, count($this->binds), $field]);
-        $this->binds[$key] = $this->driver->store($value, $type);
+        $this->binds[$key] = $this->mutator->store($value, $type);
 
         return $key;
-    }
-
-    /**
-     * Resolves field from current joined models
-     *
-     * @param string $field
-     *
-     * @return FieldInterface
-     * @throws QueryException
-     */
-    private function resolveField($field)
-    {
-        $relation = $this->model->entity();
-        if (strpos($field, QueryBuilderInterface::SEPARATOR) !== false) {
-            list($relation, $field) = explode(QueryBuilderInterface::SEPARATOR, $field, 2);
-        }
-        $relation = trim($relation, '\\');
-
-        if ($this->model->isNamed($relation) && $this->model->hasField($field)) {
-            return $this->model->field($field);
-        }
-
-        foreach ($this->joins as $join) {
-            if ($join->isNamed($relation)) {
-                return $join->field($field);
-            }
-        }
-
-        foreach ($this->aggregates as $node) {
-            if ($node[2] === $field) {
-                return [
-                    'table' => null,
-                    'mapping' => $field,
-                    'type' => 'decimal'
-                ];
-            }
-        }
-
-        throw new QueryException(sprintf('Unable to access field "%s.%s" in query "%s" or in joined models', $relation, $field, $this->model->entity()));
-    }
-
-    /**
-     * Builds field name prefixed with optional table name
-     *
-     * @param string      $field
-     * @param null|string $table
-     *
-     * @return string
-     */
-    private function buildField($field, $table)
-    {
-        if ($table === null) {
-            return $field;
-        }
-
-        return $table . QueryBuilderInterface::SEPARATOR . $field;
     }
 
     /**
@@ -508,7 +446,7 @@ class Query implements QueryInterface
      */
     public function fields($fields = [])
     {
-        $this->fields = [];
+        $this->query->select([]);
         $this->casts = [];
 
         if (empty($fields)) {
@@ -520,7 +458,7 @@ class Query implements QueryInterface
         }
 
         foreach ($fields as $field) {
-            $this->assignField($this->resolveField($field));
+            $this->assignField($field);
         }
 
         return $this;
@@ -535,7 +473,7 @@ class Query implements QueryInterface
      */
     public function field($field)
     {
-        $this->assignField($this->resolveField($field));
+        $this->assignField($field);
 
         return $this;
     }
@@ -545,13 +483,15 @@ class Query implements QueryInterface
      *
      * @param FieldInterface $field
      */
-    private function assignField(FieldInterface $field)
+    protected function assignField(FieldInterface $field)
     {
-        $this->fields[] = [
-            $this->buildField($field->name(), $field->table()),
-            $field->name() == $field->mapping() ? null : $field->mapping()
-        ];
-
+        $this->query->addSelect(
+            sprintf(
+                '%s AS %s',
+                $this->connection->quoteIdentifier($field->name()),
+                $this->connection->quoteIdentifier($field->mapping())
+            )
+        );
         $this->casts[$field->mapping()] = $field->type();
     }
 
@@ -657,13 +597,16 @@ class Query implements QueryInterface
      */
     public function aggregate($method, $field, $alias = null)
     {
+        // TODO - add aggregates as CONST
         $this->assertAggregate($method);
 
-        $field = $this->resolveField($field);
+        $field = $this->model->field($field);
+        $alias = $alias ?: strtolower($method);
 
+        $this->query->addSelect(sprintf('%s(%s) AS %s', $method, $field->mapping(), $alias));
         $this->aggregates[] = [
             $method,
-            $this->buildField($field->mapping(), $field->table()),
+            $field->mapping(),
             $alias
         ];
 
@@ -677,7 +620,7 @@ class Query implements QueryInterface
      *
      * @throws QueryException
      */
-    private function assertAggregate($method)
+    protected function assertAggregate($method)
     {
         $aggregateMethods = ['distinct', 'count', 'average', 'max', 'min', 'sum'];
 
@@ -695,9 +638,9 @@ class Query implements QueryInterface
      */
     public function group($field)
     {
-        $field = $this->resolveField($field);
+        $field = $this->model->field($field);
 
-        $this->group[] = $this->buildField($field->mapping(), $field->table());
+        $this->query->addGroupBy($field);
 
         return $this;
     }
@@ -716,14 +659,14 @@ class Query implements QueryInterface
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
-                $this->assignValue($field);
+                $this->assignValue($this->model->field($field));
             }
 
             return $this;
         }
 
         foreach ($fields as $field) {
-            $this->assignValue($this->resolveField($field));
+            $this->assignValue($this->model->field($field));
         }
 
         return $this;
@@ -738,7 +681,7 @@ class Query implements QueryInterface
      */
     public function value($field)
     {
-        $this->assignValue($this->resolveField($field));
+        $this->assignValue($this->model->field($field));
 
         return $this;
     }
@@ -748,80 +691,18 @@ class Query implements QueryInterface
      *
      * @param FieldInterface $field
      */
-    private function assignValue(FieldInterface $field)
+    protected function assignValue(FieldInterface $field)
     {
-        if ($field->table() != $this->model->table()) {
-            return;
-        }
-
         $value = $this->accessProperty($this->instance, $field->name());
 
-        if ($this->operation === 'insert' && $value === null && $field->attribute('auto_increment')) {
+        if ($this->operation === 'insert' && $value === null && $field->attribute('autoincrement')) {
             return;
         }
 
-        $this->values[] = [
+        $this->query->setValue(
             $field->mapping(),
             $this->bind('value', $field->name(), $field->type(), $value)
-        ];
-    }
-
-    /**
-     * Adds inner join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function innerJoin($entity)
-    {
-        $this->join('inner', $entity);
-
-        return $this;
-    }
-
-    /**
-     * Adds left join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function leftJoin($entity)
-    {
-        $this->join('left', $entity);
-
-        return $this;
-    }
-
-    /**
-     * Adds right join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function rightJoin($entity)
-    {
-        $this->join('right', $entity);
-
-        return $this;
-    }
-
-
-    /**
-     * Adds join to query
-     *
-     * @param string $type
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function join($type, $entity)
-    {
-        $this->joins[] = $this->joinFactory->create($this->model->entity(), $type, $entity);
-
-        return $this;
+        );
     }
 
     /**
@@ -837,7 +718,16 @@ class Query implements QueryInterface
      */
     public function where($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->where[] = $this->condition($field, $value, $comparison, $logical);
+        $condition = $this->condition($field, $value, $comparison, $logical);
+
+        switch ($logical) {
+            case 'and':
+                $this->query->andWhere($condition);
+                break;
+            case 'or':
+                $this->query->orWhere($condition);
+                break;
+        }
 
         return $this;
     }
@@ -855,7 +745,16 @@ class Query implements QueryInterface
      */
     public function having($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->having[] = $this->condition($field, $value, $comparison, $logical);
+        $condition = $this->condition($field, $value, $comparison, $logical);
+
+        switch ($logical) {
+            case 'and':
+                $this->query->andHaving($condition);
+                break;
+            case 'or':
+                $this->query->orHaving($condition);
+                break;
+        }
 
         return $this;
     }
@@ -877,12 +776,10 @@ class Query implements QueryInterface
         $this->assertLogical($logical);
 
         if (!is_array($field)) {
-            list($fields, $values) = $this->buildSingularFieldCondition($field, $value);
-        } else {
-            list($fields, $values) = $this->buildMultipleFieldsCondition($field, $value);
+            return $this->buildSingularFieldCondition($field, $value, $comparison);
         }
 
-        return [$fields, $values, $comparison, $logical];
+        return $this->buildMultipleFieldsCondition($field, $value, $comparison, $logical);
     }
 
     /**
@@ -890,94 +787,81 @@ class Query implements QueryInterface
      *
      * @param string $field
      * @param mixed  $value
-     * @param array  $resultFields
-     * @param array  $resultValues
+     * @param string $comparison
      *
      * @return array
      */
-    protected function buildSingularFieldCondition($field, $value, $resultFields = [], $resultValues = [])
+    protected function buildSingularFieldCondition($field, $value, $comparison)
     {
-        $this->assertFieldName($field);
-        $f = $this->resolveFieldAsArray($this->resolveField($field));
+        $f = $this->model->field($field);
 
-        if (!is_array($value)) {
-            $resultFields[] = $this->buildField($f['mapping'], $f['table']);
-            $resultValues[] = $value === null ? null : $this->bindValues($f['mapping'], $f['type'], $value);
-        } else {
-            foreach ($value as $i => $v) {
-                $resultFields[$i] = $this->buildField($f['mapping'], $f['table']);
-                $resultValues[] = $v === null ? null : $this->bindValues($f['mapping'], $f['type'], $v);
-            }
-        }
-
-        return [
-            $resultFields,
-            $resultValues
-        ];
+        return $this->buildConditionString(
+            $f->mapping(),
+            $this->bindValues($f->mapping(), $f->type(), $value),
+            $comparison
+        );
     }
 
     /**
      * Builds conditions for multiple fields
      *
-     * @param array $field
-     * @param mixed $value
-     * @param array $resultFields
-     * @param array $resultValues
+     * @param array  $field
+     * @param mixed  $value
+     * @param string $comparison
      *
      * @return array
      */
-    protected function buildMultipleFieldsCondition($field, $value, $resultFields = [], $resultValues = [])
+    protected function buildMultipleFieldsCondition($field, $value, $comparison, $logical)
     {
+        $conditions = [];
         foreach ((array) $field as $i => $f) {
-            $this->assertFieldName($f);
-            $f = $this->resolveFieldAsArray($this->resolveField($f));
+            $f = $this->model->field($f);
 
-            $resultFields[] = $this->buildField($f['mapping'], $f['table']);
-            if ($value === null || $value === []) {
-                $resultValues[] = null;
-            } else {
-                $resultValues[] = $this->bindValues($f['mapping'], $f['type'], is_array($value) ? $value[$i] : $value);
+            $conditions[] = $this->buildConditionString(
+                $f->mapping(),
+                $this->bindValues($f->mapping(), $f->type(), $value),
+                $comparison
+            );
+
+            $conditions[] = $logical;
+        }
+
+        array_pop($conditions);
+
+        return '(' . implode(' ', $conditions) .')';
+    }
+
+    /**
+     * Builds condition string
+     *
+     * @param string       $field
+     * @param string|array $bind
+     * @param string       $operator
+     *
+     * @return string
+     */
+    private function buildConditionString($field, $bind, $operator)
+    {
+        if (is_array($bind)) {
+            foreach ($bind as &$val) {
+                $val = $this->buildConditionString($field, $val, $operator);
+                unset($val);
             }
+
+            $operator = $operator === '!=' ? 'AND' : 'OR';
+
+            return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
         }
 
-        return [
-            $resultFields,
-            $resultValues
-        ];
-    }
-
-    /**
-     * Translates field into array
-     *
-     * @param mixed $field
-     *
-     * @return array
-     */
-    protected function resolveFieldAsArray($field)
-    {
-        if (is_array($field)) {
-            return $field;
+        if ($bind === null) {
+            return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
         }
 
-        return [
-            'table' => $field->table(),
-            'mapping' => $field->mapping(),
-            'type' => $field->type(),
-        ];
-    }
-
-    /**
-     * Asserts correct field name
-     *
-     * @param $field
-     *
-     * @throws QueryException
-     */
-    protected function assertFieldName($field)
-    {
-        if (!is_scalar($field)) {
-            throw new QueryException(sprintf('Expected field name, got "%s" in query "%s"', gettype($field), $this->model->entity()));
+        if ($operator === 'REGEXP') {
+            return sprintf('LOWER(%s) REGEXP LOWER(%s)', $field, $bind);
         }
+
+        return $field . ' ' . $operator . ' ' . $bind;
     }
 
     /**
@@ -989,7 +873,8 @@ class Query implements QueryInterface
      */
     protected function assertComparison($operator)
     {
-        $comparisonOperators = ['=', '!=', '<', '<=', '>', '>=', 'like', 'regex']; // TODO - get this from query builder
+        // TODO - add comparison operators as CONST
+        $comparisonOperators = ['=', '!=', '<', '<=', '>', '>=', 'like', 'regex'];
 
         if (!in_array($operator, $comparisonOperators)) {
             throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model->entity()));
@@ -1005,7 +890,8 @@ class Query implements QueryInterface
      */
     protected function assertLogical($operator)
     {
-        $comparisonOperators = ['or', 'and']; // TODO - get this from query builder
+        // TODO - add logical operators as CONST
+        $comparisonOperators = ['or', 'and'];
 
         if (!in_array($operator, $comparisonOperators)) {
             throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model->entity()));
@@ -1045,9 +931,7 @@ class Query implements QueryInterface
      */
     public function order($field, $order = 'desc')
     {
-        $this->assertOrder($order);
-
-        $field = $this->resolveField($field);
+        $field = $this->model->field($field);
 
         $this->assertOrder($order);
 
@@ -1072,7 +956,7 @@ class Query implements QueryInterface
      *
      * @throws QueryException
      */
-    private function assertOrder($order)
+    protected function assertOrder($order)
     {
         if (!is_array($order) && !in_array($order, ['asc', 'desc'])) {
             throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
@@ -1089,8 +973,11 @@ class Query implements QueryInterface
      */
     public function limit($limit, $offset = null)
     {
-        $this->limit = (int) $limit;
-        $this->offset = $offset ? (int) $offset : null;
+        if ($offset) {
+            $this->query->setFirstResult((int) $offset);
+        }
+
+        $this->query->setMaxResults((int) $limit);
 
         return $this;
     }
@@ -1187,33 +1074,12 @@ class Query implements QueryInterface
      *
      * @return int
      */
-    private function executeNumber()
+    protected function executeNumber()
     {
-        return $this->driver
-            ->prepare($this->buildNumber())
-            ->execute($this->binds)
-            ->affectedRows();
-    }
+        $stmt = $this->connection->prepare($this->queryString());
+        $stmt->execute($this->binds);
 
-    /**
-     * Builds counting query
-     *
-     * @return string
-     */
-    private function buildNumber()
-    {
-        $this->builder->reset()
-            ->select($this->model->table());
-
-        foreach ($this->fields as $field) {
-            $this->builder->field($field[0], $field[1]);
-        }
-
-        foreach ($this->where as $node) {
-            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
-        }
-
-        return $this->builder->build();
+        return $stmt->rowCount();
     }
 
     /**
@@ -1222,7 +1088,7 @@ class Query implements QueryInterface
      * @return array|object
      * @throws QueryException
      */
-    private function executeReadOne()
+    protected function executeReadOne()
     {
         $result = $this->executeRead();
 
@@ -1238,68 +1104,40 @@ class Query implements QueryInterface
      *
      * @return array
      */
-    private function executeRead()
+    protected function executeRead()
     {
-        $this->driver
-            ->prepare($this->buildRead())
-            ->execute($this->binds);
+        $stmt = $this->connection->prepare($this->queryString());
+        $stmt->execute($this->binds);
 
-        $result = $this->driver->fetchAll($this->model->entity(), $this->casts);
+        $result = $stmt->fetchAll(\PDO::FETCH_CLASS, $this->model->entity());
+
+        $ref = new \ReflectionClass($this->model->entity());
+        foreach ($result as $entity) {
+            $this->restoreObject($entity, $this->casts, $ref);
+        }
 
         $this->executeReadRelations($result);
 
         return $result;
     }
 
-    /**
-     * Builds reading operation
-     *
-     * @return string
-     */
-    private function buildRead()
+    protected function restoreObject($entity, array $restore, \ReflectionClass $ref)
     {
-        $this->builder->reset()
-            ->select($this->model->table());
-
-        foreach ($this->joins as $join) {
-            foreach ($join->joints() as $node) {
-                $this->builder->join($node[0], $node[1], $node[2]);
+        foreach ($restore as $field => $type) {
+            if (!$ref->hasProperty($field)) {
+                $entity->$field = $this->mutator->restore($entity->$field, $type);
+                continue;
             }
 
-            foreach ($join->conditions() as $node) {
-                $this->builder->where($node[0], $node[1], $node[2], $node[3]);
-            }
+            $prop = $ref->getProperty($field);
+            $prop->setAccessible(true);
+
+            $value = $prop->getValue($entity);
+            $value = $this->mutator->restore($value, $type);
+            $prop->setValue($entity, $value);
         }
 
-        foreach ($this->fields as $node) {
-            $this->builder->field($node[0], $node[1]);
-        }
-
-        foreach ($this->aggregates as $node) {
-            $this->builder->aggregate($node[0], $node[1], $node[2]);
-        }
-
-        foreach ($this->group as $node) {
-            $this->builder->group($node);
-        }
-
-        foreach ($this->where as $node) {
-            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
-        }
-
-        foreach ($this->having as $node) {
-            $this->builder->having($node[0], $node[1], $node[2], $node[3]);
-        }
-
-        foreach ($this->order as $node) {
-            $this->builder->order($node[0], $node[1]);
-        }
-
-        if ($this->limit) {
-            $this->builder->limit($this->limit, $this->offset);
-        }
-
-        return $this->builder->build();
+        return $entity;
     }
 
     /**
@@ -1307,9 +1145,9 @@ class Query implements QueryInterface
      *
      * @return array|object
      */
-    private function executeInsert()
+    protected function executeInsert()
     {
-        $result = $this->driver
+        $result = $this->connection
             ->prepare($this->buildInsert())
             ->execute($this->binds)
             ->lastInsertId();
@@ -1322,30 +1160,13 @@ class Query implements QueryInterface
     }
 
     /**
-     * Builds inserting query
-     *
-     * @return string
-     */
-    private function buildInsert()
-    {
-        $this->builder->reset()
-            ->insert($this->model->table());
-
-        foreach ($this->values as $node) {
-            $this->builder->value($node[0], $node[1]);
-        }
-
-        return $this->builder->build();
-    }
-
-    /**
      * Executes update operation
      *
      * @return array|object
      */
-    private function executeUpdate()
+    protected function executeUpdate()
     {
-        $this->driver
+        $this->connection
             ->prepare($this->buildUpdate())
             ->execute($this->binds);
 
@@ -1355,40 +1176,15 @@ class Query implements QueryInterface
     }
 
     /**
-     * Builds updating query
-     *
-     * @return string
-     */
-    private function buildUpdate()
-    {
-        $this->builder->reset()
-            ->update($this->model->table());
-
-        foreach ($this->values as $node) {
-            $this->builder->value($node[0], $node[1]);
-        }
-
-        foreach ($this->where as $node) {
-            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
-        }
-
-        if ($this->limit) {
-            $this->builder->limit($this->limit, $this->offset);
-        }
-
-        return $this->builder->build();
-    }
-
-    /**
      * Executes deleting operation
      *
      * @return array|object
      */
-    private function executeDelete()
+    protected function executeDelete()
     {
         $this->executeDeleteRelations();
 
-        $this->driver
+        $this->connection
             ->prepare($this->buildDelete())
             ->execute($this->binds);
 
@@ -1398,36 +1194,15 @@ class Query implements QueryInterface
     }
 
     /**
-     * Builds delete query
-     *
-     * @return string
-     */
-    private function buildDelete()
-    {
-        $this->builder->reset()
-            ->delete($this->model->table());
-
-        foreach ($this->where as $node) {
-            $this->builder->where($node[0], $node[1], $node[2], $node[3]);
-        }
-
-        if ($this->limit) {
-            $this->builder->limit($this->limit, $this->offset);
-        }
-
-        return $this->builder->build();
-    }
-
-    /**
      * Executes clearing operation
      *
      * @return bool
      */
-    private function executeClear()
+    protected function executeClear()
     {
         $this->executeClearRelations();
 
-        $this->driver
+        $this->connection
             ->prepare($this->buildClear())
             ->execute();
 
@@ -1435,23 +1210,11 @@ class Query implements QueryInterface
     }
 
     /**
-     * Builds clear query
-     *
-     * @return string
-     */
-    private function buildClear()
-    {
-        return $this->builder->reset()
-            ->clear($this->model->table())
-            ->build();
-    }
-
-    /**
      * Executes reading relations
      *
      * @param $result
      */
-    private function executeReadRelations(&$result)
+    protected function executeReadRelations(&$result)
     {
         foreach ($this->relations as $relation) {
             $result = $relation->read($result);
@@ -1461,7 +1224,7 @@ class Query implements QueryInterface
     /**
      * Executes writing (insert/update) relations
      */
-    private function executeWriteRelations()
+    protected function executeWriteRelations()
     {
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);
@@ -1471,7 +1234,7 @@ class Query implements QueryInterface
     /**
      * Executes deleting relations
      */
-    private function executeDeleteRelations()
+    protected function executeDeleteRelations()
     {
         foreach ($this->relations as $relation) {
             $relation->delete($this->instance);
@@ -1481,7 +1244,7 @@ class Query implements QueryInterface
     /**
      * Executes clearing relations
      */
-    private function executeClearRelations()
+    protected function executeClearRelations()
     {
         foreach ($this->relations as $relation) {
             $relation->clear();
@@ -1497,7 +1260,7 @@ class Query implements QueryInterface
      *
      * @return void
      */
-    private function identifyEntity($entity, $identifier)
+    protected function identifyEntity($entity, $identifier)
     {
         $primaryKeys = $this->model->primaryFields();
         if (count($primaryKeys) !== 1) {
@@ -1534,7 +1297,7 @@ class Query implements QueryInterface
      * @return mixed
      * @throws QueryException
      */
-    private function accessProperty($entity, $field)
+    protected function accessProperty($entity, $field)
     {
         if (!$entity) {
             throw new QueryException('Unable to access entity properties, missing instance');
@@ -1562,34 +1325,12 @@ class Query implements QueryInterface
      */
     public function queryString()
     {
-        switch ($this->operation) {
-            case 'num':
-                $queryString = $this->buildNumber();
-                break;
-            case 'readOne':
-            case 'read':
-                $queryString = $this->buildRead();
-                break;
-            case 'insert':
-                $queryString = $this->buildInsert();
-                break;
-            case 'update':
-                $queryString = $this->buildUpdate();
-                break;
-            case 'delete':
-                $queryString = $this->buildDelete();
-                break;
-            case 'clear':
-                $queryString = $this->buildClear();
-                break;
-            default:
-                $queryString = null;
-        }
+        return (string) $this->query->getSQL();
+    }
 
-        return [
-            $queryString,
-            $this->binds
-        ];
+    public function binds()
+    {
+        return $this->binds;
     }
 
     /**
@@ -1624,8 +1365,7 @@ class Query implements QueryInterface
         $this->binds = [];
         $this->casts = [];
 
-        $this->driver->reset();
-        $this->builder->reset();
+        $this->connection;
 
         $this->relations = [];
 
