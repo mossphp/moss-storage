@@ -142,13 +142,13 @@ class String implements FieldInterface
     }
 
     /**
-     * Returns field table mapping or null when no mapping
+     * Returns mapped table cell or null when no mapping
      *
      * @return null|string
      */
     public function mapping()
     {
-        return $this->mapping ? $this->mapping : $this->name;
+        return $this->mapping;
     }
 
     /**
