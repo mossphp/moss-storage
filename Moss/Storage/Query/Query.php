@@ -14,11 +14,11 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\Definition\RelationInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Mutator\MutatorInterface;
 use Moss\Storage\Query\Relation\RelationFactory;
+use Moss\Storage\Query\Relation\RelationInterface;
 
 /**
  * Query used to create and execute CRUD operations on entities
@@ -57,20 +57,6 @@ class Query implements QueryInterface
 
     protected $operation;
 
-    private $fields = [];
-    private $aggregates = [];
-    private $group = [];
-
-    private $values = [];
-
-    private $where = [];
-    private $having = [];
-
-    private $order = [];
-
-    private $limit = null;
-    private $offset = null;
-
     private $binds = [];
     private $casts = [];
 
@@ -87,8 +73,8 @@ class Query implements QueryInterface
     /**
      * Constructor
      *
-     * @param Connection $connection
-     * @param ModelBag $models
+     * @param Connection       $connection
+     * @param ModelBag         $models
      * @param MutatorInterface $mutator
      */
     public function __construct(Connection $connection, ModelBag $models, MutatorInterface $mutator)
@@ -119,20 +105,7 @@ class Query implements QueryInterface
      */
     public function num($entity)
     {
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
-
-        $this->operation = 'num';
-        $this->query = $this->connection->createQueryBuilder();
-
-        $this->query->select();
-        $this->query->from($this->connection->quoteIdentifier($this->model->table()));
-
-        foreach ($this->model->primaryFields() as $field) {
-            $this->assignField($field);
-        }
-
-        return $this;
+        return $this->operation('num', $entity);
     }
 
     /**
@@ -144,17 +117,7 @@ class Query implements QueryInterface
      */
     public function read($entity)
     {
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
-
-        $this->operation = 'read';
-        $this->query = $this->connection->createQueryBuilder();
-
-        $this->query->select();
-        $this->query->from($this->connection->quoteIdentifier($this->model->table()));
-        $this->fields();
-
-        return $this;
+        return $this->operation('read', $entity);
     }
 
     /**
@@ -166,24 +129,13 @@ class Query implements QueryInterface
      */
     public function readOne($entity)
     {
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
-
-        $this->operation = 'read';
-        $this->query = $this->connection->createQueryBuilder();
-
-        $this->query->select();
-        $this->query->from($this->connection->quoteIdentifier($this->model->table()));
-        $this->fields();
-        $this->limit(1);
-
-        return $this;
+        return $this->operation('readOne', $entity);
     }
 
     /**
      * Sets write operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -196,20 +148,32 @@ class Query implements QueryInterface
     /**
      * Sets insert operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
      */
     public function insert($entity, $instance)
     {
-        return $this->operation('insert', $entity, $instance);
+        $this->query = $this->connection->createQueryBuilder();
+
+        $this->assertEntityString($entity);
+        $this->assignModel($entity);
+        $this->assertEntityInstance($entity, $instance, 'insert');
+
+        $this->operation = 'insert';
+        $this->instance = $instance;
+
+        $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
+        $this->values();
+
+        return $this;
     }
 
     /**
      * Sets update operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -222,7 +186,7 @@ class Query implements QueryInterface
     /**
      * Sets delete operation
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
@@ -255,8 +219,8 @@ class Query implements QueryInterface
     /**
      * Sets and prepares query operation
      *
-     * @param string $operation
-     * @param string $entity
+     * @param string            $operation
+     * @param string            $entity
      * @param null|array|object $instance
      *
      * @return $this
@@ -299,7 +263,7 @@ class Query implements QueryInterface
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
 
                 foreach ($this->model->primaryFields() as $field) {
-                    $this->field($field);
+                    $this->assignField($field);
                 }
                 break;
             case 'read':
@@ -324,19 +288,19 @@ class Query implements QueryInterface
     /**
      * Prepares query for operations using entity instance
      *
-     * @param string $operation
-     * @param string $entity
+     * @param string       $operation
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return $this
      */
     protected function instanceOperation($operation, $entity, $instance)
     {
-        if ($operation == 'write') {
+        if ($operation === 'write') { // TODO - use consts for operations
             $operation = $this->checkIfEntityExists($entity, $instance) ? 'update' : 'insert';
         }
 
-        $this->operation = (string)$operation;
+        $this->operation = $operation;
         $this->instance = $instance;
 
         switch ($operation) {
@@ -391,9 +355,9 @@ class Query implements QueryInterface
     /**
      * Asserts entity instance
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
-     * @param string $operation
+     * @param string       $operation
      *
      * @throws QueryException
      */
@@ -403,7 +367,7 @@ class Query implements QueryInterface
             ->entity();
 
         if ($instance === null) {
-            throw new QueryException(sprintf('Missing required entity for operation "%s" in query "%s"', $operation, $entityClass));
+            throw new QueryException(sprintf('Missing required entity for operation "%s" of class "%s"', $operation, $entityClass));
         }
 
         if (!is_array($instance) && !$instance instanceof $entityClass) {
@@ -428,16 +392,14 @@ class Query implements QueryInterface
     {
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->accessProperty($this->instance, $field->name());
-            $value = $this->bind('condition', $field->name(), $field->type(), $value);
-
-            $this->where($field->mapping(), $value, '=', 'and');
+            $this->where($field->name(), $value, '=', 'and');
         }
     }
 
     /**
      * Returns true if entity exists database
      *
-     * @param string $entity
+     * @param string       $entity
      * @param array|object $instance
      *
      * @return bool
@@ -467,7 +429,7 @@ class Query implements QueryInterface
      * @param string $operation
      * @param string $field
      * @param string $type
-     * @param mixed $value
+     * @param mixed  $value
      *
      * @return string
      */
@@ -528,11 +490,13 @@ class Query implements QueryInterface
     protected function assignField(FieldInterface $field)
     {
         if ($field->mapping()) {
-            $this->query->addSelect(sprintf(
-                '%s AS %s',
-                $this->connection->quoteIdentifier($field->mapping()),
-                $this->connection->quoteIdentifier($field->name())
-            ));
+            $this->query->addSelect(
+                sprintf(
+                    '%s AS %s',
+                    $this->connection->quoteIdentifier($field->mapping()),
+                    $this->connection->quoteIdentifier($field->name())
+                )
+            );
         } else {
             $this->query->addSelect($this->connection->quoteIdentifier($field->name()));
         }
@@ -701,12 +665,11 @@ class Query implements QueryInterface
      */
     public function values($fields = [])
     {
-        $this->values = [];
         $this->binds = [];
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
-                $this->assignValue($this->model->field($field));
+                $this->assignValue($field);
             }
 
             return $this;
@@ -742,21 +705,28 @@ class Query implements QueryInterface
     {
         $value = $this->accessProperty($this->instance, $field->name());
 
-        if ($this->operation === 'insert' && $value === null && $field->attribute('autoincrement')) {
+        if ($this->operation === 'insert' && $value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
             return;
         }
 
-        $this->query->setValue(
-            $field->mapping(),
-            $this->bind('value', $field->name(), $field->type(), $value)
-        );
+        if ($this->operation === 'update') {
+            $this->query->set(
+                $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+                $this->bind('value', $field->name(), $field->type(), $value)
+            );
+        } else {
+            $this->query->setValue(
+                $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+                $this->bind('value', $field->name(), $field->type(), $value)
+            );
+        }
     }
 
     /**
      * Adds where condition to builder
      *
-     * @param mixed $field
-     * @param mixed $value
+     * @param mixed  $field
+     * @param mixed  $value
      * @param string $comparison
      * @param string $logical
      *
@@ -767,7 +737,7 @@ class Query implements QueryInterface
     {
         $condition = $this->condition($field, $value, $comparison, $logical);
 
-        if($logical === 'or') {
+        if ($logical === 'or') {
             $this->query->orWhere($condition);
 
             return $this;
@@ -781,8 +751,8 @@ class Query implements QueryInterface
     /**
      * Adds having condition to builder
      *
-     * @param mixed $field
-     * @param mixed $value
+     * @param mixed  $field
+     * @param mixed  $value
      * @param string $comparison
      * @param string $logical
      *
@@ -808,8 +778,8 @@ class Query implements QueryInterface
     /**
      * Adds where condition to builder
      *
-     * @param mixed $field
-     * @param mixed $value
+     * @param mixed  $field
+     * @param mixed  $value
      * @param string $comparison
      * @param string $logical
      *
@@ -835,7 +805,7 @@ class Query implements QueryInterface
      * Builds condition for singular field
      *
      * @param string $field
-     * @param mixed $value
+     * @param mixed  $value
      * @param string $comparison
      *
      * @return array
@@ -845,6 +815,7 @@ class Query implements QueryInterface
         $f = $this->model->field($field);
 
         $fieldName = $f->mapping() ? $f->mapping() : $f->name();
+
         return $this->buildConditionString(
             $this->connection->quoteIdentifier($fieldName),
             $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),
@@ -855,8 +826,8 @@ class Query implements QueryInterface
     /**
      * Builds conditions for multiple fields
      *
-     * @param array $field
-     * @param mixed $value
+     * @param array  $field
+     * @param mixed  $value
      * @param string $comparison
      * @param string $logical
      *
@@ -865,7 +836,7 @@ class Query implements QueryInterface
     protected function buildMultipleFieldsCondition($field, $value, $comparison, $logical)
     {
         $conditions = [];
-        foreach ((array)$field as $i => $f) {
+        foreach ((array) $field as $i => $f) {
             $f = $this->model->field($f);
 
             $fieldName = $f->mapping() ? $f->mapping() : $f->name();
@@ -886,9 +857,9 @@ class Query implements QueryInterface
     /**
      * Builds condition string
      *
-     * @param string $field
+     * @param string       $field
      * @param string|array $bind
-     * @param string $operator
+     * @param string       $operator
      *
      * @return string
      */
@@ -975,7 +946,7 @@ class Query implements QueryInterface
     /**
      * Adds sorting to query
      *
-     * @param string $field
+     * @param string       $field
      * @param string|array $order
      *
      * @return $this
@@ -1010,7 +981,7 @@ class Query implements QueryInterface
     /**
      * Sets limits to query
      *
-     * @param int $limit
+     * @param int      $limit
      * @param null|int $offset
      *
      * @return $this
@@ -1018,10 +989,10 @@ class Query implements QueryInterface
     public function limit($limit, $offset = null)
     {
         if ($offset) {
-            $this->query->setFirstResult((int)$offset);
+            $this->query->setFirstResult((int) $offset);
         }
 
-        $this->query->setMaxResults((int)$limit);
+        $this->query->setMaxResults((int) $limit);
 
         return $this;
     }
@@ -1030,8 +1001,8 @@ class Query implements QueryInterface
      * Adds relation to query with optional conditions and sorting (as key value pairs)
      *
      * @param string|array $relation
-     * @param array $conditions
-     * @param array $order
+     * @param array        $conditions
+     * @param array        $order
      *
      * @return $this
      * @throws QueryException
@@ -1165,6 +1136,15 @@ class Query implements QueryInterface
         return $result;
     }
 
+    /**
+     * Restores entity values from their stored representation
+     *
+     * @param object           $entity
+     * @param array            $restore
+     * @param \ReflectionClass $ref
+     *
+     * @return mixed
+     */
     protected function restoreObject($entity, array $restore, \ReflectionClass $ref)
     {
         foreach ($restore as $field => $type) {
@@ -1191,10 +1171,11 @@ class Query implements QueryInterface
      */
     protected function executeInsert()
     {
-        $result = $this->connection
-            ->prepare($this->buildInsert())
-            ->execute($this->binds)
-            ->lastInsertId();
+        $this->connection
+            ->prepare($this->queryString())
+            ->execute($this->binds);
+
+        $result = $this->connection->lastInsertId();
 
         $this->identifyEntity($this->instance, $result);
 
@@ -1211,7 +1192,7 @@ class Query implements QueryInterface
     protected function executeUpdate()
     {
         $this->connection
-            ->prepare($this->buildUpdate())
+            ->prepare($this->queryString())
             ->execute($this->binds);
 
         $this->executeWriteRelations();
@@ -1229,7 +1210,7 @@ class Query implements QueryInterface
         $this->executeDeleteRelations();
 
         $this->connection
-            ->prepare($this->buildDelete())
+            ->prepare($this->queryString())
             ->execute($this->binds);
 
         $this->identifyEntity($this->instance, null);
@@ -1247,7 +1228,7 @@ class Query implements QueryInterface
         $this->executeClearRelations();
 
         $this->connection
-            ->prepare($this->buildClear())
+            ->prepare($this->queryString())
             ->execute();
 
         return true;
@@ -1300,7 +1281,7 @@ class Query implements QueryInterface
      * Possible only when entity has one primary key
      *
      * @param array|object $entity
-     * @param int|string $identifier
+     * @param int|string   $identifier
      *
      * @return void
      */
@@ -1336,7 +1317,7 @@ class Query implements QueryInterface
      * Returns property value
      *
      * @param null|array|object $entity
-     * @param string $field
+     * @param string            $field
      *
      * @return mixed
      * @throws QueryException
@@ -1369,9 +1350,14 @@ class Query implements QueryInterface
      */
     public function queryString()
     {
-        return (string)$this->query->getSQL();
+        return (string) $this->query->getSQL();
     }
 
+    /**
+     * Returns array with containing placeholders and bound values
+     *
+     * @return array
+     */
     public function binds()
     {
         return $this->binds;
@@ -1389,22 +1375,6 @@ class Query implements QueryInterface
         $this->instance = null;
 
         $this->operation = null;
-
-        $this->joins = [];
-
-        $this->fields = [];
-        $this->aggregates = [];
-        $this->group = [];
-
-        $this->values = [];
-
-        $this->where = [];
-        $this->having = [];
-
-        $this->order = [];
-
-        $this->limit = null;
-        $this->offset = null;
 
         $this->binds = [];
         $this->casts = [];
