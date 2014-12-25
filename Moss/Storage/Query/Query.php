@@ -205,15 +205,7 @@ class Query implements QueryInterface
      */
     public function clear($entity)
     {
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
-
-        $this->operation = 'clear';
-        $this->query = $this->connection->createQueryBuilder();
-
-        $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
-
-        return $this;
+       return $this->operation('clear', $entity);
     }
 
     /**
@@ -278,7 +270,7 @@ class Query implements QueryInterface
                 $this->limit(1);
                 break;
             case 'clear':
-                $this->query->delete($this->model->table());
+                $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
                 break;
         }
 
@@ -665,6 +657,7 @@ class Query implements QueryInterface
      */
     public function values($fields = [])
     {
+        $this->query->values([]);
         $this->binds = [];
 
         if (empty($fields)) {
