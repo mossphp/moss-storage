@@ -2,8 +2,21 @@
 namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
+use Moss\Storage\Model\Definition\Field\DateTime;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Mutator\MutatorInterface;
+use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
+
+class StubClass {
+    protected $foo;
+    protected $bar;
+
+    public function __construct($foo, $bar)
+    {
+        $this->foo = $foo;
+        $this->bar = $bar;
+    }
+}
 
 class MockQuery extends Query
 {
@@ -36,14 +49,18 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testNum()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with();
         $builder->expects($this->at(1))->method('from')->with('`table`');
         $builder->expects($this->at(2))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(3))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('rowCount')->will($this->returnValue(1));
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
 
         $bag = $this->mockModelBag(
             [
@@ -60,21 +77,26 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->num('entity');
+        $query->num('entity')->execute();
     }
 
     public function testRead()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with();
         $builder->expects($this->at(1))->method('from')->with('`table`');
         $builder->expects($this->at(2))->method('select')->with([]); // resets fields
         $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
         $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('fetchAll')->will($this->returnValue([]));
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
 
         $bag = $this->mockModelBag(
             [
@@ -91,13 +113,11 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->read('entity');
+        $query->read('entity')->execute();
     }
 
     public function testReadOne()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with();
         $builder->expects($this->at(1))->method('from')->with('`table`');
@@ -105,8 +125,18 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
         $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
         $builder->expects($this->at(5))->method('setMaxResults')->with(1);
+        $builder->expects($this->at(6))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $obj = new \stdClass();
+        $obj->foo = 'foo';
+        $obj->bar = 'bar';
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('fetchAll')->will($this->returnValue([$obj]));
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
 
         $bag = $this->mockModelBag(
             [
@@ -123,20 +153,63 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->readOne('entity');
+        $query->readOne('entity')->execute();
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Result out of range or does not exists for
+     */
+    public function testReadOneThrowsExceptionIfNoResultsFound()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->any())->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('fetchAll')->will($this->returnValue([]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->readOne('entity')->execute();
     }
 
     public function testInsert()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('insert')->with('`table`');
         $builder->expects($this->at(1))->method('values')->with([]);
         $builder->expects($this->at(2))->method('setValue')->with('`foo`', ':value_0_foo');
         $builder->expects($this->at(3))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $binds = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+        ];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with($binds);
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+        $dbal->expects($this->once())->method('lastInsertId')->will($this->returnValue(1));
 
         $bag = $this->mockModelBag(
             [
@@ -156,7 +229,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $entity->bar = 2;
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->insert('entity', $entity);
+        $query->insert('entity', $entity)->execute();
     }
 
     public function testInsertAllFieldsEvenIfAutoIncrement()
@@ -220,18 +293,61 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $query->insert('entity', $entity);
     }
 
+    public function testInsertUpdatesPrimaryKey()
+    {
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->will($this->returnValue([]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())->method('lastInsertId')->will($this->returnValue(1));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = null;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity)->execute();
+
+        $this->assertEquals(1, $entity->foo);
+    }
+
     public function testUpdate()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('update')->with('`table`');
         $builder->expects($this->at(1))->method('values')->with([]);
         $builder->expects($this->at(2))->method('set')->with('`foo`', ':value_0_foo');
         $builder->expects($this->at(3))->method('set')->with('`bar`', ':value_1_bar');
         $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_2_foo');
+        $builder->expects($this->at(5))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $binds = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+            ':condition_2_foo' => 1
+        ];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with($binds);
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
 
         $bag = $this->mockModelBag(
             [
@@ -251,7 +367,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $entity->bar = 2;
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->update('entity', $entity);
+        $query->update('entity', $entity)->execute();
     }
 
     public function testWriteUsingInsert()
@@ -319,13 +435,20 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testDelete()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('delete')->with('`table`');
         $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $binds = [
+            ':condition_0_foo' => 1
+        ];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with($binds);
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
 
         $bag = $this->mockModelBag(
             [
@@ -344,17 +467,20 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $entity->foo = 1;
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->delete('entity', $entity);
+        $query->delete('entity', $entity)->execute();
     }
 
     public function testClear()
     {
-        $this->markTestIncomplete('Add execution to expects');
-
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('delete')->with('`table`');
+        $builder->expects($this->at(1))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with();
 
         $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
 
         $bag = $this->mockModelBag(
             [
@@ -371,7 +497,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
 
         $query = new Query($dbal, $bag, $mutator);
-        $query->clear('entity');
+        $query->clear('entity')->execute();
     }
 
     /**
@@ -1422,9 +1548,76 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $this->markTestIncomplete();
     }
 
-    public function testExecute()
+    public function testExecuteReadWithPublicProperties()
     {
-        $this->markTestIncomplete();
+        $obj = new \stdClass();
+        $obj->foo = '1';
+        $obj->bar = 'foo';
+
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->will($this->returnValue([$obj]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'integer'], ['bar', 'string']],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $result = $query->read('entity')->execute();
+
+        $expected = new \stdClass();
+        $expected->foo = 1;
+        $expected->bar = 'foo';
+
+        $this->assertEquals([$expected], $result);
+    }
+
+    public function testExecuteReadWithProtectedProperties()
+    {
+        $obj = new StubClass('1', 'foo');
+
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->will($this->returnValue([$obj]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\Moss\\Storage\\Query\\StubClass',
+                    'table',
+                    [['foo', 'integer'], ['bar', 'string']],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $result = $query->read('entity')->execute();
+
+        $expected = new StubClass('1', 'foo');
+
+        $this->assertEquals([$expected], $result);
     }
 
     public function testQueryString()
@@ -1462,6 +1655,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
         $builder = $this->mockQueryBuilder();
 
         $dbal = $this->mockDBAL($builder);
+
         $bag = $this->mockModelBag(
             [
                 'entity' => [
@@ -1487,7 +1681,42 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
     public function testReset()
     {
-        $this->markTestIncomplete();
+        $expected = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+            ':condition_2_foo' => 1
+        ];
+
+        $builder = $this->mockQueryBuilder();
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->update('entity', $entity);
+
+        $result = $query->binds();
+        $this->assertEquals($expected, $result);
+
+        $query->reset();
+        $result = $query->binds();
+        $this->assertEquals([], $result);
     }
 
     /**

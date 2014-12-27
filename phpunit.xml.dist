@@ -3,20 +3,12 @@
 <phpunit colors="true" bootstrap="./vendor/autoload.php">
 	<testsuites>
 		<testsuite name="Storage">
-			<!--<directory>./tests/Moss/Storage/Driver/</directory>-->
-			<!--<directory>./tests/Moss/Storage/Model/</directory>-->
-			<directory>./tests/Moss/Storage/Query/ReadTest.php</directory>
-			<!--<directory>./tests/Moss/Storage/Schema/</directory>-->
-			<!--<directory>./tests/Moss/Storage/StorageQueryTest.php</directory>-->
-			<!--<directory>./tests/Moss/Storage/StorageSchemaTest.php</directory>-->
+			<directory>./tests/Moss/Storage/Driver/</directory>
+			<directory>./tests/Moss/Storage/Model/</directory>
+			<directory>./tests/Moss/Storage/Query/QueryTest.php</directory>
+			<directory>./tests/Moss/Storage/Schema/</directory>
+			<directory>./tests/Moss/Storage/StorageQueryTest.php</directory>
+			<directory>./tests/Moss/Storage/StorageSchemaTest.php</directory>
 		</testsuite>
-		<!--
-		<testsuite name="MySQL">
-			<directory>./tests/Moss/Storage/Builder/MySQL/</directory>
-		</testsuite>
-		<testsuite name="PgSQL">
-			<directory>./tests/Moss/Storage/Builder/PgSQL/</directory>
-		</testsuite>
-		-->
 	</testsuites>
 </phpunit>
