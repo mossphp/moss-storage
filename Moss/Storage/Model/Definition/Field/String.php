@@ -41,7 +41,7 @@ class String implements FieldInterface
             'string',
             $field,
             array_merge(['length' => null], $attributes),
-            $mapping,
+            empty($mapping) ? null : $mapping,
             ['length', 'null', 'default']
         );
     }

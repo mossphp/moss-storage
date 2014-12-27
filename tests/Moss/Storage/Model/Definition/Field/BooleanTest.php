@@ -15,12 +15,12 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
@@ -40,24 +40,22 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Boolean('foo', array(), $mapping);
+        $field = new Boolean('foo', [], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new Boolean('foo', array(), 'bar');
+        $field = new Boolean('foo', [], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -72,16 +70,16 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('null'), 'null'),
-            array(array('default' => 0), 'default', 0),
-        );
+        return [
+            [['null'], 'null'],
+            [['default' => 0], 'default', 0],
+        ];
     }
 
     /**
      * @dataProvider attributeArrayProvider
      */
-    public function testAttributes($attribute, $expected = array())
+    public function testAttributes($attribute, $expected = [])
     {
         $field = new Boolean('foo', $attribute, 'bar');
         $this->assertEquals($expected, $field->attributes());
@@ -89,10 +87,10 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('null'), array('null' => true)),
-            array(array('default' => 0), array('null' => true, 'default' => 0)),
-        );
+        return [
+            [['null'], ['null' => true]],
+            [['default' => 0], ['null' => true, 'default' => 0]],
+        ];
     }
 
     /**
@@ -102,15 +100,15 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new Boolean('foo', array($attribute), 'bar');
+        new Boolean('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('length'),
-            array('precision'),
-            array('auto_increment'),
-        );
+        return [
+            ['length'],
+            ['precision'],
+            ['auto_increment'],
+        ];
     }
 }

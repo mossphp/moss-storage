@@ -15,12 +15,12 @@ class SerialTest extends \PHPUnit_Framework_TestCase
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
@@ -40,24 +40,22 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Serial('foo', array(), $mapping);
+        $field = new Serial('foo', [], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new Serial('foo', array(), 'bar');
+        $field = new Serial('foo', [], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -72,9 +70,9 @@ class SerialTest extends \PHPUnit_Framework_TestCase
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('null'), 'null'),
-        );
+        return [
+            [['null'], 'null'],
+        ];
     }
 
     /**
@@ -88,9 +86,9 @@ class SerialTest extends \PHPUnit_Framework_TestCase
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('null'), array('null' => true)),
-        );
+        return [
+            [['null'], ['null' => true]],
+        ];
     }
 
     /**
@@ -100,15 +98,15 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new Serial('foo', array($attribute), 'bar');
+        new Serial('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('precision'),
-            array('auto_increment'),
-            array('default')
-        );
+        return [
+            ['precision'],
+            ['auto_increment'],
+            ['default']
+        ];
     }
 }
