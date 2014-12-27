@@ -27,33 +27,33 @@ class MutatorTest extends \PHPUnit_Framework_TestCase
     {
         $time = new \DateTime();
 
-        return array(
-            array(1, 1, 'boolean'),
-            array('1', 1, 'boolean'),
-            array('abc', 1, 'boolean'),
-            array(false, 0, 'boolean'),
-            array('0', 0, 'boolean'),
-            array(0, 0, 'boolean'),
+        return [
+            [1, 1, 'boolean'],
+            ['1', 1, 'boolean'],
+            ['abc', 1, 'boolean'],
+            [false, 0, 'boolean'],
+            ['0', 0, 'boolean'],
+            [0, 0, 'boolean'],
 
-            array(1, 1, 'integer'),
-            array('1', 1, 'integer'),
-            array('1.234', 1, 'integer'),
-            array('1abc', 1, 'integer'),
+            [1, 1, 'integer'],
+            ['1', 1, 'integer'],
+            ['1.234', 1, 'integer'],
+            ['1abc', 1, 'integer'],
 
-            array(1.234, 1.234, 'decimal'),
-            array('1.234', 1.234, 'decimal'),
-            array('1 , 234', 1.234, 'decimal'),
+            [1.234, 1.234, 'decimal'],
+            ['1.234', 1.234, 'decimal'],
+            ['1 , 234', 1.234, 'decimal'],
 
-            array('123', '123', 'string'),
-            array('abc', 'abc', 'string'),
+            ['123', '123', 'string'],
+            ['abc', 'abc', 'string'],
 
-            array($time->getTimestamp(), $time->getTimestamp(), 'datetime'),
-            array($time->format('Y-m-d'), $time->format('Y-m-d'), 'datetime'),
-            array($time, $time->format('Y-m-d H:i:s'), 'datetime'),
+            [$time->getTimestamp(), $time->getTimestamp(), 'datetime'],
+            [$time->format('Y-m-d'), $time->format('Y-m-d'), 'datetime'],
+            [$time, $time->format('Y-m-d H:i:s'), 'datetime'],
 
-            array(array('1', '2'), base64_encode(serialize(array('1', '2'))), 'serial'),
-            array((object) array('1', '2'), base64_encode(serialize((object) array('1', '2'))), 'serial'),
-        );
+            [['1', '2'], base64_encode(serialize(['1', '2'])), 'serial'],
+            [(object) ['1', '2'], base64_encode(serialize((object) ['1', '2'])), 'serial'],
+        ];
     }
 
     /**
@@ -70,39 +70,39 @@ class MutatorTest extends \PHPUnit_Framework_TestCase
         $time = new \DateTime();
         $timestamp = new \DateTime('@' . time());
 
-        return array(
-            array(1, true, 'boolean'),
-            array('1', true, 'boolean'),
-            array('abc', true, 'boolean'),
-            array(false, false, 'boolean'),
-            array('0', false, 'boolean'),
-            array(0, false, 'boolean'),
+        return [
+            [1, true, 'boolean'],
+            ['1', true, 'boolean'],
+            ['abc', true, 'boolean'],
+            [false, false, 'boolean'],
+            ['0', false, 'boolean'],
+            [0, false, 'boolean'],
 
-            array(1, 1, 'integer'),
-            array('1', 1, 'integer'),
-            array('1.234', 1, 'integer'),
-            array('1abc', 1, 'integer'),
+            [1, 1, 'integer'],
+            ['1', 1, 'integer'],
+            ['1.234', 1, 'integer'],
+            ['1abc', 1, 'integer'],
 
-            array(1.234, 1.234, 'decimal'),
-            array('1.234', 1.234, 'decimal'),
-            array('1 , 234', 1.234, 'decimal'),
+            [1.234, 1.234, 'decimal'],
+            ['1.234', 1.234, 'decimal'],
+            ['1 , 234', 1.234, 'decimal'],
 
-            array('123', '123', 'string'),
-            array('abc', 'abc', 'string'),
+            ['123', '123', 'string'],
+            ['abc', 'abc', 'string'],
 
-            array(
+            [
                 $timestamp->getTimestamp(),
                 $timestamp,
                 'datetime'
-            ),
-            array(
+            ],
+            [
                 $time->format('Y-m-d H:i:s'),
                 $time,
                 'datetime'
-            ),
+            ],
 
-            array(base64_encode(serialize(array('1', '2'))), array('1', '2'), 'serial'),
-            array(base64_encode(serialize((object) array('1', '2'))), (object) array('1', '2'), 'serial'),
-        );
+            [base64_encode(serialize(['1', '2'])), ['1', '2'], 'serial'],
+            [base64_encode(serialize((object) ['1', '2'])), (object) ['1', '2'], 'serial'],
+        ];
     }
 } 
