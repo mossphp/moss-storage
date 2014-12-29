@@ -1,7 +1,7 @@
 <?php
 namespace Moss\Storage\Model\Definition\Field;
 
-class SerialTest extends \PHPUnit_Framework_TestCase
+class BlobTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
@@ -9,7 +9,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testTable($table, $expected)
     {
-        $field = new Serial('foo');
+        $field = new Blob('foo');
         $this->assertEquals($expected, $field->table($table));
     }
 
@@ -25,14 +25,14 @@ class SerialTest extends \PHPUnit_Framework_TestCase
 
     public function testName()
     {
-        $field = new Serial('foo');
+        $field = new Blob('foo');
         $this->assertEquals('foo', $field->name());
     }
 
     public function testType()
     {
-        $field = new Serial('foo');
-        $this->assertEquals('serial', $field->type());
+        $field = new Blob('foo');
+        $this->assertEquals('blob', $field->type());
     }
 
     /**
@@ -40,7 +40,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Serial('foo', [], $mapping);
+        $field = new Blob('foo', [], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
@@ -55,7 +55,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
 
     public function testNonExistentAttribute()
     {
-        $field = new Serial('foo', [], 'bar');
+        $field = new Blob('foo', [], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -64,14 +64,14 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testAttribute($attribute, $key, $value = true)
     {
-        $field = new Serial('foo', $attribute, 'bar');
+        $field = new Blob('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
     }
 
     public function attributeValueProvider()
     {
         return [
-            [['null'], 'null'],
+            [['notnull'], 'notnull'],
         ];
     }
 
@@ -80,14 +80,14 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testAttributes($attribute, $expected)
     {
-        $field = new Serial('foo', $attribute, 'bar');
+        $field = new Blob('foo', $attribute, 'bar');
         $this->assertEquals($expected, $field->attributes());
     }
 
     public function attributeArrayProvider()
     {
         return [
-            [['null'], ['null' => true]],
+            [['notnull'], ['notnull' => true]],
         ];
     }
 
@@ -98,7 +98,7 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new Serial('foo', [$attribute], 'bar');
+        new Blob('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()

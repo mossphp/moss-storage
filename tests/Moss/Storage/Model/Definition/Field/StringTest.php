@@ -72,7 +72,7 @@ class StringTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [['length' => 4], 'length', 4],
-            [['null'], 'null'],
+            [['notnull'], 'notnull'],
             [['default' => 1], 'default', 1],
         ];
     }
@@ -90,8 +90,8 @@ class StringTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [['length' => 4], ['length' => 4]],
-            [['null'], ['length' => null, 'null' => true]],
-            [['default' => 1], ['length' => null, 'null' => true, 'default' => 1]],
+            [['notnull'], ['length' => null, 'notnull' => true]],
+            [['default' => 1], ['length' => null, 'notnull' => true, 'default' => 1]],
         ];
     }
 

@@ -71,8 +71,8 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     public function attributeValueProvider()
     {
         return [
-            [['null'], 'null'],
-            [['null' => true, 'default' => '2010-10-10 10:10:10'], 'default', '2010-10-10 10:10:10'],
+            [['notnull'], 'notnull'],
+            [['notnull' => true, 'default' => '2010-10-10 10:10:10'], 'default', '2010-10-10 10:10:10'],
         ];
     }
 
@@ -88,8 +88,8 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
     public function attributeArrayProvider()
     {
         return [
-            [['null'], ['null' => true]],
-            [['null' => true, 'default' => '2010-10-10 10:10:10'], ['null' => true, 'default' => '2010-10-10 10:10:10']],
+            [['notnull'], ['notnull' => true]],
+            [['notnull' => true, 'default' => '2010-10-10 10:10:10'], ['notnull' => true, 'default' => '2010-10-10 10:10:10']],
         ];
     }
 

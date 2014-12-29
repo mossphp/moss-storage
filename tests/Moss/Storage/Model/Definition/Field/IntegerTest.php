@@ -72,7 +72,7 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [['length' => 10], 'length', 10],
-            [['null'], 'null'],
+            [['notnull'], 'notnull'],
             [['autoincrement'], 'autoincrement', true],
             [['default' => 123], 'default', 123]
         ];
@@ -91,9 +91,9 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
     {
         return [
             [['length' => 10], ['length' => 10]],
-            [['null'], ['length' => 11, 'null' => true]],
+            [['notnull'], ['length' => 11, 'notnull' => true]],
             [['autoincrement'], ['length' => 11, 'autoincrement' => true]],
-            [['default' => 123], ['length' => 11, 'null' => true, 'default' => 123]]
+            [['default' => 123], ['length' => 11, 'notnull' => true, 'default' => 123]]
         ];
     }
 

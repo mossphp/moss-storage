@@ -33,7 +33,7 @@ class Integer extends String
             $field,
             array_merge(['length' => 11], $attributes),
             $mapping,
-            ['length', 'null', 'autoincrement', 'default']
+            ['length', 'notnull', 'autoincrement', 'default']
         );
     }
 }

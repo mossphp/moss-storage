@@ -42,7 +42,7 @@ class String implements FieldInterface
             $field,
             array_merge(['length' => null], $attributes),
             empty($mapping) ? null : $mapping,
-            ['length', 'null', 'default']
+            ['length', 'notnull', 'default']
         );
     }
 
@@ -82,7 +82,7 @@ class String implements FieldInterface
             }
 
             if ($key == 'default') {
-                $attributes['null'] = true;
+                $attributes['notnull'] = true;
             }
         }
 

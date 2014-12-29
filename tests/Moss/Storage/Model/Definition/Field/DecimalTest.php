@@ -73,7 +73,7 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
         return [
             [['length' => 10], 'length', 10],
             [['precision' => 2], 'precision', 2],
-            [['null'], 'null', true],
+            [['notnull'], 'notnull', true],
             [['default' => 12.34], 'default', 12.34]
         ];
     }
@@ -92,8 +92,8 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
         return [
             [['length' => 10], ['length' => 10, 'precision' => 4]],
             [['precision' => 2], ['length' => 11, 'precision' => 2]],
-            [['null'], ['length' => 11, 'precision' => 4, 'null' => true]],
-            [['default' => 12.34], ['length' => 11, 'precision' => 4, 'null' => true, 'default' => 12.34]]
+            [['notnull'], ['length' => 11, 'precision' => 4, 'notnull' => true]],
+            [['default' => 12.34], ['length' => 11, 'precision' => 4, 'notnull' => true, 'default' => 12.34]]
         ];
     }
 

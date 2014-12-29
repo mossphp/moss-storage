@@ -71,7 +71,7 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
     public function attributeValueProvider()
     {
         return [
-            [['null'], 'null'],
+            [['notnull'], 'notnull'],
             [['default' => 0], 'default', 0],
         ];
     }
@@ -88,8 +88,8 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
     public function attributeArrayProvider()
     {
         return [
-            [['null'], ['null' => true]],
-            [['default' => 0], ['null' => true, 'default' => 0]],
+            [['notnull'], ['notnull' => true]],
+            [['default' => 0], ['notnull' => true, 'default' => 0]],
         ];
     }
 
