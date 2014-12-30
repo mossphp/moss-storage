@@ -66,18 +66,6 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Sets check operation
-     *
-     * @param array|string $entity
-     *
-     * @return $this
-     */
-    public function check($entity = [])
-    {
-        return $this->operation('check', $entity);
-    }
-
-    /**
      * Sets create operation
      *
      * @param array|string $entity
@@ -132,9 +120,6 @@ class Schema implements SchemaInterface
         $models = $this->retrieveModels($entity);
 
         switch ($this->operation) {
-            case 'check':
-                $this->buildCheck($models);
-                break;
             case 'create':
                 $this->buildCreate($models);
                 break;
@@ -209,7 +194,10 @@ class Schema implements SchemaInterface
         $toSchema = clone $fromSchema;
 
         foreach ($models as $model) {
-            $toSchema->dropTable($model->table());
+            if($toSchema->hasTable($model->table())) {
+                $toSchema->dropTable($model->table());
+            }
+
             $this->createTable($toSchema, $model);
         }
 
@@ -302,16 +290,16 @@ class Schema implements SchemaInterface
         $toSchema = clone $fromSchema;
 
         foreach ($models as $model) {
-            if (!$schemaManager->tablesExist($model->table())) {
-                return;
+            if (!$toSchema->hasTable($model->table())) {
+                continue;
             }
 
             $toSchema->dropTable($model->table());
-
-            $sql = $fromSchema->getMigrateToSql($toSchema, $this->connection->getDatabasePlatform());
-
-            $this->queries = array_merge($this->queries, $sql);
         }
+
+        $sql = $fromSchema->getMigrateToSql($toSchema, $this->connection->getDatabasePlatform());
+
+        $this->queries = array_merge($this->queries, $sql);
     }
 
     /**
@@ -324,8 +312,6 @@ class Schema implements SchemaInterface
     {
         $result = [];
         switch ($this->operation) {
-            case 'check':
-                break;
             case 'create':
             case 'alter':
             case 'drop':

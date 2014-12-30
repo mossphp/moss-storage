@@ -109,6 +109,10 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
+        $schema->expects($this->any())
+            ->method('hasTable')
+            ->will($this->returnValue(true));
+
         $schema->expects($this->once())
             ->method('dropTable')
             ->with('table');
@@ -139,9 +143,9 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         );
 
 
-        $manager->expects($this->once())
-            ->method('tablesExist')
-            ->with('table')->will($this->returnValue(true));
+        $schema->expects($this->any())
+            ->method('hasTable')
+            ->will($this->returnValue(true));
 
         $schema->expects($this->once())
             ->method('dropTable')
