@@ -88,8 +88,10 @@ class BooleanTest extends \PHPUnit_Framework_TestCase
     public function attributeArrayProvider()
     {
         return [
+            [['null'], ['notnull' => false]],
             [['notnull'], ['notnull' => true]],
-            [['default' => 0], ['notnull' => true, 'default' => 0]],
+            [['notnull' => false], ['notnull' => false]],
+            [['default' => 0], ['default' => 0]],
         ];
     }
 

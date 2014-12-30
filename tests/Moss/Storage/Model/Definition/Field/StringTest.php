@@ -91,7 +91,7 @@ class StringTest extends \PHPUnit_Framework_TestCase
         return [
             [['length' => 4], ['length' => 4]],
             [['notnull'], ['length' => null, 'notnull' => true]],
-            [['default' => 1], ['length' => null, 'notnull' => true, 'default' => 1]],
+            [['default' => 1], ['length' => null, 'default' => 1]],
         ];
     }
 

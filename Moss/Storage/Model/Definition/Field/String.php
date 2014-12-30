@@ -80,10 +80,11 @@ class String implements FieldInterface
                 $attributes[$value] = true;
                 continue;
             }
+        }
 
-            if ($key == 'default') {
-                $attributes['notnull'] = true;
-            }
+        if(isset($attributes['null'])) {
+            unset($attributes['null']);
+            $attributes['notnull'] = false;
         }
 
         return $attributes;

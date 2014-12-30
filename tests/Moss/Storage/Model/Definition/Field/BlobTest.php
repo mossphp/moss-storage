@@ -71,7 +71,7 @@ class BlobTest extends \PHPUnit_Framework_TestCase
     public function attributeValueProvider()
     {
         return [
-            [['notnull'], 'notnull'],
+            [['notnull' => false], 'notnull', false],
         ];
     }
 
@@ -87,7 +87,9 @@ class BlobTest extends \PHPUnit_Framework_TestCase
     public function attributeArrayProvider()
     {
         return [
+            [['null'], ['notnull' => false]],
             [['notnull'], ['notnull' => true]],
+            [['notnull' => false], ['notnull' => false]],
         ];
     }
 

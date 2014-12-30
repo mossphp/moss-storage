@@ -31,7 +31,7 @@ class Blob extends String
         $this->initialize(
             'blob',
             $field,
-            array_merge(['notnull'], $attributes),
+            array_merge(['notnull' => false], $attributes),
             $mapping,
             ['notnull']
         );

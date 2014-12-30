@@ -93,7 +93,7 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
             [['length' => 10], ['length' => 10]],
             [['notnull'], ['length' => 11, 'notnull' => true]],
             [['autoincrement'], ['length' => 11, 'autoincrement' => true]],
-            [['default' => 123], ['length' => 11, 'notnull' => true, 'default' => 123]]
+            [['default' => 123], ['length' => 11, 'default' => 123]]
         ];
     }
 
