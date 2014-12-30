@@ -155,19 +155,7 @@ class Query implements QueryInterface
      */
     public function insert($entity, $instance)
     {
-        $this->query = $this->connection->createQueryBuilder();
-
-        $this->assertEntityString($entity);
-        $this->assignModel($entity);
-        $this->assertEntityInstance($entity, $instance, 'insert');
-
-        $this->operation = 'insert';
-        $this->instance = $instance;
-
-        $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
-        $this->values();
-
-        return $this;
+        return $this->operation('insert', $entity, $instance);
     }
 
     /**
@@ -297,10 +285,12 @@ class Query implements QueryInterface
 
         switch ($operation) {
             case 'insert':
+                // TODO - fill entity with values from relation objects
                 $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 break;
             case 'update':
+                // TODO - fill entity with values from relation objects
                 $this->query->update($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 $this->assignPrimaryConditions();
@@ -399,6 +389,7 @@ class Query implements QueryInterface
     protected function checkIfEntityExists($entity, $instance)
     {
         $query = clone $this;
+        $query->reset();
         $query->num($entity);
 
         $model = $this->models->get($entity);
@@ -409,7 +400,7 @@ class Query implements QueryInterface
                 return false;
             }
 
-            $query->where($field->name(), $value);
+            $query->where($field->name(), $value, '=', 'and');
         }
 
         return $query->execute() > 0;
