@@ -410,7 +410,7 @@ class Model implements ModelInterface
      */
     public function hasRelation($relationName)
     {
-        return $this->findRelation($relationName) !== false;
+        return $this->findRelationByName($relationName) !== false;
     }
 
     /**
@@ -433,7 +433,7 @@ class Model implements ModelInterface
      */
     public function relation($relationName)
     {
-        if (!$relation = $this->findRelation($relationName)) {
+        if (!$relation = $this->findRelationByName($relationName)) {
             throw new ModelException(sprintf('Unknown relation, relation "%s" not found in model "%s"', $relationName, $this->entity));
         }
 
@@ -441,13 +441,13 @@ class Model implements ModelInterface
     }
 
     /**
+     * Finds relation by its name
      *
-     *
-     * @param $relationName
+     * @param string $relationName
      *
      * @return bool|RelationInterface
      */
-    private function findRelation($relationName)
+    protected function findRelationByName($relationName)
     {
         foreach ($this->relations as $relation) {
             if ($relation->name() == $relationName || $relation->entity() == $relationName) {
