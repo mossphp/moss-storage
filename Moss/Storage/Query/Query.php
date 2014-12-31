@@ -28,6 +28,15 @@ use Moss\Storage\Query\Relation\RelationInterface;
  */
 class Query implements QueryInterface
 {
+    const NUM = 'num';
+    const READ = 'read';
+    const READ_ONE = 'readOne';
+    const WRITE = 'write';
+    const INSERT = 'insert';
+    const UPDATE = 'update';
+    const DELETE = 'delete';
+    const CLEAR = 'clear';
+
     /**
      * @var Connection
      */
@@ -105,7 +114,7 @@ class Query implements QueryInterface
      */
     public function num($entity)
     {
-        return $this->operation('num', $entity);
+        return $this->operation(self::NUM, $entity);
     }
 
     /**
@@ -117,7 +126,7 @@ class Query implements QueryInterface
      */
     public function read($entity)
     {
-        return $this->operation('read', $entity);
+        return $this->operation(self::READ, $entity);
     }
 
     /**
@@ -129,7 +138,7 @@ class Query implements QueryInterface
      */
     public function readOne($entity)
     {
-        return $this->operation('readOne', $entity);
+        return $this->operation(self::READ_ONE, $entity);
     }
 
     /**
@@ -142,7 +151,7 @@ class Query implements QueryInterface
      */
     public function write($entity, $instance)
     {
-        return $this->operation('write', $entity, $instance);
+        return $this->operation(self::WRITE, $entity, $instance);
     }
 
     /**
@@ -155,7 +164,7 @@ class Query implements QueryInterface
      */
     public function insert($entity, $instance)
     {
-        return $this->operation('insert', $entity, $instance);
+        return $this->operation(self::INSERT, $entity, $instance);
     }
 
     /**
@@ -168,7 +177,7 @@ class Query implements QueryInterface
      */
     public function update($entity, $instance)
     {
-        return $this->operation('update', $entity, $instance);
+        return $this->operation(self::UPDATE, $entity, $instance);
     }
 
     /**
@@ -181,7 +190,7 @@ class Query implements QueryInterface
      */
     public function delete($entity, $instance)
     {
-        return $this->operation('delete', $entity, $instance);
+        return $this->operation(self::DELETE, $entity, $instance);
     }
 
     /**
@@ -193,7 +202,7 @@ class Query implements QueryInterface
      */
     public function clear($entity)
     {
-       return $this->operation('clear', $entity);
+       return $this->operation(self::CLEAR, $entity);
     }
 
     /**
@@ -213,11 +222,11 @@ class Query implements QueryInterface
         $this->assertEntityString($entity);
         $this->assignModel($entity);
 
-        if (in_array($operation, ['num', 'read', 'readOne', 'clear'])) {
+        if (in_array($operation, [self::NUM, self::READ, self::READ_ONE, self::CLEAR])) {
             return $this->entityOperation($operation, $entity);
         }
 
-        if (in_array($operation, ['write', 'insert', 'update', 'delete'])) {
+        if (in_array($operation, [self::WRITE, self::INSERT, self::UPDATE, self::DELETE])) {
             $this->assertEntityInstance($entity, $instance, $operation);
 
             return $this->instanceOperation($operation, $entity, $instance);
@@ -238,7 +247,7 @@ class Query implements QueryInterface
         $this->operation = $operation;
 
         switch ($operation) {
-            case 'num':
+            case self::NUM:
                 $this->query->select();
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
 
@@ -246,18 +255,18 @@ class Query implements QueryInterface
                     $this->assignField($field);
                 }
                 break;
-            case 'read':
+            case self::READ:
                 $this->query->select();
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
                 $this->fields();
                 break;
-            case 'readOne':
+            case self::READ_ONE:
                 $this->query->select();
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
                 $this->fields();
                 $this->limit(1);
                 break;
-            case 'clear':
+            case self::CLEAR:
                 $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
                 break;
         }
@@ -276,26 +285,26 @@ class Query implements QueryInterface
      */
     protected function instanceOperation($operation, $entity, $instance)
     {
-        if ($operation === 'write') { // TODO - use consts for operations
-            $operation = $this->checkIfEntityExists($entity, $instance) ? 'update' : 'insert';
+        if ($operation === self::WRITE) {
+            $operation = $this->checkIfEntityExists($entity, $instance) ? self::UPDATE : self::INSERT;
         }
 
         $this->operation = $operation;
         $this->instance = $instance;
 
         switch ($operation) {
-            case 'insert':
+            case self::INSERT:
                 // TODO - fill entity with values from relation objects
                 $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 break;
-            case 'update':
+            case self::UPDATE:
                 // TODO - fill entity with values from relation objects
                 $this->query->update($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 $this->assignPrimaryConditions();
                 break;
-            case 'delete':
+            case self::DELETE:
                 $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
                 $this->assignPrimaryConditions();
                 break;
@@ -689,11 +698,11 @@ class Query implements QueryInterface
     {
         $value = $this->accessProperty($this->instance, $field->name());
 
-        if ($this->operation === 'insert' && $value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
+        if ($this->operation === self::INSERT && $value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
             return;
         }
 
-        if ($this->operation === 'update') {
+        if ($this->operation === self::UPDATE) {
             $this->query->set(
                 $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
                 $this->bind('value', $field->name(), $field->type(), $value)
@@ -1038,25 +1047,25 @@ class Query implements QueryInterface
     public function execute()
     {
         switch ($this->operation) {
-            case 'num':
+            case self::NUM:
                 $result = $this->executeNumber();
                 break;
-            case 'readOne':
+            case self::READ_ONE:
                 $result = $this->executeReadOne();
                 break;
-            case 'read':
+            case self::READ:
                 $result = $this->executeRead();
                 break;
-            case 'insert':
+            case self::INSERT:
                 $result = $this->executeInsert();
                 break;
-            case 'update':
+            case self::UPDATE:
                 $result = $this->executeUpdate();
                 break;
-            case 'delete':
+            case self::DELETE:
                 $result = $this->executeDelete();
                 break;
-            case 'clear':
+            case self::CLEAR:
                 $result = $this->executeClear();
                 break;
             default:
