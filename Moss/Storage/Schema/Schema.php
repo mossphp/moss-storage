@@ -24,6 +24,10 @@ use Moss\Storage\Model\ModelInterface;
  */
 class Schema implements SchemaInterface
 {
+    const OPERATION_CREATE = 'create';
+    const OPERATION_ALTER = 'alter';
+    const OPERATION_DROP = 'drop';
+
     /**
      * @var Connection
      */
@@ -74,7 +78,7 @@ class Schema implements SchemaInterface
      */
     public function create($entity = [])
     {
-        return $this->operation('create', $entity);
+        return $this->operation(self::OPERATION_CREATE, $entity);
     }
 
     /**
@@ -86,7 +90,7 @@ class Schema implements SchemaInterface
      */
     public function alter($entity = [])
     {
-        return $this->operation('alter', $entity);
+        return $this->operation(self::OPERATION_ALTER, $entity);
     }
 
     /**
@@ -98,7 +102,7 @@ class Schema implements SchemaInterface
      */
     public function drop($entity = [])
     {
-        return $this->operation('drop', $entity);
+        return $this->operation(self::OPERATION_DROP, $entity);
     }
 
     /**
@@ -120,13 +124,13 @@ class Schema implements SchemaInterface
         $models = $this->retrieveModels($entity);
 
         switch ($this->operation) {
-            case 'create':
+            case self::OPERATION_CREATE:
                 $this->buildCreate($models);
                 break;
-            case 'alter':
+            case self::OPERATION_ALTER:
                 $this->buildAlter($models);
                 break;
-            case 'drop':
+            case self::OPERATION_DROP:
                 $this->buildDrop($models);
                 break;
             default:

@@ -241,7 +241,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function where($field, $value, $comparison = '==', $logical = 'and');
+    public function where($field, $value, $comparison = '=', $logical = 'and');
 
     /**
      * Adds having condition to builder
@@ -253,7 +253,7 @@ interface QueryInterface
      *
      * @return $this
      */
-    public function having($field, $value, $comparison = '==', $logical = 'and');
+    public function having($field, $value, $comparison = '=', $logical = 'and');
 
     /**
      * Adds sorting to query

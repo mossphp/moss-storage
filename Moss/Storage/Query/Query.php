@@ -28,14 +28,36 @@ use Moss\Storage\Query\Relation\RelationInterface;
  */
 class Query implements QueryInterface
 {
-    const NUM = 'num';
-    const READ = 'read';
-    const READ_ONE = 'readOne';
-    const WRITE = 'write';
-    const INSERT = 'insert';
-    const UPDATE = 'update';
-    const DELETE = 'delete';
-    const CLEAR = 'clear';
+    const OPERATION_NUM = 'num';
+    const OPERATION_READ = 'read';
+    const OPERATION_READ_ONE = 'readOne';
+    const OPERATION_WRITE = 'write';
+    const OPERATION_INSERT = 'insert';
+    const OPERATION_UPDATE = 'update';
+    const OPERATION_DELETE = 'delete';
+    const OPERATION_CLEAR = 'clear';
+
+    const AGGREGATE_DISTINCT = 'distinct';
+    const AGGREGATE_COUNT = 'count';
+    const AGGREGATE_AVERAGE = 'average';
+    const AGGREGATE_MAX = 'max';
+    const AGGREGATE_MIN = 'min';
+    const AGGREGATE_SUM = 'sum';
+
+    const COMPARISON_EQUAL = '=';
+    const COMPARISON_NOT_EQUAL = '!=';
+    const COMPARISON_LESS = '<';
+    const COMPARISON_LESS_OR_EQUAL = '<=';
+    const COMPARISON_GREATER = '>';
+    const COMPARISON_GREATER_OR_EQUAL = '>=';
+    const COMPARISON_LIKE = 'like';
+    const COMPARISON_REGEXP = 'regexp';
+
+    const LOGICAL_AND = 'and';
+    const LOGICAL_OR = 'or';
+
+    const ORDER_ASC = 'asc';
+    const ORDER_DESC = 'desc';
 
     /**
      * @var Connection
@@ -114,7 +136,7 @@ class Query implements QueryInterface
      */
     public function num($entity)
     {
-        return $this->operation(self::NUM, $entity);
+        return $this->operation(self::OPERATION_NUM, $entity);
     }
 
     /**
@@ -126,7 +148,7 @@ class Query implements QueryInterface
      */
     public function read($entity)
     {
-        return $this->operation(self::READ, $entity);
+        return $this->operation(self::OPERATION_READ, $entity);
     }
 
     /**
@@ -138,7 +160,7 @@ class Query implements QueryInterface
      */
     public function readOne($entity)
     {
-        return $this->operation(self::READ_ONE, $entity);
+        return $this->operation(self::OPERATION_READ_ONE, $entity);
     }
 
     /**
@@ -151,7 +173,7 @@ class Query implements QueryInterface
      */
     public function write($entity, $instance)
     {
-        return $this->operation(self::WRITE, $entity, $instance);
+        return $this->operation(self::OPERATION_WRITE, $entity, $instance);
     }
 
     /**
@@ -164,7 +186,7 @@ class Query implements QueryInterface
      */
     public function insert($entity, $instance)
     {
-        return $this->operation(self::INSERT, $entity, $instance);
+        return $this->operation(self::OPERATION_INSERT, $entity, $instance);
     }
 
     /**
@@ -177,7 +199,7 @@ class Query implements QueryInterface
      */
     public function update($entity, $instance)
     {
-        return $this->operation(self::UPDATE, $entity, $instance);
+        return $this->operation(self::OPERATION_UPDATE, $entity, $instance);
     }
 
     /**
@@ -190,7 +212,7 @@ class Query implements QueryInterface
      */
     public function delete($entity, $instance)
     {
-        return $this->operation(self::DELETE, $entity, $instance);
+        return $this->operation(self::OPERATION_DELETE, $entity, $instance);
     }
 
     /**
@@ -202,7 +224,7 @@ class Query implements QueryInterface
      */
     public function clear($entity)
     {
-       return $this->operation(self::CLEAR, $entity);
+        return $this->operation(self::OPERATION_CLEAR, $entity);
     }
 
     /**
@@ -222,11 +244,11 @@ class Query implements QueryInterface
         $this->assertEntityString($entity);
         $this->assignModel($entity);
 
-        if (in_array($operation, [self::NUM, self::READ, self::READ_ONE, self::CLEAR])) {
+        if (in_array($operation, [self::OPERATION_NUM, self::OPERATION_READ, self::OPERATION_READ_ONE, self::OPERATION_CLEAR])) {
             return $this->entityOperation($operation, $entity);
         }
 
-        if (in_array($operation, [self::WRITE, self::INSERT, self::UPDATE, self::DELETE])) {
+        if (in_array($operation, [self::OPERATION_WRITE, self::OPERATION_INSERT, self::OPERATION_UPDATE, self::OPERATION_DELETE])) {
             $this->assertEntityInstance($entity, $instance, $operation);
 
             return $this->instanceOperation($operation, $entity, $instance);
@@ -247,7 +269,7 @@ class Query implements QueryInterface
         $this->operation = $operation;
 
         switch ($operation) {
-            case self::NUM:
+            case self::OPERATION_NUM:
                 $this->query->select();
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
 
@@ -255,18 +277,18 @@ class Query implements QueryInterface
                     $this->assignField($field);
                 }
                 break;
-            case self::READ:
+            case self::OPERATION_READ:
                 $this->query->select();
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
                 $this->fields();
                 break;
-            case self::READ_ONE:
+            case self::OPERATION_READ_ONE:
                 $this->query->select();
                 $this->query->from($this->connection->quoteIdentifier($this->model->table()));
                 $this->fields();
                 $this->limit(1);
                 break;
-            case self::CLEAR:
+            case self::OPERATION_CLEAR:
                 $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
                 break;
         }
@@ -285,26 +307,26 @@ class Query implements QueryInterface
      */
     protected function instanceOperation($operation, $entity, $instance)
     {
-        if ($operation === self::WRITE) {
-            $operation = $this->checkIfEntityExists($entity, $instance) ? self::UPDATE : self::INSERT;
+        if ($operation === self::OPERATION_WRITE) {
+            $operation = $this->checkIfEntityExists($entity, $instance) ? self::OPERATION_UPDATE : self::OPERATION_INSERT;
         }
 
         $this->operation = $operation;
         $this->instance = $instance;
 
         switch ($operation) {
-            case self::INSERT:
+            case self::OPERATION_INSERT:
                 // TODO - fill entity with values from relation objects
                 $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 break;
-            case self::UPDATE:
+            case self::OPERATION_UPDATE:
                 // TODO - fill entity with values from relation objects
                 $this->query->update($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 $this->assignPrimaryConditions();
                 break;
-            case self::DELETE:
+            case self::OPERATION_DELETE:
                 $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
                 $this->assignPrimaryConditions();
                 break;
@@ -383,7 +405,7 @@ class Query implements QueryInterface
     {
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->accessProperty($this->instance, $field->name());
-            $this->where($field->name(), $value, '=', 'and');
+            $this->where($field->name(), $value, self::COMPARISON_EQUAL, self::LOGICAL_AND);
         }
     }
 
@@ -409,7 +431,7 @@ class Query implements QueryInterface
                 return false;
             }
 
-            $query->where($field->name(), $value, '=', 'and');
+            $query->where($field->name(), $value, self::COMPARISON_EQUAL, self::LOGICAL_AND);
         }
 
         return $query->execute() > 0;
@@ -506,7 +528,7 @@ class Query implements QueryInterface
      */
     public function distinct($field, $alias = null)
     {
-        $this->aggregate('distinct', $field, $alias);
+        $this->aggregate(self::AGGREGATE_DISTINCT, $field, $alias);
 
         return $this;
     }
@@ -521,7 +543,7 @@ class Query implements QueryInterface
      */
     public function count($field, $alias = null)
     {
-        $this->aggregate('count', $field, $alias);
+        $this->aggregate(self::AGGREGATE_COUNT, $field, $alias);
 
         return $this;
     }
@@ -536,7 +558,7 @@ class Query implements QueryInterface
      */
     public function average($field, $alias = null)
     {
-        $this->aggregate('average', $field, $alias);
+        $this->aggregate(self::AGGREGATE_AVERAGE, $field, $alias);
 
         return $this;
     }
@@ -551,7 +573,7 @@ class Query implements QueryInterface
      */
     public function max($field, $alias = null)
     {
-        $this->aggregate('max', $field, $alias);
+        $this->aggregate(self::AGGREGATE_MAX, $field, $alias);
 
         return $this;
     }
@@ -566,7 +588,7 @@ class Query implements QueryInterface
      */
     public function min($field, $alias = null)
     {
-        $this->aggregate('min', $field, $alias);
+        $this->aggregate(self::AGGREGATE_MIN, $field, $alias);
 
         return $this;
     }
@@ -581,7 +603,7 @@ class Query implements QueryInterface
      */
     public function sum($field, $alias = null)
     {
-        $this->aggregate('sum', $field, $alias);
+        $this->aggregate(self::AGGREGATE_SUM, $field, $alias);
 
         return $this;
     }
@@ -598,7 +620,6 @@ class Query implements QueryInterface
      */
     public function aggregate($method, $field, $alias = null)
     {
-        // TODO - add aggregates as CONST
         $this->assertAggregate($method);
 
         $field = $this->model->field($field);
@@ -625,7 +646,14 @@ class Query implements QueryInterface
      */
     protected function assertAggregate($method)
     {
-        $aggregateMethods = ['distinct', 'count', 'average', 'max', 'min', 'sum'];
+        $aggregateMethods = [
+            self::AGGREGATE_DISTINCT,
+            self::AGGREGATE_COUNT,
+            self::AGGREGATE_AVERAGE,
+            self::AGGREGATE_MIN,
+            self::AGGREGATE_MAX,
+            self::AGGREGATE_SUM
+        ];
 
         if (!in_array($method, $aggregateMethods)) {
             throw new QueryException(sprintf('Invalid aggregation method "%s" in query', $method, $this->model->entity()));
@@ -698,11 +726,11 @@ class Query implements QueryInterface
     {
         $value = $this->accessProperty($this->instance, $field->name());
 
-        if ($this->operation === self::INSERT && $value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
+        if ($this->operation === self::OPERATION_INSERT && $value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
             return;
         }
 
-        if ($this->operation === self::UPDATE) {
+        if ($this->operation === self::OPERATION_UPDATE) {
             $this->query->set(
                 $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
                 $this->bind('value', $field->name(), $field->type(), $value)
@@ -726,11 +754,11 @@ class Query implements QueryInterface
      * @return $this
      * @throws QueryException
      */
-    public function where($field, $value, $comparison = '=', $logical = 'and')
+    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
     {
         $condition = $this->condition($field, $value, $comparison, $logical);
 
-        if ($logical === 'or') {
+        if ($logical === self::LOGICAL_OR) {
             $this->query->orWhere($condition);
 
             return $this;
@@ -752,18 +780,17 @@ class Query implements QueryInterface
      * @return $this
      * @throws QueryException
      */
-    public function having($field, $value, $comparison = '=', $logical = 'and')
+    public function having($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
     {
         $condition = $this->condition($field, $value, $comparison, $logical);
 
-        switch ($logical) {
-            case 'and':
-                $this->query->andHaving($condition);
-                break;
-            case 'or':
-                $this->query->orHaving($condition);
-                break;
+        if ($logical === self::LOGICAL_OR) {
+            $this->query->orHaving($condition);
+
+            return $this;
         }
+
+        $this->query->andHaving($condition);
 
         return $this;
     }
@@ -864,8 +891,7 @@ class Query implements QueryInterface
                 unset($val);
             }
 
-            $operator = $operator === '!=' ? 'and' : 'or';
-
+            $operator = $operator === self::COMPARISON_NOT_EQUAL ? 'and' : 'or';
             return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
         }
 
@@ -873,7 +899,7 @@ class Query implements QueryInterface
             return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
         }
 
-        if ($operator === 'regexp') {
+        if ($operator === self::COMPARISON_REGEXP) {
             return sprintf('%s regexp %s', $field, $bind);
         }
 
@@ -889,8 +915,16 @@ class Query implements QueryInterface
      */
     protected function assertComparison($operator)
     {
-        // TODO - add comparison operators as CONST
-        $comparisonOperators = ['=', '!=', '<', '<=', '>', '>=', 'like', 'regexp'];
+        $comparisonOperators = [
+            self::COMPARISON_EQUAL,
+            self::COMPARISON_NOT_EQUAL,
+            self::COMPARISON_LESS,
+            self::COMPARISON_LESS_OR_EQUAL,
+            self::COMPARISON_GREATER,
+            self::COMPARISON_GREATER_OR_EQUAL,
+            self::COMPARISON_LIKE,
+            self::COMPARISON_REGEXP
+        ];
 
         if (!in_array($operator, $comparisonOperators)) {
             throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model->entity()));
@@ -906,8 +940,10 @@ class Query implements QueryInterface
      */
     protected function assertLogical($operator)
     {
-        // TODO - add logical operators as CONST
-        $comparisonOperators = ['or', 'and'];
+        $comparisonOperators = [
+            self::LOGICAL_AND,
+            self::LOGICAL_OR
+        ];
 
         if (!in_array($operator, $comparisonOperators)) {
             throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model->entity()));
@@ -945,7 +981,7 @@ class Query implements QueryInterface
      * @return $this
      * @throws QueryException
      */
-    public function order($field, $order = 'desc')
+    public function order($field, $order = self::ORDER_DESC)
     {
         $field = $this->model->field($field);
 
@@ -966,7 +1002,7 @@ class Query implements QueryInterface
      */
     protected function assertOrder($order)
     {
-        if (!in_array($order, ['asc', 'desc'])) {
+        if (!in_array($order, [self::ORDER_ASC, self::ORDER_DESC])) {
             throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
         }
     }
@@ -1047,25 +1083,25 @@ class Query implements QueryInterface
     public function execute()
     {
         switch ($this->operation) {
-            case self::NUM:
+            case self::OPERATION_NUM:
                 $result = $this->executeNumber();
                 break;
-            case self::READ_ONE:
+            case self::OPERATION_READ_ONE:
                 $result = $this->executeReadOne();
                 break;
-            case self::READ:
+            case self::OPERATION_READ:
                 $result = $this->executeRead();
                 break;
-            case self::INSERT:
+            case self::OPERATION_INSERT:
                 $result = $this->executeInsert();
                 break;
-            case self::UPDATE:
+            case self::OPERATION_UPDATE:
                 $result = $this->executeUpdate();
                 break;
-            case self::DELETE:
+            case self::OPERATION_DELETE:
                 $result = $this->executeDelete();
                 break;
-            case self::CLEAR:
+            case self::OPERATION_CLEAR:
                 $result = $this->executeClear();
                 break;
             default:
