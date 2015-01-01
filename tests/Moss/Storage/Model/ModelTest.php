@@ -66,34 +66,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foofoo', $model->alias('foofoo'));
     }
 
-    public function testIsNamedByEntityName()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $model = new Model('\Foo', 'foo', [$field]);
-
-        $this->assertTrue($model->isNamed('\Foo'));
-    }
-
-    public function testIsNamedByTableName()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $model = new Model('\Foo', 'foo', [$field]);
-
-        $this->assertTrue($model->isNamed('foo'));
-    }
-
-    public function testIsNamedByItsAlias()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $model = new Model('\Foo', 'foo', [$field]);
-        $model->alias('foofoo');
-
-        $this->assertTrue($model->isNamed('foofoo'));
-    }
-
     public function testHasField()
     {
         $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
