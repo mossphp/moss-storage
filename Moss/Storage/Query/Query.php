@@ -316,12 +316,10 @@ class Query implements QueryInterface
 
         switch ($operation) {
             case self::OPERATION_INSERT:
-                // TODO - fill entity with values from relation objects
                 $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 break;
             case self::OPERATION_UPDATE:
-                // TODO - fill entity with values from relation objects
                 $this->query->update($this->connection->quoteIdentifier($this->model->table()));
                 $this->values();
                 $this->assignPrimaryConditions();
@@ -404,7 +402,7 @@ class Query implements QueryInterface
     protected function assignPrimaryConditions()
     {
         foreach ($this->model->primaryFields() as $field) {
-            $value = $this->accessProperty($this->instance, $field->name());
+            $value = $this->getPropertyValue($this->instance, $field->name());
             $this->where($field->name(), $value, self::COMPARISON_EQUAL, self::LOGICAL_AND);
         }
     }
@@ -425,7 +423,7 @@ class Query implements QueryInterface
 
         $model = $this->models->get($entity);
         foreach ($model->primaryFields() as $field) {
-            $value = $this->accessProperty($instance, $field->name());
+            $value = $this->getPropertyValue($instance, $field->name());
 
             if ($value === null) {
                 return false;
@@ -724,7 +722,26 @@ class Query implements QueryInterface
      */
     protected function assignValue(FieldInterface $field)
     {
-        $value = $this->accessProperty($this->instance, $field->name());
+        $value = $this->getPropertyValue($this->instance, $field->name());
+        if ($value === null) {
+            $references = $this->model->referredIn($field->name());
+            foreach ($references as $foreign => $reference) {
+                $isPrimary = $this->models->get($reference->entity())
+                    ->isPrimary($foreign);
+                if (!$isPrimary) {
+                    continue;
+                }
+
+                $entity = $this->getPropertyValue($this->instance, $reference->container());
+                if ($entity === null) {
+                    continue;
+                }
+
+                $value = $this->getPropertyValue($entity, $foreign);
+                $this->setPropertyValue($this->instance, $field->name(), $value);
+                break;
+            }
+        }
 
         if ($this->operation === self::OPERATION_INSERT && $value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
             return;
@@ -892,6 +909,7 @@ class Query implements QueryInterface
             }
 
             $operator = $operator === self::COMPARISON_NOT_EQUAL ? 'and' : 'or';
+
             return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
         }
 
@@ -1351,7 +1369,7 @@ class Query implements QueryInterface
      * @return mixed
      * @throws QueryException
      */
-    protected function accessProperty($entity, $field)
+    protected function getPropertyValue($entity, $field)
     {
         if (!$entity) {
             throw new QueryException('Unable to access entity properties, missing instance');
@@ -1370,6 +1388,37 @@ class Query implements QueryInterface
         $prop->setAccessible(true);
 
         return $prop->getValue($entity);
+    }
+
+    /**
+     * Sets property value
+     *
+     * @param null|array|object $entity
+     * @param string            $field
+     * @param mixed             $value
+     *
+     * @return mixed
+     * @throws QueryException
+     */
+    protected function setPropertyValue($entity, $field, $value)
+    {
+        if (!$entity) {
+            throw new QueryException('Unable to access entity properties, missing instance');
+        }
+
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
+            return $entity[$field] = $value;
+        }
+
+        $ref = new \ReflectionObject($entity);
+        if (!$ref->hasProperty($field)) {
+            $entity->{$field} = $value;
+            return;
+        }
+
+        $prop = $ref->getProperty($field);
+        $prop->setAccessible(true);
+        $prop->setValue($entity);
     }
 
     /**
