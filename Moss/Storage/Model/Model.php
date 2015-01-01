@@ -196,18 +196,6 @@ class Model implements ModelInterface
     }
 
     /**
-     * Returns true if models table, entity or alias matches name
-     *
-     * @param string $name
-     *
-     * @return boolean
-     */
-    public function isNamed($name)
-    {
-        return $this->table == $name || $this->entity == ltrim($name, '\\') || $this->alias == $name;
-    }
-
-    /**
      * Returns true if model has field
      *
      * @param string $field
@@ -389,6 +377,27 @@ class Model implements ModelInterface
         }
 
         return $this->indexes[$index];
+    }
+
+    /**
+     * Returns all relation where field is listed as local key
+     *
+     * @param string $field
+     *
+     * @return array|RelationInterface[]
+     */
+    public function referredIn($field)
+    {
+        $result = [];
+        foreach($this->relations as $relation) {
+            if(false === $i = array_search($field, $relation->localKeys())) {
+                continue;
+            }
+
+            $result[$relation->foreignKeys()[$i]] = $relation;
+        }
+
+        return $result;
     }
 
     /**

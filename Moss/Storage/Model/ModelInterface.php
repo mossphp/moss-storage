@@ -47,15 +47,6 @@ interface ModelInterface
     public function alias($alias = null);
 
     /**
-     * Returns true if models table, entity or alias matches name
-     *
-     * @param string $name
-     *
-     * @return boolean
-     */
-    public function isNamed($name);
-
-    /**
      * Returns true if model has field
      *
      * @param string $field
@@ -117,6 +108,15 @@ interface ModelInterface
      * @throws ModelException
      */
     public function inIndex($field);
+
+    /**
+     * Returns all relation where field is listed as local key
+     *
+     * @param string $field
+     *
+     * @return array|RelationInterface[]
+     */
+    public function referredIn($field);
 
     /**
      * Returns array containing names of indexes
