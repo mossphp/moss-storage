@@ -726,8 +726,11 @@ class Query implements QueryInterface
         if ($value === null) {
             $references = $this->model->referredIn($field->name());
             foreach ($references as $foreign => $reference) {
-                $isPrimary = $this->models->get($reference->entity())
+                $isPrimary = $this->models
+                    ->get($reference->entity())
                     ->isPrimary($foreign);
+
+
                 if (!$isPrimary) {
                     continue;
                 }

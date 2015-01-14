@@ -1798,6 +1798,7 @@ class QueryTest extends \PHPUnit_Framework_TestCase
 
         $modelMock->expects($this->any())->method('table')->will($this->returnValue($table));
         $modelMock->expects($this->any())->method('entity')->will($this->returnValue($entity));
+        $modelMock->expects($this->any())->method('referredIn')->will($this->returnValue([]));
 
         $modelMock->expects($this->any())->method('isPrimary')->will($this->returnCallback(
             function ($field) use ($primaryFields) {
