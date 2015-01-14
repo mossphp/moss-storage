@@ -16,7 +16,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Mutator\MutatorInterface;
+use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationInterface;
 
@@ -65,9 +65,9 @@ class Query implements QueryInterface
     protected $connection;
 
     /**
-     * @var MutatorInterface
+     * @var ConverterInterface
      */
-    protected $mutator;
+    protected $converter;
 
     /**
      * @var ModelBag
@@ -104,15 +104,15 @@ class Query implements QueryInterface
     /**
      * Constructor
      *
-     * @param Connection       $connection
-     * @param ModelBag         $models
-     * @param MutatorInterface $mutator
+     * @param Connection         $connection
+     * @param ModelBag           $models
+     * @param ConverterInterface $converter
      */
-    public function __construct(Connection $connection, ModelBag $models, MutatorInterface $mutator)
+    public function __construct(Connection $connection, ModelBag $models, ConverterInterface $converter)
     {
         $this->connection = $connection;
         $this->models = $models;
-        $this->mutator = $mutator;
+        $this->converter = $converter;
 
         $this->relationFactory = new RelationFactory($this, $this->models);
     }
@@ -448,7 +448,7 @@ class Query implements QueryInterface
     protected function bind($operation, $field, $type, $value)
     {
         $key = ':' . implode('_', [$operation, count($this->binds), $field]);
-        $this->binds[$key] = $this->mutator->store($value, $type);
+        $this->binds[$key] = $this->converter->store($value, $type);
 
         return $key;
     }
@@ -1199,7 +1199,7 @@ class Query implements QueryInterface
     {
         foreach ($restore as $field => $type) {
             if (!$ref->hasProperty($field)) {
-                $entity->$field = $this->mutator->restore($entity->$field, $type);
+                $entity->$field = $this->converter->restore($entity->$field, $type);
                 continue;
             }
 
@@ -1207,7 +1207,7 @@ class Query implements QueryInterface
             $prop->setAccessible(true);
 
             $value = $prop->getValue($entity);
-            $value = $this->mutator->restore($value, $type);
+            $value = $this->converter->restore($value, $type);
             $prop->setValue($entity, $value);
         }
 
@@ -1416,6 +1416,7 @@ class Query implements QueryInterface
         $ref = new \ReflectionObject($entity);
         if (!$ref->hasProperty($field)) {
             $entity->{$field} = $value;
+
             return;
         }
 

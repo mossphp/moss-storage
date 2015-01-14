@@ -9,17 +9,17 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Mutator;
+namespace Moss\Storage\Converter;
 
 
-class MutatorTest extends \PHPUnit_Framework_TestCase
+class ConverterTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider storeProvider
      */
     public function testStore($value, $expected, $type)
     {
-        $driver = new Mutator();
+        $driver = new Converter();
         $this->assertEquals($expected, $driver->store($value, $type));
     }
 
@@ -61,7 +61,7 @@ class MutatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testRestore($value, $expected, $type)
     {
-        $driver = new Mutator();
+        $driver = new Converter();
         $this->assertEquals($expected, $driver->restore($value, $type));
     }
 

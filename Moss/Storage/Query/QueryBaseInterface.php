@@ -11,8 +11,7 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
+use Doctrine\DBAL\Connection;
 
 /**
  * Query interface
@@ -24,18 +23,11 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
 interface QueryBaseInterface
 {
     /**
-     * Returns driver instance
+     * Returns connection
      *
-     * @return DriverInterface
+     * @return Connection
      */
-    public function driver();
-
-    /**
-     * Returns builder instance
-     *
-     * @return BuilderInterface
-     */
-    public function builder();
+    public function connection();
 
     /**
      * Adds relation to query

@@ -4,8 +4,7 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\Definition\Field\DateTime;
 use Moss\Storage\Model\ModelBag;
-use Moss\Storage\Mutator\MutatorInterface;
-use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
+use Moss\Storage\Converter\ConverterInterface;
 
 class StubClass {
     protected $foo;
@@ -22,10 +21,10 @@ class MockQuery extends Query
 {
     private $exists;
 
-    public function __construct(Connection $connection, ModelBag $models, MutatorInterface $mutator, $exists)
+    public function __construct(Connection $connection, ModelBag $models, ConverterInterface $converter, $exists)
     {
         $this->exists = (bool) $exists;
-        parent::__construct($connection, $models, $mutator);
+        parent::__construct($connection, $models, $converter);
     }
 
     protected function checkIfEntityExists($entity, $instance)
@@ -40,9 +39,9 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     {
         $dbal = $this->mockDBAL();
         $bag = $this->mockModelBag();
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
 
         $this->assertSame($dbal, $query->connection());
     }
@@ -73,10 +72,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->num('entity')->execute();
     }
 
@@ -109,10 +108,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->execute();
     }
 
@@ -149,10 +148,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->readOne('entity')->execute();
     }
 
@@ -183,10 +182,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->readOne('entity')->execute();
     }
 
@@ -222,13 +221,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->insert('entity', $entity)->execute();
     }
 
@@ -253,13 +252,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->insert('entity', $entity);
     }
 
@@ -283,13 +282,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = null;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->insert('entity', $entity);
     }
 
@@ -315,13 +314,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = null;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->insert('entity', $entity)->execute();
 
         $this->assertEquals(1, $entity->foo);
@@ -360,13 +359,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->update('entity', $entity)->execute();
     }
 
@@ -391,13 +390,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new MockQuery($dbal, $bag, $mutator, false);
+        $query = new MockQuery($dbal, $bag, $Converter, false);
         $query->write('entity', $entity);
     }
 
@@ -423,13 +422,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new MockQuery($dbal, $bag, $mutator, true);
+        $query = new MockQuery($dbal, $bag, $Converter, true);
         $query->write('entity', $entity);
     }
 
@@ -461,12 +460,12 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->delete('entity', $entity)->execute();
     }
 
@@ -493,10 +492,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->clear('entity')->execute();
     }
 
@@ -521,10 +520,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->operation('foo', 'entity');
     }
 
@@ -549,10 +548,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read([]);
     }
 
@@ -577,10 +576,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('foo');
     }
 
@@ -605,10 +604,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->write('entity', null);
     }
 
@@ -633,10 +632,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->write('entity', new \ArrayObject());
     }
 
@@ -665,10 +664,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->fields(['bar', 'foo']);
     }
 
@@ -697,10 +696,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->fields(['foo'])->field('bar');
     }
 
@@ -729,10 +728,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->fields(['foo'])->field('bar');
     }
 
@@ -759,10 +758,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->distinct('foo', 'distFoo');
     }
 
@@ -789,10 +788,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->count('foo', 'distFoo');
     }
 
@@ -819,10 +818,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->average('foo', 'distFoo');
     }
 
@@ -849,10 +848,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->max('foo', 'distFoo');
     }
 
@@ -879,10 +878,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->min('foo', 'distFoo');
     }
 
@@ -909,10 +908,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->sum('foo', 'distFoo');
     }
 
@@ -937,10 +936,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->aggregate('foo', 'foo');
     }
 
@@ -962,10 +961,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->group('foo');
     }
 
@@ -993,13 +992,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->insert('entity', $entity)->values(['foo', 'bar']);
     }
 
@@ -1028,13 +1027,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->update('entity', $entity)->values(['foo', 'bar']);
     }
 
@@ -1061,13 +1060,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->insert('entity', $entity)->values()->value('foo');
     }
 
@@ -1095,13 +1094,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->update('entity', $entity)->values()->value('foo');
     }
 
@@ -1126,10 +1125,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->where($field, $value);
     }
@@ -1155,10 +1154,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->where('foo', $value, $operator);
     }
@@ -1184,10 +1183,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->where('foo', 1, 'foo', 'and');
     }
@@ -1213,10 +1212,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->where('foo', 1, '=', $operator);
     }
@@ -1242,10 +1241,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->where('foo', 1, '=', 'foo');
     }
@@ -1271,10 +1270,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->having($field, $value);
     }
@@ -1300,10 +1299,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->having('foo', $value, $operator);
     }
@@ -1329,10 +1328,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->having('foo', 1, 'foo', 'and');
     }
@@ -1358,10 +1357,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->having('foo', 1, '=', $operator);
     }
@@ -1387,10 +1386,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->having('foo', 1, '=', 'foo');
     }
@@ -1450,10 +1449,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->order('foo', $order);
     }
@@ -1487,10 +1486,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->order('foo', 'foo');
     }
@@ -1520,10 +1519,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')
             ->limit($limit, $offset);
     }
@@ -1573,10 +1572,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $result = $query->read('entity')->execute();
 
         $expected = new \stdClass();
@@ -1609,10 +1608,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $result = $query->read('entity')->execute();
 
         $expected = new StubClass('1', 'foo');
@@ -1637,10 +1636,10 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->read('entity')->queryString();
     }
 
@@ -1667,13 +1666,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $result = $query->update('entity', $entity)->binds();
 
         $this->assertEquals($expected, $result);
@@ -1702,13 +1701,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $mutator = $this->mockMutator();
+        $Converter = $this->mockConverter();
 
         $entity = new \stdClass();
         $entity->foo = 1;
         $entity->bar = 2;
 
-        $query = new Query($dbal, $bag, $mutator);
+        $query = new Query($dbal, $bag, $Converter);
         $query->update('entity', $entity);
 
         $result = $query->binds();
@@ -1842,13 +1841,13 @@ class QueryTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return \Moss\Storage\Mutator\MutatorInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @return \Moss\Storage\Converter\ConverterInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    public function mockMutator()
+    public function mockConverter()
     {
-        $mutatorMock = $this->getMock('\Moss\Storage\Mutator\MutatorInterface');
-        $mutatorMock->expects($this->any())->method($this->anything())->will($this->returnArgument(0));
+        $ConverterMock = $this->getMock('\Moss\Storage\Converter\ConverterInterface');
+        $ConverterMock->expects($this->any())->method($this->anything())->will($this->returnArgument(0));
 
-        return $mutatorMock;
+        return $ConverterMock;
     }
 }
