@@ -61,15 +61,6 @@ class RelationFactory
      */
     public function create(ModelInterface $model, $relation, array $conditions = [], array $order = [])
     {
-        if (!is_array($relation)) {
-            return $this->createSingleRelation($model, $relation, $conditions, $order);
-        }
-
-        return $this->createMultipleRelations($model, $relation, $conditions, $order);
-    }
-
-    protected function createSingleRelation(ModelInterface $model, $relation, array $conditions = [], array $order = [])
-    {
         list($current, $further) = $this->splitRelationName($relation);
         $instance = $this->assignRelation($model, $current, $conditions, $order);
 
@@ -78,28 +69,6 @@ class RelationFactory
         }
 
         return [$instance];
-    }
-
-    protected function createMultipleRelations(ModelInterface $model, array $relations, array $conditions = [], array $order = [])
-    {
-        $instances = [];
-        foreach ($relations as $i => $relation) {
-            list($current, $further) = $this->splitRelationName($relation);
-            if (!isset($instances[$current])) {
-                $instances[$current] = $this->assignRelation(
-                    $model,
-                    $current,
-                    isset($conditions[$i]) ? $conditions[$i] : [],
-                    isset($order[$i]) ? $order[$i] : []
-                );
-            }
-
-            if ($further) {
-                $instances[$current]->with($further);
-            }
-        }
-
-        return $instances;
     }
 
     /**
@@ -123,7 +92,7 @@ class RelationFactory
             }
 
             $instance->query()
-                ->where($node[0], $node[1], isset($node[2]) ? $node[2] : '=', isset($node[3]) ? $node[3] : 'and');
+                ->where($node[0], $node[1], isset($node[2]) ? $node[2] : '=', isset($node[3]) ? $node[3] : 'and'); // TODO - consts?
         }
 
         foreach ($order as $node) {
