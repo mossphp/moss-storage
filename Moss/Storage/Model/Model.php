@@ -196,18 +196,6 @@ class Model implements ModelInterface
     }
 
     /**
-     * Returns true if models table, entity or alias matches name
-     *
-     * @param string $name
-     *
-     * @return boolean
-     */
-    public function isNamed($name)
-    {
-        return $this->table == $name || $this->entity == ltrim($name, '\\') || $this->alias == $name;
-    }
-
-    /**
      * Returns true if model has field
      *
      * @param string $field
@@ -392,6 +380,27 @@ class Model implements ModelInterface
     }
 
     /**
+     * Returns all relation where field is listed as local key
+     *
+     * @param string $field
+     *
+     * @return array|RelationInterface[]
+     */
+    public function referredIn($field)
+    {
+        $result = [];
+        foreach($this->relations as $relation) {
+            if(false === $i = array_search($field, $relation->localKeys())) {
+                continue;
+            }
+
+            $result[$relation->foreignKeys()[$i]] = $relation;
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns true if at last one relation is defined
      *
      * @return bool
@@ -410,7 +419,7 @@ class Model implements ModelInterface
      */
     public function hasRelation($relationName)
     {
-        return $this->findRelation($relationName) !== false;
+        return $this->findRelationByName($relationName) !== false;
     }
 
     /**
@@ -433,7 +442,7 @@ class Model implements ModelInterface
      */
     public function relation($relationName)
     {
-        if (!$relation = $this->findRelation($relationName)) {
+        if (!$relation = $this->findRelationByName($relationName)) {
             throw new ModelException(sprintf('Unknown relation, relation "%s" not found in model "%s"', $relationName, $this->entity));
         }
 
@@ -441,13 +450,13 @@ class Model implements ModelInterface
     }
 
     /**
+     * Finds relation by its name
      *
-     *
-     * @param $relationName
+     * @param string $relationName
      *
      * @return bool|RelationInterface
      */
-    private function findRelation($relationName)
+    protected function findRelationByName($relationName)
     {
         foreach ($this->relations as $relation) {
             if ($relation->name() == $relationName || $relation->entity() == $relationName) {

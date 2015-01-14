@@ -15,12 +15,12 @@ class StringTest extends \PHPUnit_Framework_TestCase
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
@@ -40,24 +40,22 @@ class StringTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new String('foo', array('length' => 10), $mapping);
+        $field = new String('foo', ['length' => 10], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new String('foo', array('length' => 128), 'bar');
+        $field = new String('foo', ['length' => 128], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -72,11 +70,11 @@ class StringTest extends \PHPUnit_Framework_TestCase
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('length' => 4), 'length', 4),
-            array(array('null'), 'null'),
-            array(array('default' => 1), 'default', 1),
-        );
+        return [
+            [['length' => 4], 'length', 4],
+            [['notnull'], 'notnull'],
+            [['default' => 1], 'default', 1],
+        ];
     }
 
     /**
@@ -90,11 +88,11 @@ class StringTest extends \PHPUnit_Framework_TestCase
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('length' => 4), array('length' => 4)),
-            array(array('null'), array('length' => null, 'null' => true)),
-            array(array('default' => 1), array('length' => null, 'null' => true, 'default' => 1)),
-        );
+        return [
+            [['length' => 4], ['length' => 4]],
+            [['notnull'], ['length' => null, 'notnull' => true]],
+            [['default' => 1], ['length' => null, 'default' => 1]],
+        ];
     }
 
     /**
@@ -104,14 +102,14 @@ class StringTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new String('foo', array($attribute), 'bar');
+        new String('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('precision'),
-            array('auto_increment')
-        );
+        return [
+            ['precision'],
+            ['auto_increment']
+        ];
     }
 }

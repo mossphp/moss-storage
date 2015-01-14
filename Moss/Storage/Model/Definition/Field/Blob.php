@@ -12,12 +12,12 @@
 namespace Moss\Storage\Model\Definition\Field;
 
 /**
- * Serial field
+ * Blob field
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Serial extends String
+class Blob extends String
 {
     /**
      * Constructor
@@ -29,11 +29,11 @@ class Serial extends String
     public function __construct($field, $attributes = [], $mapping = null)
     {
         $this->initialize(
-            'serial',
+            'blob',
             $field,
-            array_merge(['null'], $attributes),
+            array_merge(['notnull' => false], $attributes),
             $mapping,
-            ['null']
+            ['notnull']
         );
     }
 }

@@ -15,12 +15,12 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
@@ -40,24 +40,22 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new DateTime('foo', array(), $mapping);
+        $field = new DateTime('foo', [], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new DateTime('foo', array(), 'bar');
+        $field = new DateTime('foo', [], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -72,10 +70,10 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('null'), 'null'),
-            array(array('null' => true, 'default' => '2010-10-10 10:10:10'), 'default', '2010-10-10 10:10:10'),
-        );
+        return [
+            [['notnull'], 'notnull'],
+            [['notnull' => true, 'default' => '2010-10-10 10:10:10'], 'default', '2010-10-10 10:10:10'],
+        ];
     }
 
     /**
@@ -89,10 +87,12 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('null'), array('null' => true)),
-            array(array('null' => true, 'default' => '2010-10-10 10:10:10'), array('null' => true, 'default' => '2010-10-10 10:10:10')),
-        );
+        return [
+            [['null'], ['notnull' => false]],
+            [['notnull'], ['notnull' => true]],
+            [['notnull' => false], ['notnull' => false]],
+            [['default' => '2010-10-10 10:10:10'], ['default' => '2010-10-10 10:10:10']],
+        ];
     }
 
     /**
@@ -102,15 +102,15 @@ class DateTimeTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new DateTime('foo', array($attribute), 'bar');
+        new DateTime('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('length'),
-            array('precision'),
-            array('auto_increment'),
-        );
+        return [
+            ['length'],
+            ['precision'],
+            ['auto_increment'],
+        ];
     }
 }

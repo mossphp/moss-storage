@@ -35,11 +35,6 @@ class ModelBag
     protected $byEntity = [];
 
     /**
-     * @var array|ModelInterface
-     */
-    protected $byTable = [];
-
-    /**
      * Construct
      *
      * @param array $collection
@@ -59,6 +54,10 @@ class ModelBag
      */
     public function get($alias)
     {
+        if(is_object($alias)) {
+            $alias = get_class($alias);
+        }
+
         $alias = ltrim($alias, '\\');
 
         if (isset($this->byAlias[$alias])) {
@@ -67,10 +66,6 @@ class ModelBag
 
         if (isset($this->byEntity[$alias])) {
             return $this->byEntity[$alias];
-        }
-
-        if (isset($this->byTable[$alias])) {
-            return $this->byTable[$alias];
         }
 
         throw new ModelException(sprintf('Model for entity "%s" does not exists', $alias));
@@ -90,16 +85,11 @@ class ModelBag
 
         $this->collection[$hash] = & $model;
 
-        $key = preg_replace('/_?[^\w\d]+/i', '_', $model->table());
+        if($alias) {
+            $this->byAlias[$model->alias($alias)] = &$this->collection[$hash];
+        }
 
-        $alias = $model->alias($alias ? $alias : $key);
-        $this->byAlias[$alias] = & $this->collection[$hash];
-
-        $entity = $model->entity() ? ltrim($model->entity(), '\\') : $key;
-        $this->byEntity[$entity] = & $this->collection[$hash];
-
-        $entity = $model->table();
-        $this->byTable[$entity] = & $this->collection[$hash];
+        $this->byEntity[ltrim($model->entity(), '\\')] = & $this->collection[$hash];
 
         return $this;
     }
@@ -115,7 +105,7 @@ class ModelBag
     {
         $alias = ltrim($alias, '\\');
 
-        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias]) || isset($this->byTable[$alias])) {
+        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
             return true;
         }
 

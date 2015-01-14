@@ -5,7 +5,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
 {
     public function testType()
     {
-        $relation = new OneTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new OneTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals('oneTrough', $relation->type());
     }
 
@@ -14,7 +14,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultName($name, $expected)
     {
-        $relation = new OneTrough($name, array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new OneTrough($name, ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals($expected, $relation->name());
     }
 
@@ -23,7 +23,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultContainer($name, $expected)
     {
-        $relation = new OneTrough($name, array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new OneTrough($name, ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals($expected, $relation->container());
     }
 
@@ -32,30 +32,30 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testForcedContainer($name)
     {
-        $relation = new OneTrough($name, array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
+        $relation = new OneTrough($name, ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
         $this->assertEquals('Foobar', $relation->container());
     }
 
     public function defaultNameProvider()
     {
-        return array(
-            array('Foo', 'Foo'),
-            array('\Foo', 'Foo'),
-            array('\\Foo', 'Foo'),
-            array('\\\\Foo', 'Foo'),
-            array('\\Foo\\Bar', 'Bar'),
-        );
+        return [
+            ['Foo', 'Foo'],
+            ['\Foo', 'Foo'],
+            ['\\Foo', 'Foo'],
+            ['\\\\Foo', 'Foo'],
+            ['\\Foo\\Bar', 'Bar'],
+        ];
     }
 
     public function testForcedName()
     {
-        $relation = new OneTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
+        $relation = new OneTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
         $this->assertEquals('Foobar', $relation->name());
     }
 
     public function testEntity()
     {
-        $relation = new OneTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new OneTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals('Foo', $relation->entity());
     }
 
@@ -72,14 +72,14 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
 
     public function keyProvider()
     {
-        return array(
-            array(
-                array(array('id' => 'in'), array('out' => 'id')),
-                array('id' => 'id'),
-                array('id' => 'in'),
-                array('out' => 'id')
-            ),
-        );
+        return [
+            [
+                [['id' => 'in'], ['out' => 'id']],
+                ['id' => 'id'],
+                ['id' => 'in'],
+                ['out' => 'id']
+            ],
+        ];
     }
 
     /**
@@ -88,7 +88,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutInKeys()
     {
-        new OneTrough('\Foo', array(), array('out' => 'id'), 'mediator');
+        new OneTrough('\Foo', [], ['out' => 'id'], 'mediator');
     }
 
     /**
@@ -97,7 +97,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutOutKeys()
     {
-        new OneTrough('\Foo', array('id' => 'in'), array(), 'mediator');
+        new OneTrough('\Foo', ['id' => 'in'], [], 'mediator');
     }
 
     /**
@@ -106,7 +106,7 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testKeysWithoutSameNumberOfElements()
     {
-        new OneTrough('\Foo', array('id' => 'in'), array('foo' => 'foo', 'bar' => 'bar'), 'mediator');
+        new OneTrough('\Foo', ['id' => 'in'], ['foo' => 'foo', 'bar' => 'bar'], 'mediator');
     }
 
     /**
@@ -121,28 +121,28 @@ class OneTroughTest extends \PHPUnit_Framework_TestCase
 
     public function invalidKeysProvider()
     {
-        return array(
-            array(array('' => 1)),
-            array(array('foo' => 1)),
-            array(array(1 => null)),
-            array(array(1 => 'foo')),
-            array(array(1 => new \stdClass())),
-            array(array(1 => array(1, 2))),
-        );
+        return [
+            [['' => 1]],
+            [['foo' => 1]],
+            [[1 => null]],
+            [[1 => 'foo']],
+            [[1 => new \stdClass()]],
+            [[1 => [1, 2]]],
+        ];
     }
 
     public function testLocalValues()
     {
-        $relation = new OneTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
-        $relation->localValues(array('yada' => 'yada'));
-        $this->assertEquals(array('yada' => 'yada'), $relation->localValues());
+        $relation = new OneTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
+        $relation->localValues(['yada' => 'yada']);
+        $this->assertEquals(['yada' => 'yada'], $relation->localValues());
     }
 
     public function testReferencedValues()
     {
-        $relation = new OneTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
-        $relation->foreignValues(array('yada' => 'yada'));
+        $relation = new OneTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
+        $relation->foreignValues(['yada' => 'yada']);
 
-        $this->assertEquals(array('yada' => 'yada'), $relation->foreignValues());
+        $this->assertEquals(['yada' => 'yada'], $relation->foreignValues());
     }
 }

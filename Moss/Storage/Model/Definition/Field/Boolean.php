@@ -33,7 +33,7 @@ class Boolean extends String
             $field,
             $attributes,
             $mapping,
-            ['null', 'default']
+            ['notnull', 'default']
         );
     }
 }

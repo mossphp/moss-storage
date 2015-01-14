@@ -1,28 +1,37 @@
 {
-	"name": "moss/storage",
-	"version": "v0.9.4",
-	"description": "moss storage",
-	"keywords": ["orm", "storage", "data mapper", "database"],
-	"type": "orm",
-	"license": "MIT",
-	"authors": [
-		{
-			"name": "Michal Wachowski",
-			"email": "wachowski.michal@gmail.com"
-		}
-	],
-	"require": {
-		"php": ">=5.3.4"
-	},
-	"require-dev": {
-		"phpunit/phpunit": "3.7.*"
-	},
-	"suggest": {
-		"psr/log": "For logging queries via LoggingDecorator"
-	},
-	"autoload": {
-		"psr-0": {
-			"Moss\\Storage\\": ""
-		}
-	}
+    "name": "moss/storage",
+    "version": "v0.9.4",
+    "description": "moss storage",
+    "keywords": [
+        "orm",
+        "storage",
+        "data mapper",
+        "database"
+    ],
+    "type": "orm",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michal Wachowski",
+            "email": "wachowski.michal@gmail.com"
+        }
+    ],
+    "config": {
+        "bin-dir": "bin"
+    },
+    "require": {
+        "php": ">=5.4",
+        "doctrine/dbal": ">=2.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=3.7"
+    },
+    "suggest": {
+        "psr/log": "For logging queries via LoggingDecorator"
+    },
+    "autoload": {
+        "psr-0": {
+            "Moss\\Storage\\": ""
+        }
+    }
 }

@@ -15,12 +15,12 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
@@ -40,24 +40,22 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Integer('foo', array('length' => 10), $mapping);
+        $field = new Integer('foo', ['length' => 10], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new Integer('foo', array('length' => 128), 'bar');
+        $field = new Integer('foo', ['length' => 128], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -72,12 +70,12 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('length' => 10), 'length', 10),
-            array(array('null'), 'null'),
-            array(array('auto_increment'), 'auto_increment', true),
-            array(array('default' => 123), 'default', 123)
-        );
+        return [
+            [['length' => 10], 'length', 10],
+            [['notnull'], 'notnull'],
+            [['autoincrement'], 'autoincrement', true],
+            [['default' => 123], 'default', 123]
+        ];
     }
 
     /**
@@ -91,12 +89,12 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('length' => 10), array('length' => 10)),
-            array(array('null'), array('length' => 11, 'null' => true)),
-            array(array('auto_increment'), array('length' => 11, 'auto_increment' => true)),
-            array(array('default' => 123), array('length' => 11, 'null' => true, 'default' => 123))
-        );
+        return [
+            [['length' => 10], ['length' => 10]],
+            [['notnull'], ['length' => 11, 'notnull' => true]],
+            [['autoincrement'], ['length' => 11, 'autoincrement' => true]],
+            [['default' => 123], ['length' => 11, 'default' => 123]]
+        ];
     }
 
     /**
@@ -106,13 +104,13 @@ class IntegerTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new Integer('foo', array($attribute), 'bar');
+        new Integer('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('precision'),
-        );
+        return [
+            ['precision'],
+        ];
     }
 }

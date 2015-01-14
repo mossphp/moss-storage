@@ -1,7 +1,7 @@
 <?php
 namespace Moss\Storage\Model\Definition\Field;
 
-class SerialTest extends \PHPUnit_Framework_TestCase
+class BlobTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
@@ -9,30 +9,30 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testTable($table, $expected)
     {
-        $field = new Serial('foo');
+        $field = new Blob('foo');
         $this->assertEquals($expected, $field->table($table));
     }
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
     {
-        $field = new Serial('foo');
+        $field = new Blob('foo');
         $this->assertEquals('foo', $field->name());
     }
 
     public function testType()
     {
-        $field = new Serial('foo');
-        $this->assertEquals('serial', $field->type());
+        $field = new Blob('foo');
+        $this->assertEquals('blob', $field->type());
     }
 
     /**
@@ -40,24 +40,22 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Serial('foo', array(), $mapping);
+        $field = new Blob('foo', [], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new Serial('foo', array(), 'bar');
+        $field = new Blob('foo', [], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -66,15 +64,15 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testAttribute($attribute, $key, $value = true)
     {
-        $field = new Serial('foo', $attribute, 'bar');
+        $field = new Blob('foo', $attribute, 'bar');
         $this->assertEquals($value, $field->attribute($key));
     }
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('null'), 'null'),
-        );
+        return [
+            [['notnull' => false], 'notnull', false],
+        ];
     }
 
     /**
@@ -82,15 +80,17 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testAttributes($attribute, $expected)
     {
-        $field = new Serial('foo', $attribute, 'bar');
+        $field = new Blob('foo', $attribute, 'bar');
         $this->assertEquals($expected, $field->attributes());
     }
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('null'), array('null' => true)),
-        );
+        return [
+            [['null'], ['notnull' => false]],
+            [['notnull'], ['notnull' => true]],
+            [['notnull' => false], ['notnull' => false]],
+        ];
     }
 
     /**
@@ -100,15 +100,15 @@ class SerialTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new Serial('foo', array($attribute), 'bar');
+        new Blob('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('precision'),
-            array('auto_increment'),
-            array('default')
-        );
+        return [
+            ['precision'],
+            ['auto_increment'],
+            ['default']
+        ];
     }
 }

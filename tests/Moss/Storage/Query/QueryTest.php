@@ -1,29 +1,503 @@
 <?php
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Builder\MySQL\QueryBuilder as Builder;
-use Moss\Storage\Model\Definition\Field\Integer;
-use Moss\Storage\Model\Definition\Field\String;
-use Moss\Storage\Model\Definition\Index\Primary;
-use Moss\Storage\Model\Definition\Relation\One;
-use Moss\Storage\Model\Definition\Relation\Many;
-use Moss\Storage\Model\Definition\Relation\OneTrough;
-use Moss\Storage\Model\Definition\Relation\ManyTrough;
-use Moss\Storage\Model\Model;
+use Doctrine\DBAL\Connection;
+use Moss\Storage\Model\Definition\Field\DateTime;
 use Moss\Storage\Model\ModelBag;
+use Moss\Storage\Mutator\MutatorInterface;
+use MyProject\Proxies\__CG__\OtherProject\Proxies\__CG__\stdClass;
+
+class StubClass {
+    protected $foo;
+    protected $bar;
+
+    public function __construct($foo, $bar)
+    {
+        $this->foo = $foo;
+        $this->bar = $bar;
+    }
+}
+
+class MockQuery extends Query
+{
+    private $exists;
+
+    public function __construct(Connection $connection, ModelBag $models, MutatorInterface $mutator, $exists)
+    {
+        $this->exists = (bool) $exists;
+        parent::__construct($connection, $models, $mutator);
+    }
+
+    protected function checkIfEntityExists($entity, $instance)
+    {
+        return $this->exists;
+    }
+}
 
 class QueryTest extends \PHPUnit_Framework_TestCase
 {
-    public function testGetDriver()
+    public function testConnection()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $this->assertInstanceOf('\Moss\Storage\Driver\DriverInterface', $query->driver());
+        $dbal = $this->mockDBAL();
+        $bag = $this->mockModelBag();
+        $mutator = $this->mockMutator();
+
+        $query = new Query($dbal, $bag, $mutator);
+
+        $this->assertSame($dbal, $query->connection());
     }
 
-    public function testGetBuilder()
+    public function testNum()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $this->assertInstanceOf('\Moss\Storage\Builder\QueryBuilderInterface', $query->builder());
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(3))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('rowCount')->will($this->returnValue(1));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->num('entity')->execute();
+    }
+
+    public function testRead()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('fetchAll')->will($this->returnValue([]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->execute();
+    }
+
+    public function testReadOne()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('setMaxResults')->with(1);
+        $builder->expects($this->at(6))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $obj = new \stdClass();
+        $obj->foo = 'foo';
+        $obj->bar = 'bar';
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('fetchAll')->will($this->returnValue([$obj]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->readOne('entity')->execute();
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Result out of range or does not exists for
+     */
+    public function testReadOneThrowsExceptionIfNoResultsFound()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->any())->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with([]);
+        $stmt->expects($this->at(1))->method('fetchAll')->will($this->returnValue([]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->readOne('entity')->execute();
+    }
+
+    public function testInsert()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('insert')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $binds = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+        ];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with($binds);
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+        $dbal->expects($this->once())->method('lastInsertId')->will($this->returnValue(1));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity)->execute();
+    }
+
+    public function testInsertAllFieldsEvenIfAutoIncrement()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('insert')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('setValue')->with('`bar`', ':value_1_bar');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'string', ['autoincrement' => true]], 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity);
+    }
+
+    public function testInsertSkipAutoIncrementFieldWhenWithoutValue()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('insert')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('setValue')->with('`bar`', ':value_0_bar');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'string', ['autoincrement' => true]], 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = null;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity);
+    }
+
+    public function testInsertUpdatesPrimaryKey()
+    {
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->will($this->returnValue([]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())->method('lastInsertId')->will($this->returnValue(1));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = null;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity)->execute();
+
+        $this->assertEquals(1, $entity->foo);
+    }
+
+    public function testUpdate()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('update')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_2_foo');
+        $builder->expects($this->at(5))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $binds = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+            ':condition_2_foo' => 1
+        ];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with($binds);
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'string', ['autoincrement' => true]], 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->update('entity', $entity)->execute();
+    }
+
+    public function testWriteUsingInsert()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('insert')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('setValue')->with('`bar`', ':value_1_bar');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'string', ['autoincrement' => true]], 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new MockQuery($dbal, $bag, $mutator, false);
+        $query->write('entity', $entity);
+    }
+
+    public function testWriteUsingUpdate()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('update')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_2_foo');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'string', ['autoincrement' => true]], 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new MockQuery($dbal, $bag, $mutator, true);
+        $query->write('entity', $entity);
+    }
+
+    public function testDelete()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('delete')->with('`table`');
+        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $binds = [
+            ':condition_0_foo' => 1
+        ];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with($binds);
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->delete('entity', $entity)->execute();
+    }
+
+    public function testClear()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('delete')->with('`table`');
+        $builder->expects($this->at(1))->method('getSQL')->will($this->returnValue('generatedSQL'));
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->at(0))->method('execute')->with();
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->once())->method('prepare')->with('generatedSQL')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->clear('entity')->execute();
     }
 
     /**
@@ -32,774 +506,1349 @@ class QueryTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidOperation()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->operation('foo', 'table');
-    }
+        $builder = $this->mockQueryBuilder();
 
-    /**
-     * @dataProvider instanceProvider
-     */
-    public function testInstances($instance)
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->operation('read', 'table', $instance);
-    }
+        $dbal = $this->mockDBAL($builder);
 
-    public function instanceProvider()
-    {
-        return array(
-            array(new \stdClass()),
-            array(array())
-        );
-    }
-
-    public function testNumber()
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->num('table');
-
-        $expected = array(
-            'SELECT test_table.id FROM test_table',
-            array()
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
-    }
+        $mutator = $this->mockMutator();
 
-    public function testRead()
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table');
 
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table',
-            array()
-        );
-
-        $this->assertEquals($expected, $query->queryString());
-    }
-
-    public function testReadOne()
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->readOne('table');
-
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table LIMIT 1',
-            array()
-        );
-
-        $this->assertEquals($expected, $query->queryString());
-    }
-
-    public function testReadMapping()
-    {
-        $bag = new ModelBag(
-            array(
-                'table' => new Model(
-                        '\stdClass',
-                        'test_table',
-                        array(
-                            new Integer('id', array('auto_increment')),
-                            new String('text', array('length' => '128', 'null'), 'mapping'),
-                        ),
-                        array(
-                            new Primary(array('id')),
-                        )
-                    )
-            )
-        );
-
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $bag);
-        $query->reset()
-            ->read('table');
-
-        $expected = array(
-            'SELECT test_table.id, test_table.text AS mapping FROM test_table',
-            array()
-        );
-
-        $this->assertEquals($expected, $query->queryString());
+        $query = new Query($dbal, $bag, $mutator);
+        $query->operation('foo', 'entity');
     }
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Unable to access field
+     * @expectedExceptionMessage Entity must be a namespaced class name, its alias or object, got
      */
-    public function testInvalidField()
+    public function testNoEntityClassProvided()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->fields(array('foobar'));
+        $builder = $this->mockQueryBuilder();
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read([]);
     }
 
     /**
-     * @dataProvider fieldsProvider
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Missing entity model for
      */
-    public function testReadFields($fields, $queryPart)
+    public function testEntityWithoutModelProvided()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->join('left', 'other')
-            ->fields($fields);
+        $builder = $this->mockQueryBuilder();
 
-        $expected = array(
-            'SELECT ' . $queryPart . ' FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id',
-            array()
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('foo');
     }
 
     /**
-     * @dataProvider fieldsProvider
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Missing required entity for operation
      */
-    public function testReadFieldsSimpleJoinWithConditions($fields, $queryPart)
+    public function testEntityInstanceIsMissing()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag('one', array('id' => ':foo'), array('id' => ':bar')));
-        $query->reset()
-            ->read('table')
-            ->join('left', 'other')
-            ->fields($fields);
+        $builder = $this->mockQueryBuilder();
 
-        $expected = array(
-            'SELECT ' . $queryPart . ' FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id WHERE test_table.id = :foo AND test_other.id = :bar',
-            array()
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->write('entity', null);
     }
 
     /**
-     * @dataProvider fieldsProvider
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Entity for operation
      */
-    public function testReadFieldsTroughJoinWithConditions($fields, $queryPart)
+    public function testEntityIsNotInstanceOfExpectedClass()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag('oneTrough', array('id' => ':foo'), array('id' => ':bar')));
-        $query->reset()
-            ->read('table')
-            ->join('left', 'other')
-            ->fields($fields);
+        $builder = $this->mockQueryBuilder();
 
-        $expected = array(
-            'SELECT ' . $queryPart . ' FROM test_table LEFT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id LEFT OUTER JOIN test_other ON test_mediator.out_id = test_other.id WHERE test_table.id = :foo AND test_other.id = :bar',
-            array()
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->write('entity', new \ArrayObject());
     }
 
-    public function fieldsProvider()
+    public function testFields()
     {
-        return array(
-            array(array('id', 'text'), 'test_table.id, test_table.text'),
-            array(array('id'), 'test_table.id'),
-            array(array('text'), 'test_table.text'),
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(6))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(7))->method('addSelect')->with('`foo`');
 
-            array(array('table.id', 'table.text'), 'test_table.id, test_table.text'),
-            array(array('table.id'), 'test_table.id'),
-            array(array('table.text'), 'test_table.text'),
+        $dbal = $this->mockDBAL($builder);
 
-            array(array('other.id', 'other.text'), 'test_other.id, test_other.text'),
-            array(array('other.id'), 'test_other.id'),
-            array(array('other.text'), 'test_other.text'),
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->fields(['bar', 'foo']);
+    }
+
+    public function testFieldWithoutMapping()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(6))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(7))->method('addSelect')->with('`bar`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->fields(['foo'])->field('bar');
+    }
+
+    public function testFieldWithMapping()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`yadayada` AS `foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(6))->method('addSelect')->with('`yadayada` AS `foo`');
+        $builder->expects($this->at(7))->method('addSelect')->with('`bar`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'string', [], 'yadayada'], 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->fields(['foo'])->field('bar');
+    }
+
+    public function testDistinct()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with('DISTINCT(`foo`) AS `distFoo`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->distinct('foo', 'distFoo');
+    }
+
+    public function testCount()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with('COUNT(`foo`) AS `distFoo`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->count('foo', 'distFoo');
+    }
+
+    public function testAverage()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with('AVERAGE(`foo`) AS `distFoo`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->average('foo', 'distFoo');
+    }
+
+    public function testMax()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with('MAX(`foo`) AS `distFoo`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->max('foo', 'distFoo');
+    }
+
+    public function testMin()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with('MIN(`foo`) AS `distFoo`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->min('foo', 'distFoo');
+    }
+
+    public function testSum()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with();
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]); // resets fields
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with('SUM(`foo`) AS `distFoo`');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->sum('foo', 'distFoo');
     }
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Invalid aggregation method
      */
-    public function testInvalidAggregateMethod()
+    public function testInvalidAggregation()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->aggregate('foo', 'id');
-    }
+        $builder = $this->mockQueryBuilder();
 
-    /**
-     * @dataProvider aggregateProvider
-     */
-    public function testReadAggregate($method, $queryPart)
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->aggregate($method, 'id');
+        $dbal = $this->mockDBAL($builder);
 
-        $expected = array(
-            'SELECT ' . $queryPart . ', test_table.id, test_table.text FROM test_table',
-            array()
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->aggregate('foo', 'foo');
     }
 
-    /**
-     * @dataProvider aggregateProvider
-     */
-    public function testReadAggregateAliases($method, $queryPart)
+    public function testGroup()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('addGroupBy')->with('`foo`');
 
-        call_user_func(array($query, $method), 'id');
+        $dbal = $this->mockDBAL($builder);
 
-        $expected = array(
-            'SELECT ' . $queryPart . ', test_table.id, test_table.text FROM test_table',
-            array()
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->group('foo');
     }
 
-    public function aggregateProvider()
+    public function testValuesForInsert()
     {
-        return array(
-            array('distinct', 'DISTINCT(test_table.id) AS distinct'),
-            array('count', 'COUNT(test_table.id) AS count'),
-            array('average', 'AVERAGE(test_table.id) AS average'),
-            array('max', 'MAX(test_table.id) AS max'),
-            array('min', 'MIN(test_table.id) AS min'),
-            array('sum', 'SUM(test_table.id) AS sum'),
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('insert')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('values')->with([]);
+        $builder->expects($this->at(5))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(6))->method('setValue')->with('`bar`', ':value_1_bar');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity)->values(['foo', 'bar']);
+    }
+
+    public function testValuesForUpdate()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('update')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_2_foo');
+        $builder->expects($this->at(5))->method('values')->with([]);
+        $builder->expects($this->at(6))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(7))->method('set')->with('`bar`', ':value_1_bar');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->update('entity', $entity)->values(['foo', 'bar']);
+    }
+
+    public function testValueForInsert()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('insert')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('values')->with([]);
+        $builder->expects($this->at(5))->method('setValue')->with('`foo`', ':value_0_foo');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->insert('entity', $entity)->values()->value('foo');
+    }
+
+    public function testValueForUpdate()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('update')->with('`table`');
+        $builder->expects($this->at(1))->method('values')->with([]);
+        $builder->expects($this->at(2))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(3))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_2_foo');
+        $builder->expects($this->at(5))->method('values')->with([]);
+        $builder->expects($this->at(6))->method('set')->with('`foo`', ':value_0_foo');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+        $entity = new \stdClass();
+        $entity->foo = 1;
+        $entity->bar = 2;
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->update('entity', $entity)->values()->value('foo');
     }
 
     /**
-     * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Query does not supports comparison operator
+     * @dataProvider conditionStructureProvider
      */
-    public function testInvalidWhereComparison()
+    public function testWhereStructure($field, $value, $expected)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->where('id', 1, '!!');
-    }
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('andWhere')->with($expected);
 
-    /**
-     * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Query does not supports logical operator
-     */
-    public function testInvalidWhereLogical()
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->where('id', 1, '=', ':foo');
-    }
+        $dbal = $this->mockDBAL($builder);
 
-    /**
-     * @dataProvider whereFieldValueProvider
-     */
-    public function testReadWhereFieldValues($field, $value, $queryPart, $binds)
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
             ->where($field, $value);
-
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table WHERE ' . $queryPart,
-            $binds
-        );
-
-        $this->assertEquals($expected, $query->queryString());
     }
 
-    public function whereFieldValueProvider()
+    /**
+     * @dataProvider conditionComparisonOperatorProvider
+     */
+    public function testWhereComparisonOperators($operator, $value, $expected)
     {
-        return array(
-            array('id', 1, '(test_table.id = :condition_0_id)', array(':condition_0_id' => 1)),
-            array(array('id', 'text'), 1, '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
-            array('id', array(1, 2), '(test_table.id = :condition_0_id OR test_table.id = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
-            array(array('id', 'text'), array(1, 2), '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
-            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((test_table.id = :condition_0_id OR test_table.id = :condition_1_id) OR (test_table.text = :condition_2_text OR test_table.text = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('andWhere')->with($expected);
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->where('foo', $value, $operator);
     }
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Query does not supports comparison operator
      */
-    public function testInvalidHavingComparison()
+    public function testWhereWithInvalidComparisonOperator()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->having('id', 1, '!!');
+        $builder = $this->mockQueryBuilder();
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->where('foo', 1, 'foo', 'and');
+    }
+
+    /**
+     * @dataProvider conditionLogicalOperatorProvider
+     */
+    public function testWhereLogicalOperators($operator, $expected)
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method($expected . 'Where')->with('`foo` = :condition_0_foo');
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->where('foo', 1, '=', $operator);
     }
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Query does not supports logical operator
      */
-    public function testInvalidHavingLogical()
+    public function testWhereWithInvalidLogicalOperator()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->having('id', 1, '=', 'foo');
+        $builder = $this->mockQueryBuilder();
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->where('foo', 1, '=', 'foo');
     }
 
     /**
-     * @dataProvider havingFieldValueProvider
+     * @dataProvider conditionStructureProvider
      */
-    public function testReadHavingFieldValues($field, $value, $queryPart, $binds)
+    public function testHavingStructure($field, $value, $expected)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->count('id', 'count')
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('andHaving')->with($expected);
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
             ->having($field, $value);
-
-        $expected = array(
-            'SELECT COUNT(test_table.id) AS count, test_table.id, test_table.text FROM test_table HAVING ' . $queryPart,
-            $binds
-        );
-
-        $this->assertEquals($expected, $query->queryString());
-    }
-
-    public function havingFieldValueProvider()
-    {
-        return array(
-            array('id', 1, '(test_table.id = :condition_0_id)', array(':condition_0_id' => 1)),
-            array(array('id', 'text'), 1, '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 1)),
-            array('id', array(1, 2), '(test_table.id = :condition_0_id OR test_table.id = :condition_1_id)', array(':condition_0_id' => 1, ':condition_1_id' => 2)),
-            array(array('id', 'text'), array(1, 2), '(test_table.id = :condition_0_id OR test_table.text = :condition_1_text)', array(':condition_0_id' => 1, ':condition_1_text' => 2)),
-            array(array('id', 'text'), array(array(1, 2), array(3, 4)), '((test_table.id = :condition_0_id OR test_table.id = :condition_1_id) OR (test_table.text = :condition_2_text OR test_table.text = :condition_3_text))', array(':condition_0_id' => 1, ':condition_1_id' => 2, ':condition_2_text' => 3, ':condition_3_text' => 4)),
-            array('count', 2, '(count = :condition_0_count)', array(':condition_0_count' => 2)),
-        );
     }
 
     /**
-     * @dataProvider joinProvider
+     * @dataProvider conditionComparisonOperatorProvider
      */
-    public function testJoin($type, $join, $queryString)
+    public function testHavingComparisonOperators($operator, $value, $expected)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag($type));
-        $query->reset()
-            ->read('table')
-            ->join($join, 'other')
-            ->field('table.id')
-            ->field('other.id');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('andHaving')->with($expected);
 
-        $queryString = array(
-            $queryString,
-            array()
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($queryString, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->having('foo', $value, $operator);
     }
 
     /**
-     * @dataProvider joinProvider
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Query does not supports comparison operator
      */
-    public function testJoinAliases($type, $join, $queryString)
+    public function testHavingWithInvalidComparisonOperator()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag($type));
-        $query->reset()
-            ->read('table');
+        $builder = $this->mockQueryBuilder();
 
-        call_user_func(array($query, $join . 'Join'), 'other');
+        $dbal = $this->mockDBAL($builder);
 
-        $query->field('table.id')
-            ->field('other.id');
-
-        $expected = array(
-            $queryString,
-            array()
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
-    }
+        $mutator = $this->mockMutator();
 
-    public function joinProvider()
-    {
-        return array(
-            array('one', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_other ON test_table.id = test_other.id'),
-            array('many', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_other ON test_table.id = test_other.id'),
-            array('oneTrough', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_mediator ON test_table.id = test_mediator.in_id INNER JOIN test_other ON test_mediator.out_id = test_other.id'),
-            array('manyTrough', 'inner', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table INNER JOIN test_mediator ON test_table.id = test_mediator.in_id INNER JOIN test_other ON test_mediator.out_id = test_other.id'),
 
-            array('one', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id'),
-            array('many', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_other ON test_table.id = test_other.id'),
-            array('oneTrough', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id LEFT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
-            array('manyTrough', 'left', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table LEFT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id LEFT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
-
-            array('one', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_other ON test_table.id = test_other.id'),
-            array('many', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_other ON test_table.id = test_other.id'),
-            array('oneTrough', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id RIGHT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
-            array('manyTrough', 'right', 'SELECT test_table.id, test_table.text, test_table.id, test_other.id FROM test_table RIGHT OUTER JOIN test_mediator ON test_table.id = test_mediator.in_id RIGHT OUTER JOIN test_other ON test_mediator.out_id = test_other.id'),
-        );
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->having('foo', 1, 'foo', 'and');
     }
 
     /**
-     * @dataProvider conditionComparisonProvider
+     * @dataProvider conditionLogicalOperatorProvider
      */
-    public function testReadConditionComparison($operator, $queryPart)
+    public function testHavingLogicalOperators($operator, $expected)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->where('id', 1, $operator);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method($expected . 'Having')->with('`foo` = :condition_0_foo');
 
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table WHERE ' . $queryPart,
-            array(':condition_0_id' => 1)
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
-    }
+        $mutator = $this->mockMutator();
 
-    public function conditionComparisonProvider()
-    {
-        return array(
-            array('=', '(test_table.id = :condition_0_id)'),
-            array('!=', '(test_table.id != :condition_0_id)'),
-            array('>', '(test_table.id > :condition_0_id)'),
-            array('>=', '(test_table.id >= :condition_0_id)'),
-            array('<', '(test_table.id < :condition_0_id)'),
-            array('<=', '(test_table.id <= :condition_0_id)'),
-            array('like', '(test_table.id LIKE :condition_0_id)'),
-            array('regex', '(LOWER(test_table.id) REGEXP LOWER(:condition_0_id))'),
-        );
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->having('foo', 1, '=', $operator);
     }
 
     /**
-     * @dataProvider conditionLogicalProvider
+     * @expectedException \Moss\Storage\Query\QueryException
+     * @expectedExceptionMessage Query does not supports logical operator
      */
-    public function testReadConditionLogical($operator, $queryPart)
+    public function testHavingWithInvalidLogicalOperator()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->where('id', 1, '=', $operator)
-            ->where('id', 2, '=', $operator);
+        $builder = $this->mockQueryBuilder();
 
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table WHERE ' . $queryPart,
-            array(':condition_0_id' => 1, ':condition_1_id' => 2)
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->having('foo', 1, '=', 'foo');
     }
 
-    public function conditionLogicalProvider()
+    public function conditionStructureProvider()
     {
-        return array(
-            array('and', '(test_table.id = :condition_0_id) AND (test_table.id = :condition_1_id)'),
-            array('or', '(test_table.id = :condition_0_id) OR (test_table.id = :condition_1_id)'),
-        );
+        return [
+            ['foo', 1, '`foo` = :condition_0_foo'],
+            ['foo', [1, 2], '(`foo` = :condition_0_foo or `foo` = :condition_1_foo)'],
+            [['foo', 'bar'], 1, '(`foo` = :condition_0_foo and `bar` = :condition_1_bar)'],
+            [['foo', 'bar'], [1, 2], '((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))'],
+        ];
     }
 
-    public function testReadGroup()
+    public function conditionComparisonOperatorProvider()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->group('id');
+        return [
+            ['=', 1, '`foo` = :condition_0_foo'],
+            ['!=', 1, '`foo` != :condition_0_foo'],
+            ['=', null, '`foo` IS NULL'],
+            ['!=', null, '`foo` IS NOT NULL'],
+            ['<', 1, '`foo` < :condition_0_foo'],
+            ['<=', 1, '`foo` <= :condition_0_foo'],
+            ['>', 1, '`foo` > :condition_0_foo'],
+            ['>=', 1, '`foo` >= :condition_0_foo'],
+            ['like', 1, '`foo` like :condition_0_foo'],
+            ['regexp', 1, '`foo` regexp :condition_0_foo'],
+        ];
+    }
 
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table GROUP BY test_table.id',
-            array()
+    public function conditionLogicalOperatorProvider()
+    {
+        return [
+            ['and', 'and'],
+            ['or', 'or'],
+        ];
+    }
+
+    /**
+     * @dataProvider orderProvider
+     */
+    public function testOrder($order)
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('addOrderBy')->with('`foo`', $order);
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->order('foo', $order);
+    }
+
+    public function orderProvider()
+    {
+        return [
+            ['asc'],
+            ['desc']
+        ];
     }
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Unsupported sorting method
      */
-    public function testInvalidOrder()
+    public function testInvalidOrderMethod()
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->order('foo', 'bar');
-    }
+        $builder = $this->mockQueryBuilder();
 
-    /**
-     * @dataProvider orderProvider
-     */
-    public function testReadOrder($order, $queryPart, $binds = array())
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->order('id', $order);
+        $dbal = $this->mockDBAL($builder);
 
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table ORDER BY ' . $queryPart,
-            $binds
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
-    }
+        $mutator = $this->mockMutator();
 
-    public function orderProvider()
-    {
-        return array(
-            array('asc', 'test_table.id ASC'),
-            array('desc', 'test_table.id DESC'),
-            array(array(1, 2), 'test_table.id = :order_0_id DESC, test_table.id = :order_1_id DESC', array(':order_0_id' => 1, ':order_1_id' => 2))
-        );
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->order('foo', 'foo');
     }
 
     /**
      * @dataProvider limitProvider
      */
-    public function testReadLimit($limit, $offset, $queryPart)
+    public function testLimit($limit, $offset)
     {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->read('table')
-            ->limit($limit, $offset);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('setMaxResults')->with($limit);
 
-        $expected = array(
-            'SELECT test_table.id, test_table.text FROM test_table' . $queryPart,
-            array()
+        if($offset) {
+            $builder->expects($this->once())->method('setFirstResult')->with($offset);
+        }
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
         );
 
-        $this->assertEquals($expected, $query->queryString());
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')
+            ->limit($limit, $offset);
     }
 
     public function limitProvider()
     {
-        return array(
-            array(null, null, ''),
-            array(0, 0, ''),
-            array(0, 1, ''),
-            array(1, 0, ' LIMIT 1'),
-            array(10, 1, ' LIMIT 1, 10'),
-        );
+        return [
+            [0, 0],
+            [0, 10],
+            [10, 0],
+            [10, 20]
+        ];
     }
 
-    public function testWriteInsert()
+    public function testWith()
     {
+        $this->markTestIncomplete();
+    }
+
+    public function testRelation()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testExecuteReadWithPublicProperties()
+    {
+        $obj = new \stdClass();
+        $obj->foo = '1';
+        $obj->bar = 'foo';
+
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->will($this->returnValue([$obj]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    [['foo', 'integer'], ['bar', 'string']],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $result = $query->read('entity')->execute();
+
+        $expected = new \stdClass();
+        $expected->foo = 1;
+        $expected->bar = 'foo';
+
+        $this->assertEquals([$expected], $result);
+    }
+
+    public function testExecuteReadWithProtectedProperties()
+    {
+        $obj = new StubClass('1', 'foo');
+
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->will($this->returnValue([$obj]));
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\Moss\\Storage\\Query\\StubClass',
+                    'table',
+                    [['foo', 'integer'], ['bar', 'string']],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $result = $query->read('entity')->execute();
+
+        $expected = new StubClass('1', 'foo');
+
+        $this->assertEquals([$expected], $result);
+    }
+
+    public function testQueryString()
+    {
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('getSQL');
+
+        $dbal = $this->mockDBAL($builder);
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
+
+        $query = new Query($dbal, $bag, $mutator);
+        $query->read('entity')->queryString();
+    }
+
+    public function testBinds()
+    {
+        $expected = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+            ':condition_2_foo' => 1
+        ];
+
+        $builder = $this->mockQueryBuilder();
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
         $entity = new \stdClass();
-        $entity->id = 1;
-        $entity->text = 'foo bar';
+        $entity->foo = 1;
+        $entity->bar = 2;
 
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->write('table', $entity);
+        $query = new Query($dbal, $bag, $mutator);
+        $result = $query->update('entity', $entity)->binds();
 
-        $expected = array(
-            'INSERT INTO test_table (id, text) VALUES (:value_0_id, :value_1_text)',
-            array(':value_0_id' => 1, ':value_1_text' => 'foo bar')
-        );
-
-        $this->assertEquals($expected, $query->queryString());
+        $this->assertEquals($expected, $result);
     }
 
-    public function testWriteUpdate()
+    public function testReset()
     {
+        $expected = [
+            ':value_0_foo' => 1,
+            ':value_1_bar' => 2,
+            ':condition_2_foo' => 1
+        ];
+
+        $builder = $this->mockQueryBuilder();
+
+        $dbal = $this->mockDBAL($builder);
+
+        $bag = $this->mockModelBag(
+            [
+                'entity' => [
+                    '\\stdClass',
+                    'table',
+                    ['foo', 'bar'],
+                    ['foo']
+                ]
+            ]
+        );
+
+        $mutator = $this->mockMutator();
+
         $entity = new \stdClass();
-        $entity->id = 1;
-        $entity->text = 'foo bar';
+        $entity->foo = 1;
+        $entity->bar = 2;
 
-        $query = new Query($this->mockDriver(1), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->write('table', $entity);
+        $query = new Query($dbal, $bag, $mutator);
+        $query->update('entity', $entity);
 
-        $expected = array(
-            'UPDATE test_table SET id = :value_0_id, text = :value_1_text WHERE id = :condition_2_id',
-            array(':value_0_id' => 1, ':value_1_text' => 'foo bar', ':condition_2_id' => 1)
-        );
+        $result = $query->binds();
+        $this->assertEquals($expected, $result);
 
-        $this->assertEquals($expected, $query->queryString());
+        $query->reset();
+        $result = $query->binds();
+        $this->assertEquals([], $result);
     }
 
-    public function testInsert()
+    /**
+     * @return \Doctrine\DBAL\Connection|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockDBAL($queryBuilderMock = null)
     {
-        $entity = new \stdClass();
-        $entity->id = 1;
-        $entity->text = 'foo bar';
+        $queryBuilderMock = $queryBuilderMock ?: $this->mockQueryBuilder();
 
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->insert('table', $entity);
-
-        $expected = array(
-            'INSERT INTO test_table (id, text) VALUES (:value_0_id, :value_1_text)',
-            array(':value_0_id' => 1, ':value_1_text' => 'foo bar')
+        $dbalMock = $this->getMockBuilder('\Doctrine\DBAL\Connection')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $dbalMock->expects($this->any())->method('quoteIdentifier')->will($this->returnCallback(
+            function ($val) {
+                return sprintf('`%s`', $val);
+            })
         );
+        $dbalMock->expects($this->any())->method('createQueryBuilder')->will($this->returnValue($queryBuilderMock));
 
-        $this->assertEquals($expected, $query->queryString());
+        return $dbalMock;
     }
 
-    public function testUpdate()
+    /**
+     * @return \Doctrine\DBAL\Query\QueryBuilder|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockQueryBuilder()
     {
-        $entity = new \stdClass();
-        $entity->id = 1;
-        $entity->text = 'foo bar';
-
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->update('table', $entity);
-
-        $expected = array(
-            'UPDATE test_table SET id = :value_0_id, text = :value_1_text WHERE id = :condition_2_id',
-            array(':value_0_id' => 1, ':value_1_text' => 'foo bar', ':condition_2_id' => 1)
-        );
-
-        $this->assertEquals($expected, $query->queryString());
+        return $this->getMockBuilder('\Doctrine\DBAL\Query\QueryBuilder')
+            ->disableOriginalConstructor()
+            ->getMock();
     }
 
-    public function testDelete()
+    /**
+     * @return \Moss\Storage\Model\ModelBag|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockModelBag($models = [])
     {
-        $entity = new \stdClass();
-        $entity->id = 1;
-        $entity->text = 'foo bar';
+        $modelHasMap = [];
+        $modelGetMap = [];
+        foreach ($models as $alias => $model) {
+            list($entity, $table, $fields, $primary, $index) = $model + [null, null, [], [], []];
 
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->delete('table', $entity);
-
-        $expected = array(
-            'DELETE FROM test_table WHERE id = :condition_0_id',
-            array(':condition_0_id' => 1)
-        );
-
-        $this->assertEquals($expected, $query->queryString());
-    }
-
-    public function testClear()
-    {
-        $query = new Query($this->mockDriver(), $this->mockBuilder(), $this->mockModelBag());
-        $query->reset()
-            ->clear('table');
-
-        $expected = array(
-            'TRUNCATE TABLE test_table',
-            array()
-        );
-
-        $this->assertEquals($expected, $query->queryString());
-    }
-
-    protected function mockDriver($affectedRows = 0)
-    {
-        $driver = $this->getMock('\Moss\Storage\Driver\DriverInterface');
-
-        $driver->expects($this->any())
-            ->method('prepare')
-            ->will($this->returnSelf());
-
-        $driver->expects($this->any())
-            ->method('execute')
-            ->will($this->returnSelf());
-
-        $driver->expects($this->any())
-            ->method('store')
-            ->will($this->returnArgument(0));
-
-        $driver->expects($this->any())
-            ->method('cast')
-            ->will($this->returnArgument(0));
-
-        $driver->expects($this->any())
-            ->method('affectedRows')
-            ->will($this->returnValue($affectedRows));
-
-        return $driver;
-    }
-
-    protected function mockBuilder()
-    {
-        $builder = new Builder();
-
-        return $builder;
-    }
-
-    protected function mockModelBag($relType = 'one', $localValues = array(), $foreignValues= array())
-    {
-        $table = new Model(
-            '\stdClass',
-            'test_table',
-            array(
-                new Integer('id', array('auto_increment')),
-                new String('text', array('length' => '128', 'null')),
-            ),
-            array(
-                new Primary(array('id')),
-            ),
-            array(
-                $this->mockRelation($relType, $localValues, $foreignValues)
-            )
-        );
-
-        $other = new Model(
-            '\altClass',
-            'test_other',
-            array(
-                new Integer('id', array('auto_increment')),
-                new String('text', array('length' => '128', 'null')),
-            ),
-            array(
-                new Primary(array('id')),
-            )
-        );
-
-        $mediator = new Model(
-            null,
-            'test_mediator',
-            array(
-                new Integer('in'),
-                new Integer('out'),
-            ),
-            array(
-                new Primary(array('in', 'out')),
-            )
-        );
-
-        $bag = new ModelBag();
-        $bag->set($table, 'table');
-        $bag->set($other, 'other');
-        $bag->set($mediator, 'mediator');
-
-        return $bag;
-    }
-
-    protected function mockRelation($relType, $localValues = array(), $foreignValues= array())
-    {
-        switch ($relType) {
-            case 'one':
-            default:
-                $relation= new One('\altClass', array('id' => 'id'), 'other');
-                break;
-            case 'many':
-                $relation = new Many('\altClass', array('id' => 'id'), 'other');
-                break;
-            case 'oneTrough':
-                $relation = new OneTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
-                break;
-            case 'manyTrough':
-                $relation = new ManyTrough('\altClass', array('id' => 'in_id'), array('out_id' => 'id'), 'mediator', 'other');
-                break;
+            $modelHasMap[] = [$alias, true];
+            $modelGetMap[] = [$alias, $this->mockModel($entity, $table, $fields, $primary, $index)];
         }
 
-        if($localValues) {
-            $relation->localValues($localValues);
+        $bagMock = $this->getMock('\Moss\Storage\Model\ModelBag');
+        $bagMock->expects($this->any())->method('has')->will($this->returnValueMap($modelHasMap));
+        $bagMock->expects($this->any())->method('get')->will($this->returnValueMap($modelGetMap));
+
+        return $bagMock;
+    }
+
+    /**
+     * @return \Moss\Storage\Model\ModelInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockModel($entity, $table, $fields = [], $primaryFields = [], $indexFields = [])
+    {
+        $fieldsMap = [];
+        $indexFields = array_merge($indexFields, $primaryFields); // because all primary fields are index fields
+
+        foreach ($fields as $i => $field) {
+            list($name, $type, $attributes, $mapping) = (array) $field + [null, 'string', [], null];
+            $mock = $this->mockField($name, $type, $attributes, $mapping);
+
+            $fields[$i] = $mock;
+            $fieldsMap[$mock->name()] = [$mock->name(), $mock];
         }
 
-        if($foreignValues) {
-            $relation->foreignValues($foreignValues);
+        foreach($primaryFields as $i => $field) {
+            $primaryFields[$i] = $fieldsMap[$field][1];
         }
 
-        return $relation;
+        foreach($indexFields as $i => $field) {
+            $indexFields[$i] = $fieldsMap[$field][1];
+        }
+
+        $modelMock = $this->getMock('\Moss\Storage\Model\ModelInterface');
+
+        $modelMock->expects($this->any())->method('table')->will($this->returnValue($table));
+        $modelMock->expects($this->any())->method('entity')->will($this->returnValue($entity));
+        $modelMock->expects($this->any())->method('referredIn')->will($this->returnValue([]));
+
+        $modelMock->expects($this->any())->method('isPrimary')->will($this->returnCallback(
+            function ($field) use ($primaryFields) {
+                return in_array($field, $primaryFields);
+            })
+        );
+        $modelMock->expects($this->any())->method('primaryFields')->will($this->returnValue($primaryFields));
+
+        $modelMock->expects($this->any())->method('isIndex')->will($this->returnCallback(
+            function ($field) use ($indexFields) {
+                return in_array($field, $indexFields);
+            })
+        );
+        $modelMock->expects($this->any())->method('indexFields')->will($this->returnValue($indexFields));
+
+        $modelMock->expects($this->any())->method('field')->will($this->returnValueMap($fieldsMap));
+        $modelMock->expects($this->any())->method('fields')->will($this->returnValue($fields));
+
+        return $modelMock;
+    }
+
+    /**
+     * @return \Moss\Storage\Model\Definition\FieldInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockField($name, $type, $attributes = [], $mapping = null)
+    {
+        $fieldMock = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $fieldMock->expects($this->any())->method('name')->will($this->returnValue($name));
+        $fieldMock->expects($this->any())->method('type')->will($this->returnValue($type));
+        $fieldMock->expects($this->any())->method('mapping')->will($this->returnValue($mapping));
+
+        $fieldMock->expects($this->any())->method('attribute')->will($this->returnCallback(
+            function ($key) use ($attributes) {
+                return array_key_exists($key, $attributes) ? $attributes[$key] : false;
+            })
+        );
+
+        $fieldMock->expects($this->any())->method('attributes')->will($this->returnValue($attributes));
+
+        return $fieldMock;
+    }
+
+    /**
+     * @return \Moss\Storage\Mutator\MutatorInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockMutator()
+    {
+        $mutatorMock = $this->getMock('\Moss\Storage\Mutator\MutatorInterface');
+        $mutatorMock->expects($this->any())->method($this->anything())->will($this->returnArgument(0));
+
+        return $mutatorMock;
     }
 }
- 

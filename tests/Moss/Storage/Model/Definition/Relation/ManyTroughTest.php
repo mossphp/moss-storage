@@ -5,7 +5,7 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
 {
     public function testType()
     {
-        $relation = new ManyTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals('manyTrough', $relation->type());
     }
 
@@ -14,7 +14,7 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultName($name, $expected)
     {
-        $relation = new ManyTrough($name, array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new ManyTrough($name, ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals($expected, $relation->name());
     }
 
@@ -23,7 +23,7 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultContainer($name, $expected)
     {
-        $relation = new ManyTrough($name, array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new ManyTrough($name, ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals($expected, $relation->container());
     }
 
@@ -32,30 +32,30 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testForcedContainer($name)
     {
-        $relation = new ManyTrough($name, array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
+        $relation = new ManyTrough($name, ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
         $this->assertEquals('Foobar', $relation->container());
     }
 
     public function defaultNameProvider()
     {
-        return array(
-            array('Foo', 'Foo'),
-            array('\Foo', 'Foo'),
-            array('\\Foo', 'Foo'),
-            array('\\\\Foo', 'Foo'),
-            array('\\Foo\\Bar', 'Bar'),
-        );
+        return [
+            ['Foo', 'Foo'],
+            ['\Foo', 'Foo'],
+            ['\\Foo', 'Foo'],
+            ['\\\\Foo', 'Foo'],
+            ['\\Foo\\Bar', 'Bar'],
+        ];
     }
 
     public function testForcedName()
     {
-        $relation = new ManyTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
+        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
         $this->assertEquals('Foobar', $relation->name());
     }
 
     public function testEntity()
     {
-        $relation = new ManyTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator');
+        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator');
         $this->assertEquals('Foo', $relation->entity());
     }
 
@@ -72,14 +72,14 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
 
     public function keyProvider()
     {
-        return array(
-            array(
-                array(array('id' => 'in'), array('out' => 'id')),
-                array('id' => 'id'),
-                array('id' => 'in'),
-                array('out' => 'id')
-            ),
-        );
+        return [
+            [
+                [['id' => 'in'], ['out' => 'id']],
+                ['id' => 'id'],
+                ['id' => 'in'],
+                ['out' => 'id']
+            ],
+        ];
     }
 
     /**
@@ -88,7 +88,7 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutInKeys()
     {
-        new ManyTrough('\Foo', array(), array('out' => 'id'), 'mediator');
+        new ManyTrough('\Foo', [], ['out' => 'id'], 'mediator');
     }
 
     /**
@@ -97,7 +97,7 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutOutKeys()
     {
-        new ManyTrough('\Foo', array('id' => 'in'), array(), 'mediator');
+        new ManyTrough('\Foo', ['id' => 'in'], [], 'mediator');
     }
 
     /**
@@ -106,7 +106,7 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
      */
     public function testKeysWithoutSameNumberOfElements()
     {
-        new ManyTrough('\Foo', array('id' => 'in'), array('foo' => 'foo', 'bar' => 'bar'), 'mediator');
+        new ManyTrough('\Foo', ['id' => 'in'], ['foo' => 'foo', 'bar' => 'bar'], 'mediator');
     }
 
     /**
@@ -121,28 +121,28 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
 
     public function invalidKeysProvider()
     {
-        return array(
-            array(array('' => 1)),
-            array(array('foo' => 1)),
-            array(array(1 => null)),
-            array(array(1 => 'foo')),
-            array(array(1 => new \stdClass())),
-            array(array(1 => array(1, 2))),
-        );
+        return [
+            [['' => 1]],
+            [['foo' => 1]],
+            [[1 => null]],
+            [[1 => 'foo']],
+            [[1 => new \stdClass()]],
+            [[1 => [1, 2]]],
+        ];
     }
 
     public function testLocalValues()
     {
-        $relation = new ManyTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
-        $relation->localValues(array('yada' => 'yada'));
-        $this->assertEquals(array('yada' => 'yada'), $relation->localValues());
+        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
+        $relation->localValues(['yada' => 'yada']);
+        $this->assertEquals(['yada' => 'yada'], $relation->localValues());
     }
 
     public function testReferencedValues()
     {
-        $relation = new ManyTrough('\Foo', array('id' => 'in'), array('out' => 'id'), 'mediator', 'Foobar');
-        $relation->foreignValues(array('yada' => 'yada'));
+        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
+        $relation->foreignValues(['yada' => 'yada']);
 
-        $this->assertEquals(array('yada' => 'yada'), $relation->foreignValues());
+        $this->assertEquals(['yada' => 'yada'], $relation->foreignValues());
     }
 }

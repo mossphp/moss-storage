@@ -5,7 +5,7 @@ class OneTest extends \PHPUnit_Framework_TestCase
 {
 
     public function testType() {
-        $relation = new One('\Foo', array('foo' => 'bar'));
+        $relation = new One('\Foo', ['foo' => 'bar']);
         $this->assertEquals('one', $relation->type());
     }
 
@@ -14,7 +14,7 @@ class OneTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultName($name, $expected)
     {
-        $relation = new One($name, array('foo' => 'bar'));
+        $relation = new One($name, ['foo' => 'bar']);
         $this->assertEquals($expected, $relation->name());
     }
 
@@ -23,7 +23,7 @@ class OneTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultContainer($name, $expected)
     {
-        $relation = new One($name, array('foo' => 'bar'));
+        $relation = new One($name, ['foo' => 'bar']);
         $this->assertEquals($expected, $relation->container());
     }
 
@@ -32,30 +32,30 @@ class OneTest extends \PHPUnit_Framework_TestCase
      */
     public function testForcedContainer($name)
     {
-        $relation = new One($name, array('foo' => 'bar'), 'Foobar');
+        $relation = new One($name, ['foo' => 'bar'], 'Foobar');
         $this->assertEquals('Foobar', $relation->container());
     }
 
     public function defaultNameProvider()
     {
-        return array(
-            array('Foo', 'Foo'),
-            array('\Foo', 'Foo'),
-            array('\\Foo', 'Foo'),
-            array('\\\\Foo', 'Foo'),
-            array('\\Foo\\Bar', 'Bar'),
-        );
+        return [
+            ['Foo', 'Foo'],
+            ['\Foo', 'Foo'],
+            ['\\Foo', 'Foo'],
+            ['\\\\Foo', 'Foo'],
+            ['\\Foo\\Bar', 'Bar'],
+        ];
     }
 
     public function testForcedName()
     {
-        $relation = new One('\Foo', array('foo' => 'bar'), 'Foobar');
+        $relation = new One('\Foo', ['foo' => 'bar'], 'Foobar');
         $this->assertEquals('Foobar', $relation->name());
     }
 
     public function testEntity()
     {
-        $relation = new One('\Foo', array('foo' => 'bar'));
+        $relation = new One('\Foo', ['foo' => 'bar']);
         $this->assertEquals('Foo', $relation->entity());
     }
 
@@ -72,14 +72,14 @@ class OneTest extends \PHPUnit_Framework_TestCase
 
     public function keyProvider()
     {
-        return array(
-            array(
-                array('foo' => 'bar'),
-                array('foo' => 'bar'),
-                array('foo'),
-                array('bar')
-            ),
-        );
+        return [
+            [
+                ['foo' => 'bar'],
+                ['foo' => 'bar'],
+                ['foo'],
+                ['bar']
+            ],
+        ];
     }
 
     /**
@@ -87,7 +87,7 @@ class OneTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutKeys()
     {
-        new One('\Foo', array());
+        new One('\Foo', []);
     }
 
     /**
@@ -101,28 +101,28 @@ class OneTest extends \PHPUnit_Framework_TestCase
 
     public function invalidKeysProvider()
     {
-        return array(
-            array(array('' => 1)),
-            array(array('foo' => 1)),
-            array(array(1 => null)),
-            array(array(1 => 'foo')),
-            array(array(1 => new \stdClass())),
-            array(array(1 => array(1, 2))),
-        );
+        return [
+            [['' => 1]],
+            [['foo' => 1]],
+            [[1 => null]],
+            [[1 => 'foo']],
+            [[1 => new \stdClass()]],
+            [[1 => [1, 2]]],
+        ];
     }
 
     public function testLocalValues()
     {
-        $relation = new One('\Foo', array('foo' => 'bar'), 'Foobar');
-        $relation->localValues(array('yada' => 'yada'));
-        $this->assertEquals(array('yada' => 'yada'), $relation->localValues());
+        $relation = new One('\Foo', ['foo' => 'bar'], 'Foobar');
+        $relation->localValues(['yada' => 'yada']);
+        $this->assertEquals(['yada' => 'yada'], $relation->localValues());
     }
 
     public function testReferencedValues()
     {
-        $relation = new One('\Foo', array('foo' => 'bar'), 'Foobar');
-        $relation->foreignValues(array('yada' => 'yada'));
+        $relation = new One('\Foo', ['foo' => 'bar'], 'Foobar');
+        $relation->foreignValues(['yada' => 'yada']);
 
-        $this->assertEquals(array('yada' => 'yada'), $relation->foreignValues());
+        $this->assertEquals(['yada' => 'yada'], $relation->foreignValues());
     }
 }
