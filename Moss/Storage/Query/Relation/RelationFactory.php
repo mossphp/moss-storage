@@ -57,7 +57,7 @@ class RelationFactory
      * @param array          $conditions
      * @param array          $order
      *
-     * @return $this
+     * @return RelationInterface
      */
     public function create(ModelInterface $model, $relation, array $conditions = [], array $order = [])
     {
@@ -68,7 +68,7 @@ class RelationFactory
             $instance->with($further);
         }
 
-        return [$instance];
+        return $instance;
     }
 
     /**

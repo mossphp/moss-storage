@@ -29,7 +29,7 @@ interface RelationFactoryInterface
      * @param array          $conditions
      * @param array          $order
      *
-     * @return RelationInterface[]
+     * @return RelationInterface
      */
     public function create(ModelInterface $model, $relation, array $conditions = [], array $order = []);
 
