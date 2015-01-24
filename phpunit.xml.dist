@@ -5,10 +5,8 @@
 		<testsuite name="Storage">
 			<directory>./tests/Moss/Storage/Driver/</directory>
 			<directory>./tests/Moss/Storage/Model/</directory>
-			<directory>./tests/Moss/Storage/Query/QueryTest.php</directory>
+			<directory>./tests/Moss/Storage/Query/</directory>
 			<directory>./tests/Moss/Storage/Schema/</directory>
-			<directory>./tests/Moss/Storage/StorageQueryTest.php</directory>
-			<directory>./tests/Moss/Storage/StorageSchemaTest.php</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

@@ -38,11 +38,6 @@ class ClearQuery implements ClearInterface
     protected $model;
 
     /**
-     * @var ConverterInterface
-     */
-    protected $converter;
-
-    /**
      * @var RelationFactoryInterface
      */
     protected $factory;
@@ -62,16 +57,22 @@ class ClearQuery implements ClearInterface
      *
      * @param Connection               $connection
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
-        $this->converter = $converter;
         $this->factory = $factory;
 
+        $this->setQuery();
+    }
+
+    /**
+     * Sets query instance with delete operation and table
+     */
+    protected function setQuery()
+    {
         $this->query = $this->connection->createQueryBuilder();
         $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
     }
@@ -98,16 +99,8 @@ class ClearQuery implements ClearInterface
      */
     public function with($relation, array $conditions = [], array $order = [])
     {
-        if (!$this->model) {
-            throw new QueryException('Unable to create relation, missing entity model');
-        }
-
-        $relations = $this->factory->create($this->model, $relation, $conditions, $order);
-        foreach ($relations as $instance) {
-            $this->relations[$instance->name()] = $instance;
-        }
-
-        var_dump($this->relations);
+        $instance = $this->factory->create($this->model, $relation, $conditions, $order);
+        $this->relations[$instance->name()] = $instance;
 
         return $this;
     }
@@ -167,6 +160,16 @@ class ClearQuery implements ClearInterface
     }
 
     /**
+     * Returns array with bound values and their placeholders as keys
+     *
+     * @return array
+     */
+    public function binds()
+    {
+        return [];
+    }
+
+    /**
      * Resets adapter
      *
      * @return $this
@@ -175,6 +178,8 @@ class ClearQuery implements ClearInterface
     {
         $this->query->resetQueryParts();
         $this->relations = [];
+
+        $this->setQuery();
 
         return $this;
     }

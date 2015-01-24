@@ -33,5 +33,10 @@
         "psr-0": {
             "Moss\\Storage\\": ""
         }
+    },
+    "autoload-dev": {
+        "psr-0": {
+            "tests\\Moss\\Storage\\": ""
+        }
     }
 }

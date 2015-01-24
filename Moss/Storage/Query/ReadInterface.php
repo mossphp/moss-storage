@@ -119,43 +119,6 @@ interface ReadInterface extends QueryBaseInterface
     public function group($field);
 
     /**
-     * Adds inner join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function innerJoin($entity);
-
-    /**
-     * Adds left join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function leftJoin($entity);
-
-    /**
-     * Adds right join with set table
-     *
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function rightJoin($entity);
-
-    /**
-     * Adds join to query
-     *
-     * @param string $type
-     * @param string $entity
-     *
-     * @return $this
-     */
-    public function join($type, $entity);
-
-    /**
      * Adds where condition to builder
      *
      * @param mixed  $field

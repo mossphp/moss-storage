@@ -66,6 +66,13 @@ interface QueryBaseInterface
     public function queryString();
 
     /**
+     * Returns array with bound values and their placeholders as keys
+     *
+     * @return array
+     */
+    public function binds();
+
+    /**
      * Resets adapter
      *
      * @return $this
