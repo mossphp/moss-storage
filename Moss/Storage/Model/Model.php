@@ -14,6 +14,7 @@ namespace Moss\Storage\Model;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\IndexInterface;
 use Moss\Storage\Model\Definition\RelationInterface;
+use Moss\Storage\NormalizeClassNameTrait;
 
 /**
  * Model describing entity and its relationship to other entities
@@ -23,6 +24,7 @@ use Moss\Storage\Model\Definition\RelationInterface;
  */
 class Model implements ModelInterface
 {
+    use NormalizeClassNameTrait;
 
     protected $table;
     protected $entity;
@@ -57,7 +59,7 @@ class Model implements ModelInterface
     public function __construct($entityClass, $table, array $fields, array $indexes = [], array $relations = [])
     {
         $this->table = $table;
-        $this->entity = $entityClass ? ltrim($entityClass, '\\') : null;
+        $this->entity = $entityClass ? $this->normalizeClassName($entityClass) : null;
 
         $this->assignFields($fields);
         $this->assignIndexes($indexes);

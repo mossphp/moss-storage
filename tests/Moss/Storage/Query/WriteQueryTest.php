@@ -319,7 +319,7 @@ class WriteQueryTest extends QueryMocks
         $relation->expects($this->once())
             ->method('write')
             ->with($entity)
-            ->willReturn($entity); // because interface always passes by reference
+            ->willReturn($entity);
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())

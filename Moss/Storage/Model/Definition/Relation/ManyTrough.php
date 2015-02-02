@@ -11,6 +11,8 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
+use Moss\Storage\NormalizeClassNameTrait;
+
 /**
  * Many to many trough mediator table (with pivot table)
  *
@@ -19,6 +21,8 @@ namespace Moss\Storage\Model\Definition\Relation;
  */
 class ManyTrough extends Relation
 {
+    use NormalizeClassNameTrait;
+
     /**
      * @param string      $entity
      * @param array       $in
@@ -28,11 +32,11 @@ class ManyTrough extends Relation
      */
     public function __construct($entity, array $in, array $out, $mediator, $container = null)
     {
-        $this->entity = $entity ? ltrim($entity, '\\') : null;
+        $this->entity = $this->normalizeClassName($entity);
         $this->type = 'manyTrough';
         $this->container = $this->containerName($container);
 
-        $this->mediator = $mediator ? ltrim($mediator, '\\') : $mediator;
+        $this->mediator = $this->normalizeClassName($mediator);
 
         $this->assertTroughKeys($in, $out);
         $this->assignKeys($in, $this->in);

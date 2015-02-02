@@ -53,7 +53,7 @@ class ClearQuery extends AbstractQuery implements ClearInterface
      * Executes query
      * After execution query is reset
      *
-     * @return mixed|null|void
+     * @return mixed
      */
     public function execute()
     {

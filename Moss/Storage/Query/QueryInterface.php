@@ -54,7 +54,7 @@ interface QueryInterface
      * Executes query
      * After execution query is reset
      *
-     * @return mixed|null|void
+     * @return mixed
      */
     public function execute();
 

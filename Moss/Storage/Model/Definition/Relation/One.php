@@ -11,6 +11,8 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
+use Moss\Storage\NormalizeClassNameTrait;
+
 /**
  * One to one relation
  *
@@ -19,6 +21,8 @@ namespace Moss\Storage\Model\Definition\Relation;
  */
 class One extends Relation
 {
+    use NormalizeClassNameTrait;
+
     /**
      * Constructor
      *
@@ -28,7 +32,7 @@ class One extends Relation
      */
     public function __construct($entity, array $keys, $container = null)
     {
-        $this->entity = $entity ? ltrim($entity, '\\') : null;
+        $this->entity = $this->normalizeClassName($entity);
         $this->type = 'one';
         $this->container = $this->containerName($container);
 

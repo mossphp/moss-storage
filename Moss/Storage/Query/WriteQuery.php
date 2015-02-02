@@ -29,7 +29,6 @@ class WriteQuery extends AbstractQuery implements WriteInterface
     use PropertyAccessorTrait;
 
     protected $values = [];
-    protected $where = [];
 
     /**
      * @var RelationInterface[]
@@ -120,7 +119,7 @@ class WriteQuery extends AbstractQuery implements WriteInterface
      * Executes query
      * After execution query is reset
      *
-     * @return mixed|null|void
+     * @return mixed
      */
     public function execute()
     {
@@ -155,10 +154,6 @@ class WriteQuery extends AbstractQuery implements WriteInterface
         }
 
         $query->values($this->values);
-        foreach ($this->where as $condition) {
-            $query->where($condition[0], $condition[1], $condition[2], $condition[2]);
-        }
-
         return $query;
     }
 
@@ -182,36 +177,6 @@ class WriteQuery extends AbstractQuery implements WriteInterface
         }
 
         return $query->execute() > 0;
-    }
-
-    /**
-     * Returns property value
-     *
-     * @param null|array|object $entity
-     * @param string            $field
-     *
-     * @return mixed
-     * @throws QueryException
-     */
-    protected function getPropertyValue($entity, $field)
-    {
-        if (!$entity) {
-            throw new QueryException('Unable to access entity properties, missing instance');
-        }
-
-        if (is_array($entity) || $entity instanceof \ArrayAccess) {
-            return isset($entity[$field]) ? $entity[$field] : null;
-        }
-
-        $ref = new \ReflectionObject($entity);
-        if (!$ref->hasProperty($field)) {
-            return null;
-        }
-
-        $prop = $ref->getProperty($field);
-        $prop->setAccessible(true);
-
-        return $prop->getValue($entity);
     }
 
     /**

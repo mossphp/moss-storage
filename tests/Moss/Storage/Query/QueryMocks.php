@@ -64,6 +64,24 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @return \Moss\Storage\Model\ModelBag|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockBag(array $models = [])
+    {
+        $map = [];
+        foreach ($models as $model) {
+            $map[] = [$model->entity(), $model];
+            $map[] = [ltrim($model->entity(), '\\'), $model];
+            $map[] = [$model->table(), $model];
+        }
+
+        $mock = $this->getMock('\Moss\Storage\Model\ModelBag');
+        $mock->expects($this->any())->method('get')->willReturnMap($map);
+
+        return $mock;
+    }
+
+    /**
      * @return \Moss\Storage\Model\ModelInterface|\PHPUnit_Framework_MockObject_MockObject
      */
     public function mockModel($entity, $table, $fields = [], $primaryFields = [], $indexFields = [], $referredIn = [])

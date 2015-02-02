@@ -138,7 +138,6 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateInterface
      */
     public function value($field)
     {
-        var_dump($field);
         $this->assignValue($this->model->field($field));
 
         return $this;
@@ -202,7 +201,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateInterface
      * Executes query
      * After execution query is reset
      *
-     * @return mixed|null|void
+     * @return mixed
      */
     public function execute()
     {

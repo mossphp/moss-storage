@@ -429,7 +429,7 @@ class DeleteQueryTest extends QueryMocks
         $relation->expects($this->once())
             ->method('delete')
             ->with($entity)
-            ->willReturn($entity); // because interface always passes by reference
+            ->willReturn($entity);
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())

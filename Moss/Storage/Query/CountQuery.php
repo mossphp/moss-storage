@@ -130,7 +130,7 @@ class CountQuery extends AbstractConditionalQuery implements CountInterface
      * Executes query
      * After execution query is reset
      *
-     * @return mixed|null|void
+     * @return mixed
      */
     public function execute()
     {
