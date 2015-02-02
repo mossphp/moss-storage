@@ -1,5 +1,5 @@
 <?php
-namespace tests\Moss\Storage\Query;
+namespace Moss\Storage\Query;
 
 abstract class QueryMocks extends \PHPUnit_Framework_TestCase
 {
@@ -66,7 +66,7 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     /**
      * @return \Moss\Storage\Model\ModelInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    public function mockModel($entity, $table, $fields = [], $primaryFields = [], $indexFields = [])
+    public function mockModel($entity, $table, $fields = [], $primaryFields = [], $indexFields = [], $referredIn = [])
     {
         $fieldsMap = [];
         $indexFields = array_merge($indexFields, $primaryFields); // because all primary fields are index fields
@@ -97,7 +97,7 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue($entity));
         $modelMock->expects($this->any())
             ->method('referredIn')
-            ->will($this->returnValue([]));
+            ->will($this->returnValue($referredIn));
 
         $modelMock->expects($this->any())
             ->method('isPrimary')

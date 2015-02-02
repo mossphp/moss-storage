@@ -13,12 +13,11 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
-use Moss\Storage\Query\Relation\RelationInterface;
+
 
 /**
  * Query used to read data from table
@@ -26,7 +25,7 @@ use Moss\Storage\Query\Relation\RelationInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ReadQuery implements ReadInterface
+class ReadQuery extends AbstractConditionalQuery implements ReadInterface
 {
     const AGGREGATE_DISTINCT = 'distinct';
     const AGGREGATE_COUNT = 'count';
@@ -35,65 +34,13 @@ class ReadQuery implements ReadInterface
     const AGGREGATE_MIN = 'min';
     const AGGREGATE_SUM = 'sum';
 
-    const COMPARISON_EQUAL = '=';
-    const COMPARISON_NOT_EQUAL = '!=';
-    const COMPARISON_LESS = '<';
-    const COMPARISON_LESS_OR_EQUAL = '<=';
-    const COMPARISON_GREATER = '>';
-    const COMPARISON_GREATER_OR_EQUAL = '>=';
-    const COMPARISON_LIKE = 'like';
-    const COMPARISON_REGEXP = 'regexp';
-
-    const LOGICAL_AND = 'and';
-    const LOGICAL_OR = 'or';
-
     const ORDER_ASC = 'asc';
     const ORDER_DESC = 'desc';
-
-    /**
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
-     * @var ModelInterface
-     */
-    protected $model;
-
-    /**
-     * @var ConverterInterface
-     */
-    protected $converter;
-
-    /**
-     * @var RelationFactoryInterface
-     */
-    protected $factory;
-
-    /**
-     * @var QueryBuilder
-     */
-    protected $query;
-
-    /**
-     * @var array|object
-     */
-    protected $instance;
-
-    /**
-     * @var array|RelationInterface[]
-     */
-    protected $relations = [];
 
     /**
      * @var array
      */
     protected $casts = [];
-
-    /**
-     * @var array
-     */
-    protected $binds = [];
 
     /**
      * Constructor
@@ -111,6 +58,7 @@ class ReadQuery implements ReadInterface
         $this->factory = $factory;
 
         $this->setQuery();
+        $this->fields();
     }
 
     /**
@@ -121,7 +69,6 @@ class ReadQuery implements ReadInterface
         $this->query = $this->connection->createQueryBuilder();
         $this->query->select();
         $this->query->from($this->connection->quoteIdentifier($this->model->table()));
-        $this->fields();
     }
 
     /**
@@ -407,202 +354,6 @@ class ReadQuery implements ReadInterface
     }
 
     /**
-     * Adds where condition to builder
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     * @throws QueryException
-     */
-    public function condition($field, $value, $comparison, $logical)
-    {
-        $comparison = strtolower($comparison);
-        $logical = strtolower($logical);
-
-        $this->assertComparison($comparison);
-        $this->assertLogical($logical);
-
-        if (!is_array($field)) {
-            return $this->buildSingularFieldCondition($field, $value, $comparison);
-        }
-
-        return $this->buildMultipleFieldsCondition($field, $value, $comparison, $logical);
-    }
-
-    /**
-     * Builds condition for singular field
-     *
-     * @param string $field
-     * @param mixed  $value
-     * @param string $comparison
-     *
-     * @return array
-     */
-    protected function buildSingularFieldCondition($field, $value, $comparison)
-    {
-        $f = $this->model->field($field);
-
-        $fieldName = $f->mapping() ? $f->mapping() : $f->name();
-
-        return $this->buildConditionString(
-            $this->connection->quoteIdentifier($fieldName),
-            $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),
-            $comparison
-        );
-    }
-
-    /**
-     * Builds conditions for multiple fields
-     *
-     * @param array  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return array
-     */
-    protected function buildMultipleFieldsCondition($field, $value, $comparison, $logical)
-    {
-        $conditions = [];
-        foreach ((array) $field as $i => $f) {
-            $f = $this->model->field($f);
-
-            $fieldName = $f->mapping() ? $f->mapping() : $f->name();
-            $conditions[] = $this->buildConditionString(
-                $this->connection->quoteIdentifier($fieldName),
-                $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),
-                $comparison
-            );
-
-            $conditions[] = $logical;
-        }
-
-        array_pop($conditions);
-
-        return '(' . implode(' ', $conditions) . ')';
-    }
-
-    /**
-     * Builds condition string
-     *
-     * @param string       $field
-     * @param string|array $bind
-     * @param string       $operator
-     *
-     * @return string
-     */
-    protected function buildConditionString($field, $bind, $operator)
-    {
-        if (is_array($bind)) {
-            foreach ($bind as &$val) {
-                $val = $this->buildConditionString($field, $val, $operator);
-                unset($val);
-            }
-
-            $operator = $operator === self::COMPARISON_NOT_EQUAL ? 'and' : 'or';
-
-            return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
-        }
-
-        if ($bind === null) {
-            return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
-        }
-
-        if ($operator === self::COMPARISON_REGEXP) {
-            return sprintf('%s regexp %s', $field, $bind);
-        }
-
-        return $field . ' ' . $operator . ' ' . $bind;
-    }
-
-    /**
-     * Asserts correct comparison operator
-     *
-     * @param string $operator
-     *
-     * @throws QueryException
-     */
-    protected function assertComparison($operator)
-    {
-        $comparisonOperators = [
-            self::COMPARISON_EQUAL,
-            self::COMPARISON_NOT_EQUAL,
-            self::COMPARISON_LESS,
-            self::COMPARISON_LESS_OR_EQUAL,
-            self::COMPARISON_GREATER,
-            self::COMPARISON_GREATER_OR_EQUAL,
-            self::COMPARISON_LIKE,
-            self::COMPARISON_REGEXP
-        ];
-
-        if (!in_array($operator, $comparisonOperators)) {
-            throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model->entity()));
-        }
-    }
-
-    /**
-     * Asserts correct logical operation
-     *
-     * @param string $operator
-     *
-     * @throws QueryException
-     */
-    protected function assertLogical($operator)
-    {
-        $comparisonOperators = [
-            self::LOGICAL_AND,
-            self::LOGICAL_OR
-        ];
-
-        if (!in_array($operator, $comparisonOperators)) {
-            throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model->entity()));
-        }
-    }
-
-    /**
-     * Binds condition value to key
-     *
-     * @param $name
-     * @param $type
-     * @param $values
-     *
-     * @return array|string
-     */
-    protected function bindValues($name, $type, $values)
-    {
-        if (!is_array($values)) {
-            return $this->bind('condition', $name, $type, $values);
-        }
-
-        foreach ($values as $key => $value) {
-            $values[$key] = $this->bindValues($name, $type, $value);
-        }
-
-        return $values;
-    }
-
-    /**
-     * Binds value to unique key and returns it
-     *
-     * @param string $operation
-     * @param string $field
-     * @param string $type
-     * @param mixed  $value
-     *
-     * @return string
-     */
-    protected function bind($operation, $field, $type, $value)
-    {
-        $key = ':' . implode('_', [$operation, count($this->binds), $field]);
-        $this->binds[$key] = $this->converter->store($value, $type);
-
-        return $key;
-    }
-
-    /**
      * Adds sorting to query
      *
      * @param string       $field
@@ -634,69 +385,6 @@ class ReadQuery implements ReadInterface
         if (!in_array($order, [self::ORDER_ASC, self::ORDER_DESC])) {
             throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
         }
-    }
-
-    /**
-     * Sets limits to query
-     *
-     * @param int      $limit
-     * @param null|int $offset
-     *
-     * @return $this
-     */
-    public function limit($limit, $offset = null)
-    {
-        if ($offset) {
-            $this->query->setFirstResult((int) $offset);
-        }
-
-        $this->query->setMaxResults((int) $limit);
-
-        return $this;
-    }
-
-
-    /**
-     * Adds relation to query with optional conditions and sorting (as key value pairs)
-     *
-     * @param string|array $relation
-     * @param array        $conditions
-     * @param array        $order
-     *
-     * @return $this
-     * @throws QueryException
-     */
-    public function with($relation, array $conditions = [], array $order = [])
-    {
-        $instance = $this->factory->create($this->model, $relation, $conditions, $order);
-        $this->relations[$instance->name()] = $instance;
-
-        return $this;
-    }
-
-    /**
-     * Returns relation instance
-     *
-     * @param string $relation
-     *
-     * @return RelationInterface
-     * @throws QueryException
-     */
-    public function relation($relation)
-    {
-        list($relation, $furtherRelations) = $this->factory->splitRelationName($relation);
-
-        if (!isset($this->relations[$relation])) {
-            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $relation, $this->model->entity()));
-        }
-
-        $instance = $this->relations[$relation];
-
-        if ($furtherRelations) {
-            return $instance->relation($furtherRelations);
-        }
-
-        return $instance;
     }
 
     /**
@@ -736,8 +424,8 @@ class ReadQuery implements ReadInterface
     protected function restoreObject($entity, array $restore, \ReflectionClass $ref)
     {
         foreach ($restore as $field => $type) {
-            if(is_array($entity)) {
-                if(!isset($entity[$field])) {
+            if (is_array($entity)) {
+                if (!isset($entity[$field])) {
                     continue;
                 }
 
@@ -765,26 +453,6 @@ class ReadQuery implements ReadInterface
         return $entity;
     }
 
-     /**
-     * Returns current query string
-     *
-     * @return string
-     */
-    public function queryString()
-    {
-        return (string) $this->query->getSQL();
-    }
-
-    /**
-     * Returns array with bound values and their placeholders as keys
-     *
-     * @return array
-     */
-    public function binds()
-    {
-        return $this->binds;
-    }
-
     /**
      * Resets adapter
      *
@@ -798,6 +466,7 @@ class ReadQuery implements ReadInterface
         $this->binds = [];
 
         $this->setQuery();
+        $this->fields();
 
         return $this;
     }

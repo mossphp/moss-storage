@@ -11,19 +11,20 @@
 
 namespace Moss\Storage\Query;
 
+
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Converter\ConverterInterface;
+use Moss\Storage\Model\Definition\FieldInterface;
+use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
-
 /**
- * Query used to delete data from table
+ * Query used to read data from table
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
+class UpdateQuery extends AbstractConditionalQuery implements UpdateInterface
 {
     /**
      * Constructor
@@ -45,6 +46,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
         $this->instance = $entity;
 
         $this->setQuery();
+        $this->values();
         $this->setPrimaryConditions();
     }
 
@@ -60,11 +62,11 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
         $entityClass = $this->model->entity();
 
         if ($entity === null) {
-            throw new QueryException(sprintf('Missing required entity for deleting class "%s"', $entityClass));
+            throw new QueryException(sprintf('Missing required entity for updating class "%s"', $entityClass));
         }
 
         if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for deleting must be an instance of "%s" or array got "%s"', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
+            throw new QueryException(sprintf('Entity for updating must be an instance of "%s" or array got "%s"', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
         }
     }
 
@@ -74,7 +76,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
     protected function setQuery()
     {
         $this->query = $this->connection->createQueryBuilder();
-        $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
+        $this->query->update($this->connection->quoteIdentifier($this->model->table()));
     }
 
     /**
@@ -88,6 +90,86 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
             $value = $this->getPropertyValue($this->instance, $field->name());
             $this->where($field->name(), $value, self::COMPARISON_EQUAL, self::LOGICAL_AND);
         }
+    }
+
+    /**
+     * Returns connection
+     *
+     * @return Connection
+     */
+    public function connection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Sets field names which values will be written
+     *
+     * @param array $fields
+     *
+     * @return $this
+     */
+    public function values($fields = [])
+    {
+        $this->query->values([]);
+        $this->binds = [];
+
+        if (empty($fields)) {
+            foreach ($this->model->fields() as $field) {
+                $this->assignValue($field);
+            }
+
+            return $this;
+        }
+
+        foreach ($fields as $field) {
+            $this->assignValue($this->model->field($field));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Adds field which value will be written
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function value($field)
+    {
+        var_dump($field);
+        $this->assignValue($this->model->field($field));
+
+        return $this;
+    }
+
+    /**
+     * Assigns value to query
+     *
+     * @param FieldInterface $field
+     */
+    protected function assignValue(FieldInterface $field)
+    {
+        $value = $this->getPropertyValue($this->instance, $field->name());
+        if ($value === null) {
+            $references = $this->model->referredIn($field->name());
+            foreach ($references as $foreign => $reference) {
+                $entity = $this->getPropertyValue($this->instance, $reference->container());
+                if ($entity === null) {
+                    continue;
+                }
+
+                $value = $this->getPropertyValue($entity, $foreign);
+                $this->setPropertyValue($this->instance, $field->name(), $value);
+                break;
+            }
+        }
+
+        $this->query->set(
+            $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+            $this->bind('value', $field->name(), $field->type(), $value)
+        );
     }
 
     /**
@@ -124,15 +206,13 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
      */
     public function execute()
     {
-        foreach ($this->relations as $relation) {
-            $relation->delete($this->instance);
-        }
-
         $this->connection
             ->prepare($this->queryString())
             ->execute($this->binds);
 
-        $this->identifyEntity($this->instance, null);
+        foreach ($this->relations as $relation) {
+            $relation->write($this->instance);
+        }
 
         return $this->instance;
     }
@@ -149,6 +229,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
         $this->binds = [];
 
         $this->setQuery();
+        $this->values();
         $this->setPrimaryConditions();
 
         return $this;

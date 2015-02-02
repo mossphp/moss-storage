@@ -18,7 +18,7 @@ namespace Moss\Storage\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface CountInterface extends QueryBaseInterface
+interface CountInterface extends QueryInterface
 {
     /**
      * Adds where condition to builder

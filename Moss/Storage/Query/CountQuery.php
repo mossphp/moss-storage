@@ -11,61 +11,48 @@
 
 namespace Moss\Storage\Query;
 
+
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Converter\ConverterInterface;
+use Moss\Storage\Model\Definition\FieldInterface;
+use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 
 /**
- * Query used to delete data from table
+ * Query used to read data from table
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
+class CountQuery extends AbstractConditionalQuery implements CountInterface
 {
+    const AGGREGATE_DISTINCT = 'distinct';
+    const AGGREGATE_COUNT = 'count';
+    const AGGREGATE_AVERAGE = 'average';
+    const AGGREGATE_MAX = 'max';
+    const AGGREGATE_MIN = 'min';
+    const AGGREGATE_SUM = 'sum';
+
+    const ORDER_ASC = 'asc';
+    const ORDER_DESC = 'desc';
+
     /**
      * Constructor
      *
      * @param Connection               $connection
-     * @param mixed                    $entity
      * @param ModelInterface           $model
      * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
         $this->converter = $converter;
         $this->factory = $factory;
 
-        $this->assertEntityInstance($entity);
-        $this->instance = $entity;
-
         $this->setQuery();
-        $this->setPrimaryConditions();
-    }
-
-    /**
-     * Asserts entity instance
-     *
-     * @param array|object $entity
-     *
-     * @throws QueryException
-     */
-    protected function assertEntityInstance($entity)
-    {
-        $entityClass = $this->model->entity();
-
-        if ($entity === null) {
-            throw new QueryException(sprintf('Missing required entity for deleting class "%s"', $entityClass));
-        }
-
-        if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for deleting must be an instance of "%s" or array got "%s"', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
-        }
     }
 
     /**
@@ -74,20 +61,18 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
     protected function setQuery()
     {
         $this->query = $this->connection->createQueryBuilder();
-        $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
+        $this->query->select();
+        $this->query->from($this->connection->quoteIdentifier($this->model->table()));
     }
 
     /**
-     * Assigns primary condition
+     * Returns connection
      *
-     * @throws QueryException
+     * @return Connection
      */
-    protected function setPrimaryConditions()
+    public function connection()
     {
-        foreach ($this->model->primaryFields() as $field) {
-            $value = $this->getPropertyValue($this->instance, $field->name());
-            $this->where($field->name(), $value, self::COMPARISON_EQUAL, self::LOGICAL_AND);
-        }
+        return $this->connection;
     }
 
     /**
@@ -117,6 +102,31 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
     }
 
     /**
+     * Adds having condition to builder
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function having($field, $value, $comparison = '==', $logical = 'and')
+    {
+        $condition = $this->condition($field, $value, $comparison, $logical);
+
+        if ($logical === self::LOGICAL_OR) {
+            $this->query->orHaving($condition);
+
+            return $this;
+        }
+
+        $this->query->andHaving($condition);
+
+        return $this;
+    }
+
+    /**
      * Executes query
      * After execution query is reset
      *
@@ -124,17 +134,10 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
      */
     public function execute()
     {
-        foreach ($this->relations as $relation) {
-            $relation->delete($this->instance);
-        }
+        $stmt = $this->connection->prepare($this->queryString());
+        $stmt->execute($this->binds);
 
-        $this->connection
-            ->prepare($this->queryString())
-            ->execute($this->binds);
-
-        $this->identifyEntity($this->instance, null);
-
-        return $this->instance;
+        return $stmt->rowCount();
     }
 
     /**
@@ -149,7 +152,6 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
         $this->binds = [];
 
         $this->setQuery();
-        $this->setPrimaryConditions();
 
         return $this;
     }

@@ -1,12 +1,7 @@
 <?php
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Model\Definition\Field\Integer;
-use Moss\Storage\Model\Definition\Field\String;
-use Moss\Storage\Model\Definition\Index\Primary;
-use Moss\Storage\Model\Model;
-use Moss\Storage\Model\ModelBag;
-use tests\Moss\Storage\Query\QueryMocks;
+use Moss\Storage\TestEntity;
 
 class ReadQueryTest extends QueryMocks
 {
@@ -24,17 +19,17 @@ class ReadQueryTest extends QueryMocks
 
     public function testFields()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('select')->with([]);
-        $query->expects($this->at(6))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(7))->method('addSelect')->with('`bar`');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('select')->with([]);
+        $builder->expects($this->at(6))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(7))->method('addSelect')->with('`bar`');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -45,16 +40,16 @@ class ReadQueryTest extends QueryMocks
 
     public function testField()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('select')->with([]);
-        $query->expects($this->at(6))->method('addSelect')->with('`foo`');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('select')->with([]);
+        $builder->expects($this->at(6))->method('addSelect')->with('`foo`');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -66,16 +61,16 @@ class ReadQueryTest extends QueryMocks
 
     public function testFieldWithMapping()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo_foo` AS `foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('select')->with([]);
-        $query->expects($this->at(6))->method('addSelect')->with('`foo_foo` AS `foo`');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo_foo` AS `foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('select')->with([]);
+        $builder->expects($this->at(6))->method('addSelect')->with('`foo_foo` AS `foo`');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', [['foo', 'string', [], 'foo_foo'], 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -90,17 +85,15 @@ class ReadQueryTest extends QueryMocks
      */
     public function testAggregate($method)
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))
-            ->method('addSelect')
-            ->with(sprintf('%s(`foo`) AS `alias`', $method));
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('addSelect')->with(sprintf('%s(`foo`) AS `alias`', $method));
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -138,12 +131,10 @@ class ReadQueryTest extends QueryMocks
 
     public function testGroup()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->once())
-            ->method('addGroupBy')
-            ->with('`foo`');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('addGroupBy')->with('`foo`');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -154,15 +145,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereSimple()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andWhere')->with('`bar` = :condition_0_bar');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andWhere')->with('`bar` = :condition_0_bar');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -173,15 +164,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithNullValue()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andWhere')->with('`bar` IS NULL');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andWhere')->with('`bar` IS NULL');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -192,15 +183,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithMultipleFields()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andWhere')->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andWhere')->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -211,15 +202,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithMultipleValues()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andWhere')->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andWhere')->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -230,15 +221,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithMultipleFieldsAndValues()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andWhere')->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andWhere')->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -252,15 +243,15 @@ class ReadQueryTest extends QueryMocks
      */
     public function testWhereComparisonOperators($operator, $expected)
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andWhere')->with($expected);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andWhere')->with($expected);
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -275,8 +266,7 @@ class ReadQueryTest extends QueryMocks
      */
     public function testWhereUnsupportedConditionalOperator()
     {
-        $query = $this->mockQueryBuilder();
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -290,27 +280,24 @@ class ReadQueryTest extends QueryMocks
      */
     public function testWhereLogicalOperators($operator)
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+
         switch ($operator) {
             case 'or':
-                $query->expects($this->at(5))
-                    ->method('orWhere')
-                    ->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(5))->method('orWhere')->with('`bar` = :condition_0_bar');
                 break;
             case 'and':
             default:
-                $query->expects($this->at(5))
-                    ->method('andWhere')
-                    ->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(5))->method('andWhere')->with('`bar` = :condition_0_bar');
         }
 
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -325,8 +312,7 @@ class ReadQueryTest extends QueryMocks
      */
     public function testWhereUnsupportedLogicalOperator()
     {
-        $query = $this->mockQueryBuilder();
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -337,15 +323,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testHavingSimple()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andHaving')->with('`bar` = :condition_0_bar');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andHaving')->with('`bar` = :condition_0_bar');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -356,15 +342,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testHavingWithNullValue()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andHaving')->with('`bar` IS NULL');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andHaving')->with('`bar` IS NULL');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -375,15 +361,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testHavingWithMultipleFields()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andHaving')->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andHaving')->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -394,15 +380,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testHavingWithMultipleValues()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andHaving')->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andHaving')->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -413,15 +399,15 @@ class ReadQueryTest extends QueryMocks
 
     public function testHavingWithMultipleFieldsAndValues()
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andHaving')->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andHaving')->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -435,15 +421,15 @@ class ReadQueryTest extends QueryMocks
      */
     public function testHavingComparisonOperators($operator, $expected)
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
-        $query->expects($this->at(5))->method('andHaving')->with($expected);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder->expects($this->at(5))->method('andHaving')->with($expected);
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -458,8 +444,7 @@ class ReadQueryTest extends QueryMocks
      */
     public function testHavingUnsupportedConditionalOperator()
     {
-        $query = $this->mockQueryBuilder();
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -473,27 +458,23 @@ class ReadQueryTest extends QueryMocks
      */
     public function testHavingLogicalOperators($operator)
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->at(0))->method('select')->with(null);
-        $query->expects($this->at(1))->method('from')->with('`table`');
-        $query->expects($this->at(2))->method('select')->with([]);
-        $query->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $query->expects($this->at(4))->method('addSelect')->with('`bar`');
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->at(0))->method('select')->with(null);
+        $builder->expects($this->at(1))->method('from')->with('`table`');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('addSelect')->with('`bar`');
+
         switch ($operator) {
             case 'or':
-                $query->expects($this->at(5))
-                    ->method('orHaving')
-                    ->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(5))->method('orHaving')->with('`bar` = :condition_0_bar');
                 break;
             case 'and':
             default:
-                $query->expects($this->at(5))
-                    ->method('andHaving')
-                    ->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(5))->method('andHaving')->with('`bar` = :condition_0_bar');
         }
 
-
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -508,8 +489,7 @@ class ReadQueryTest extends QueryMocks
      */
     public function testHavingUnsupportedLogicalOperator()
     {
-        $query = $this->mockQueryBuilder();
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -545,12 +525,10 @@ class ReadQueryTest extends QueryMocks
      */
     public function testOrder($order)
     {
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->once())
-            ->method('addOrderBy')
-            ->with('`foo`', $order);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('addOrderBy')->with('`foo`', $order);
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -573,8 +551,7 @@ class ReadQueryTest extends QueryMocks
      */
     public function testOrderUnsupportedSorting()
     {
-        $query = $this->mockQueryBuilder();
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -588,15 +565,11 @@ class ReadQueryTest extends QueryMocks
         $limit = 10;
         $offset = 20;
 
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->once())
-            ->method('setFirstResult')
-            ->with($offset);
-        $query->expects($this->once())
-            ->method('setMaxResults')
-            ->with($limit);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->once())->method('setFirstResult')->with($offset);
+        $builder->expects($this->once())->method('setMaxResults')->with($limit);
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -609,14 +582,11 @@ class ReadQueryTest extends QueryMocks
     {
         $limit = 10;
 
-        $query = $this->mockQueryBuilder();
-        $query->expects($this->never())
-            ->method('setFirstResult');
-        $query->expects($this->once())
-            ->method('setMaxResults')
-            ->with($limit);
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->never())->method('setFirstResult');
+        $builder->expects($this->once())->method('setMaxResults')->with($limit);
 
-        $dbal = $this->mockDBAL($query);
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
@@ -748,9 +718,46 @@ class ReadQueryTest extends QueryMocks
         $query->execute();
     }
 
-    public function testExecuteEntitiesAsObjects()
+    public function testExecuteEntitiesAsObjectsWithPublicProperties()
     {
         $result = [ (object) ['foo' => 'foo']];
+
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('fetchAll')
+            ->willReturn($result);
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+        $converter = $this->mockConverter();
+
+        $relation = $this->mockRelation();
+        $relation->expects($this->once())
+            ->method('read')
+            ->with($result)
+            ->willReturn($result); // because interface always passes by reference
+
+        $factory = $this->mockRelFactory();
+        $factory->expects($this->any())
+            ->method('create')
+            ->willReturn($relation);
+
+        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query->with('relation');
+        $query->execute();
+    }
+
+    public function testExecuteEntitiesAsObjectsWithProtectedProperties()
+    {
+        $result = [ new TestEntity('foo') ];
 
         $builder = $this->mockQueryBuilder();
 

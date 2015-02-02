@@ -24,7 +24,9 @@
         "doctrine/dbal": ">=2.5"
     },
     "require-dev": {
-        "phpunit/phpunit": ">=3.7"
+        "phpunit/phpunit": ">=3.7",
+        "phpmd/phpmd": "1.5.*",
+        "squizlabs/php_codesniffer": "1.5.*"
     },
     "suggest": {
         "psr/log": "For logging queries via LoggingDecorator"
@@ -36,7 +38,7 @@
     },
     "autoload-dev": {
         "psr-0": {
-            "tests\\Moss\\Storage\\": ""
+            "Moss\\Storage\\": "./tests/"
         }
     }
 }

@@ -20,7 +20,7 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface WriteInterface extends QueryBaseInterface
+interface WriteInterface extends QueryInterface
 {
     /**
      * Sets field names which values will be written
@@ -39,26 +39,4 @@ interface WriteInterface extends QueryBaseInterface
      * @return $this
      */
     public function value($field);
-
-    /**
-     * Adds where condition to builder
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     */
-    public function where($field, $value, $comparison = '==', $logical = 'and');
-
-    /**
-     * Sets limits to query
-     *
-     * @param int      $limit
-     * @param null|int $offset
-     *
-     * @return $this
-     */
-    public function limit($limit, $offset = null);
 }

@@ -12,11 +12,8 @@
 namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
-use Moss\Storage\Query\Relation\RelationInterface;
 
 
 /**
@@ -25,33 +22,8 @@ use Moss\Storage\Query\Relation\RelationInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ClearQuery implements ClearInterface
+class ClearQuery extends AbstractQuery implements ClearInterface
 {
-    /**
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
-     * @var ModelInterface
-     */
-    protected $model;
-
-    /**
-     * @var RelationFactoryInterface
-     */
-    protected $factory;
-
-    /**
-     * @var QueryBuilder
-     */
-    protected $query;
-
-    /**
-     * @var array|RelationInterface[]
-     */
-    protected $relations = [];
-
     /**
      * Constructor
      *
@@ -78,59 +50,6 @@ class ClearQuery implements ClearInterface
     }
 
     /**
-     * Returns connection
-     *
-     * @return Connection
-     */
-    public function connection()
-    {
-        return $this->connection;
-    }
-
-    /**
-     * Adds relation to query with optional conditions and sorting (as key value pairs)
-     *
-     * @param string|array $relation
-     * @param array        $conditions
-     * @param array        $order
-     *
-     * @return $this
-     * @throws QueryException
-     */
-    public function with($relation, array $conditions = [], array $order = [])
-    {
-        $instance = $this->factory->create($this->model, $relation, $conditions, $order);
-        $this->relations[$instance->name()] = $instance;
-
-        return $this;
-    }
-
-    /**
-     * Returns relation instance
-     *
-     * @param string $relation
-     *
-     * @return RelationInterface
-     * @throws QueryException
-     */
-    public function relation($relation)
-    {
-        list($relation, $furtherRelations) = $this->factory->splitRelationName($relation);
-
-        if (!isset($this->relations[$relation])) {
-            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $relation, $this->model->entity()));
-        }
-
-        $instance = $this->relations[$relation];
-
-        if ($furtherRelations) {
-            return $instance->relation($furtherRelations);
-        }
-
-        return $instance;
-    }
-
-    /**
      * Executes query
      * After execution query is reset
      *
@@ -150,26 +69,6 @@ class ClearQuery implements ClearInterface
     }
 
     /**
-     * Returns current query string
-     *
-     * @return string
-     */
-    public function queryString()
-    {
-        return (string) $this->query->getSQL();
-    }
-
-    /**
-     * Returns array with bound values and their placeholders as keys
-     *
-     * @return array
-     */
-    public function binds()
-    {
-        return [];
-    }
-
-    /**
      * Resets adapter
      *
      * @return $this
@@ -183,6 +82,4 @@ class ClearQuery implements ClearInterface
 
         return $this;
     }
-
-
 }
