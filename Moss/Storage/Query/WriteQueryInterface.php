@@ -20,7 +20,7 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface WriteInterface extends QueryInterface
+interface WriteQueryInterface extends QueryInterface
 {
     /**
      * Sets field names which values will be written

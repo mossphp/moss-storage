@@ -18,7 +18,7 @@ namespace Moss\Storage\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface CountInterface extends QueryInterface
+interface DeleteQueryInterface extends QueryInterface
 {
     /**
      * Adds where condition to builder
@@ -33,14 +33,12 @@ interface CountInterface extends QueryInterface
     public function where($field, $value, $comparison = '==', $logical = 'and');
 
     /**
-     * Adds having condition to builder
+     * Sets limits to query
      *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
+     * @param int      $limit
+     * @param null|int $offset
      *
      * @return $this
      */
-    public function having($field, $value, $comparison = '==', $logical = 'and');
+    public function limit($limit, $offset = null);
 }

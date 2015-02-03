@@ -25,7 +25,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ReadQuery extends AbstractConditionalQuery implements ReadInterface
+class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
 {
     const AGGREGATE_DISTINCT = 'distinct';
     const AGGREGATE_COUNT = 'count';
@@ -434,7 +434,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadInterface
             }
 
             if (!$ref->hasProperty($field)) {
-                if(!isset($entity->$field)) {
+                if (!isset($entity->$field)) {
                     continue;
                 }
 

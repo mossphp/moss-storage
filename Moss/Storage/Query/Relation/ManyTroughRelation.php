@@ -17,7 +17,7 @@ namespace Moss\Storage\Query\Relation;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ManyTroughRelation extends Relation
+class ManyTroughRelation extends AbstractRelation
 {
     /**
      * Executes read for one-to-many relation

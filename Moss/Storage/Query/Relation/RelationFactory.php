@@ -14,9 +14,8 @@ namespace Moss\Storage\Query\Relation;
 use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\QueryInterface;
+use Moss\Storage\Query\Query;
 use Moss\Storage\Query\QueryException;
-use Moss\Storage\Query\QueryInterface;
 
 /**
  * Entity relationship factory
@@ -24,11 +23,11 @@ use Moss\Storage\Query\QueryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class RelationFactory
+class RelationFactory implements RelationFactoryInterface
 {
 
     /**
-     * @var QueryInterface
+     * @var Query
      */
     private $query;
 
@@ -40,10 +39,10 @@ class RelationFactory
     /**
      * Constructor
      *
-     * @param QueryInterface $query
-     * @param ModelBag       $models
+     * @param Query    $query
+     * @param ModelBag $models
      */
-    public function __construct(QueryInterface $query, ModelBag $models)
+    public function __construct(Query $query, ModelBag $models)
     {
         $this->query = $query;
         $this->bag = $models;

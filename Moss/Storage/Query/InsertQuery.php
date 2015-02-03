@@ -23,7 +23,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class InsertQuery extends AbstractQuery implements InsertInterface
+class InsertQuery extends AbstractQuery implements InsertQueryInterface
 {
     /**
      * Constructor

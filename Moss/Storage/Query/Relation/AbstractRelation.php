@@ -12,7 +12,7 @@
 namespace Moss\Storage\Query\Relation;
 
 use Moss\Storage\Model\ModelBag;
-use Moss\Storage\Query\QueryInterface;
+use Moss\Storage\Query\Query;
 use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
 
 /**
@@ -21,11 +21,11 @@ use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterfa
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-abstract class Relation implements RelationInterface
+abstract class AbstractRelation implements RelationInterface
 {
 
     /**
-     * @var QueryInterface
+     * @var Query
      */
     protected $query;
 
@@ -42,11 +42,11 @@ abstract class Relation implements RelationInterface
     /**
      * Constructor
      *
-     * @param QueryInterface              $query
+     * @param Query              $query
      * @param RelationDefinitionInterface $relation
      * @param ModelBag                    $models
      */
-    public function __construct(QueryInterface $query, RelationDefinitionInterface $relation, ModelBag $models)
+    public function __construct(Query $query, RelationDefinitionInterface $relation, ModelBag $models)
     {
         $this->query = & $query;
         $this->relation = & $relation;
@@ -66,7 +66,7 @@ abstract class Relation implements RelationInterface
     /**
      * Returns relation query instance
      *
-     * @return QueryInterface
+     * @return Query
      */
     public function query()
     {
@@ -93,7 +93,7 @@ abstract class Relation implements RelationInterface
      *
      * @param string $relation
      *
-     * @return QueryInterface
+     * @return Query
      */
     public function relation($relation)
     {

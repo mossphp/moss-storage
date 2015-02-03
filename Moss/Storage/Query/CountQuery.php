@@ -25,7 +25,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class CountQuery extends AbstractConditionalQuery implements CountInterface
+class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
 {
     const AGGREGATE_DISTINCT = 'distinct';
     const AGGREGATE_COUNT = 'count';
@@ -53,6 +53,7 @@ class CountQuery extends AbstractConditionalQuery implements CountInterface
         $this->factory = $factory;
 
         $this->setQuery();
+        $this->setPrimaryFields();
     }
 
     /**
@@ -63,6 +64,19 @@ class CountQuery extends AbstractConditionalQuery implements CountInterface
         $this->query = $this->connection->createQueryBuilder();
         $this->query->select();
         $this->query->from($this->connection->quoteIdentifier($this->model->table()));
+    }
+
+    /**
+     * Adds primary fields for read
+     *
+     * @throws QueryException
+     */
+    protected function setPrimaryFields()
+    {
+        $this->query->select([]);
+        foreach ($this->model->primaryFields() as $field) {
+            $this->query->addSelect($this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()));
+        }
     }
 
     /**
@@ -152,6 +166,7 @@ class CountQuery extends AbstractConditionalQuery implements CountInterface
         $this->binds = [];
 
         $this->setQuery();
+        $this->setPrimaryFields();
 
         return $this;
     }

@@ -67,6 +67,7 @@ class ReadOneQuery extends ReadQuery
         foreach ($this->relations as $relation) {
             $result = $relation->read($result);
         }
+
         return $result[0];
     }
 

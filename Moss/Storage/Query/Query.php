@@ -14,6 +14,7 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Converter\ConverterInterface;
+use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\NormalizeClassNameTrait;
 
@@ -50,17 +51,16 @@ class Query
     /**
      * Constructor
      *
-     * @param Connection               $connection
-     * @param ModelBag                 $models
-     * @param ConverterInterface       $converter
-     * @param RelationFactoryInterface $factory
+     * @param Connection         $connection
+     * @param ModelBag           $models
+     * @param ConverterInterface $converter
      */
-    public function __construct(Connection $connection, ModelBag $models, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelBag $models, ConverterInterface $converter)
     {
         $this->connection = $connection;
         $this->models = $models;
         $this->converter = $converter;
-        $this->factory = $factory;
+        $this->factory = new RelationFactory($this, $models);
     }
 
     /**
@@ -78,7 +78,7 @@ class Query
      *
      * @param string $entity
      *
-     * @return $this
+     * @return CountQueryInterface
      */
     public function count($entity)
     {
@@ -95,7 +95,7 @@ class Query
      *
      * @param string $entity
      *
-     * @return $this
+     * @return ReadQueryInterface
      */
     public function read($entity)
     {
@@ -112,7 +112,7 @@ class Query
      *
      * @param string $entity
      *
-     * @return $this
+     * @return ReadQueryInterface
      */
     public function readOne($entity)
     {
@@ -130,7 +130,7 @@ class Query
      * @param string|object     $entity
      * @param null|array|object $instance
      *
-     * @return $this
+     * @return WriteQueryInterface
      */
     public function write($entity, $instance = null)
     {
@@ -151,7 +151,7 @@ class Query
      * @param string|object     $entity
      * @param null|array|object $instance
      *
-     * @return $this
+     * @return InsertQueryInterface
      */
     public function insert($entity, $instance)
     {
@@ -169,10 +169,10 @@ class Query
     /**
      * Sets update operation
      *
-     * @param string|object       $entity
+     * @param string|object     $entity
      * @param null|array|object $instance
      *
-     * @return $this
+     * @return UpdateQueryInterface
      */
     public function update($entity, $instance)
     {
@@ -190,10 +190,10 @@ class Query
     /**
      * Sets delete operation
      *
-     * @param string|object       $entity
+     * @param string|object     $entity
      * @param null|array|object $instance
      *
-     * @return $this
+     * @return DeleteQueryInterface
      */
     public function delete($entity, $instance)
     {
@@ -213,7 +213,7 @@ class Query
      *
      * @param string $entity
      *
-     * @return $this
+     * @return ClearInterface
      */
     public function clear($entity)
     {

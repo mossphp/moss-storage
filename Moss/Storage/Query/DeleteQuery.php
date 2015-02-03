@@ -23,7 +23,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class DeleteQuery extends AbstractConditionalQuery implements DeleteInterface
+class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterface
 {
     /**
      * Constructor

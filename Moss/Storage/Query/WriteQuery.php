@@ -24,7 +24,7 @@ use Moss\Storage\Query\Relation\RelationInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class WriteQuery extends AbstractQuery implements WriteInterface
+class WriteQuery extends AbstractQuery implements WriteQueryInterface
 {
     use PropertyAccessorTrait;
 
@@ -95,7 +95,8 @@ class WriteQuery extends AbstractQuery implements WriteInterface
         }
 
         foreach ($fields as $field) {
-            $this->values[] = $this->model->field($field)->name();
+            $this->values[] = $this->model->field($field)
+                ->name();
         }
 
         return $this;
@@ -110,7 +111,8 @@ class WriteQuery extends AbstractQuery implements WriteInterface
      */
     public function value($field)
     {
-        $this->values[] = $this->model->field($field)->name();
+        $this->values[] = $this->model->field($field)
+            ->name();
 
         return $this;
     }
@@ -123,7 +125,8 @@ class WriteQuery extends AbstractQuery implements WriteInterface
      */
     public function execute()
     {
-        $this->buildQuery()->execute();
+        $this->buildQuery()
+            ->execute();
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);
@@ -139,7 +142,8 @@ class WriteQuery extends AbstractQuery implements WriteInterface
      */
     public function queryString()
     {
-        return $this->buildQuery()->queryString();
+        return $this->buildQuery()
+            ->queryString();
     }
 
     /**
@@ -147,13 +151,14 @@ class WriteQuery extends AbstractQuery implements WriteInterface
      */
     protected function buildQuery()
     {
-        if($this->checkIfEntityExists()) {
+        if ($this->checkIfEntityExists()) {
             $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->converter, $this->factory);
         } else {
             $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->converter, $this->factory);
         }
 
         $query->values($this->values);
+
         return $query;
     }
 

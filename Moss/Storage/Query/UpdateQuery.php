@@ -24,7 +24,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class UpdateQuery extends AbstractConditionalQuery implements UpdateInterface
+class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterface
 {
     /**
      * Constructor
