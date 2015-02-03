@@ -20,6 +20,6 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface ClearInterface extends QueryInterface
+interface ClearQueryInterface extends QueryInterface
 {
 }

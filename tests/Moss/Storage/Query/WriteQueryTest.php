@@ -91,12 +91,14 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with(null);
         $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(3))->method('getSQL')->with();
-        $builder->expects($this->at(4))->method('insert')->with('`table`');
-        $builder->expects($this->at(5))->method('values')->with([]);
-        $builder->expects($this->at(6))->method('setValue')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(7))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))->method('getSQL')->with();
+        $builder->expects($this->at(6))->method('insert')->with('`table`');
+        $builder->expects($this->at(7))->method('values')->with([]);
+        $builder->expects($this->at(8))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))->method('setValue')->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
         $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
@@ -121,12 +123,14 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with(null);
         $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(3))->method('getSQL')->with();
-        $builder->expects($this->at(4))->method('update')->with('`table`');
-        $builder->expects($this->at(5))->method('values')->with([]);
-        $builder->expects($this->at(6))->method('set')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(7))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))->method('getSQL')->with();
+        $builder->expects($this->at(6))->method('update')->with('`table`');
+        $builder->expects($this->at(7))->method('values')->with([]);
+        $builder->expects($this->at(8))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))->method('set')->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
         $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
@@ -151,12 +155,14 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with(null);
         $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(3))->method('getSQL')->with();
-        $builder->expects($this->at(4))->method('insert')->with('`table`');
-        $builder->expects($this->at(5))->method('values')->with([]);
-        $builder->expects($this->at(6))->method('setValue')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(7))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))->method('getSQL')->with();
+        $builder->expects($this->at(6))->method('insert')->with('`table`');
+        $builder->expects($this->at(7))->method('values')->with([]);
+        $builder->expects($this->at(8))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))->method('setValue')->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
         $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
@@ -182,12 +188,14 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with(null);
         $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(3))->method('getSQL')->with();
-        $builder->expects($this->at(4))->method('update')->with('`table`');
-        $builder->expects($this->at(5))->method('values')->with([]);
-        $builder->expects($this->at(6))->method('set')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(7))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))->method('getSQL')->with();
+        $builder->expects($this->at(6))->method('update')->with('`table`');
+        $builder->expects($this->at(7))->method('values')->with([]);
+        $builder->expects($this->at(8))->method('set')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))->method('set')->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
         $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
@@ -380,12 +388,14 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('select')->with(null);
         $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(3))->method('getSQL')->with();
-        $builder->expects($this->at(4))->method('insert')->with('`table`');
-        $builder->expects($this->at(5))->method('values')->with([]);
-        $builder->expects($this->at(6))->method('setValue')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(7))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(2))->method('select')->with([]);
+        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))->method('getSQL')->with();
+        $builder->expects($this->at(6))->method('insert')->with('`table`');
+        $builder->expects($this->at(7))->method('values')->with([]);
+        $builder->expects($this->at(8))->method('setValue')->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))->method('setValue')->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
         $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));

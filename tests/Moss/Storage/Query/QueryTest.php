@@ -38,7 +38,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\CountInterface', $query->count('\\stdClass'));
+        $this->assertInstanceOf('\Moss\Storage\Query\CountQueryInterface', $query->count('\\stdClass'));
     }
 
     /**
@@ -53,7 +53,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\ReadInterface', $query->read('\\stdClass'));
+        $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->read('\\stdClass'));
     }
 
     /**
@@ -68,7 +68,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\ReadInterface', $query->readOne('\\stdClass'));
+        $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->readOne('\\stdClass'));
     }
 
     /**
@@ -83,7 +83,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\ClearInterface', $query->clear('\\stdClass'));
+        $this->assertInstanceOf('\Moss\Storage\Query\ClearQueryInterface', $query->clear('\\stdClass'));
     }
 
     /**
@@ -98,7 +98,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\WriteInterface', $query->write($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\WriteQueryInterface', $query->write($entity, $instance));
     }
 
     /**
@@ -113,7 +113,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\InsertInterface', $query->insert($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\InsertQueryInterface', $query->insert($entity, $instance));
     }
 
     /**
@@ -128,7 +128,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\UpdateInterface', $query->update($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\UpdateQueryInterface', $query->update($entity, $instance));
     }
 
     /**
@@ -143,7 +143,7 @@ class QueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\DeleteInterface', $query->delete($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\DeleteQueryInterface', $query->delete($entity, $instance));
     }
 
     public function instanceProvider()
