@@ -18,7 +18,7 @@ namespace Moss\Storage\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface ReadQueryInterface extends QueryInterface
+interface ReadQueryInterface extends QueryInterface, RelationalInterface
 {
     /**
      * Sets field names which will be read
@@ -119,7 +119,7 @@ interface ReadQueryInterface extends QueryInterface
     public function group($field);
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value
@@ -131,7 +131,7 @@ interface ReadQueryInterface extends QueryInterface
     public function where($field, $value, $comparison = '==', $logical = 'and');
 
     /**
-     * Adds having condition to builder
+     * Adds having condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

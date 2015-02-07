@@ -11,9 +11,11 @@
 
 namespace Moss\Storage\Query\Relation;
 
+use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
+use Moss\Storage\Query\PropertyAccessorTrait;
 use Moss\Storage\Query\Query;
-use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
+use Moss\Storage\Query\QueryInterface;
 
 /**
  * Abstract class for basic relation methods
@@ -21,8 +23,9 @@ use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterfa
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-abstract class AbstractRelation implements RelationInterface
+abstract class AbstractRelation
 {
+    use PropertyAccessorTrait;
 
     /**
      * @var Query
@@ -35,22 +38,28 @@ abstract class AbstractRelation implements RelationInterface
     protected $models;
 
     /**
-     * @var RelationDefinitionInterface
+     * @var DefinitionInterface
      */
-    protected $relation;
+    protected $definition;
+
+    protected $relations = [];
+    protected $conditions = [];
+    protected $orders = [];
+    protected $limit;
+    protected $offset;
 
     /**
      * Constructor
      *
-     * @param Query              $query
-     * @param RelationDefinitionInterface $relation
-     * @param ModelBag                    $models
+     * @param Query               $query
+     * @param DefinitionInterface $relation
+     * @param ModelBag            $models
      */
-    public function __construct(Query $query, RelationDefinitionInterface $relation, ModelBag $models)
+    public function __construct(Query $query, DefinitionInterface $relation, ModelBag $models)
     {
-        $this->query = & $query;
-        $this->relation = & $relation;
-        $this->models = & $models;
+        $this->query = $query;
+        $this->definition = $relation;
+        $this->models = $models;
     }
 
     /**
@@ -60,17 +69,65 @@ abstract class AbstractRelation implements RelationInterface
      */
     public function name()
     {
-        return $this->relation->name();
+        return $this->definition->name();
     }
 
     /**
      * Returns relation query instance
      *
-     * @return Query
+     * @return QueryInterface
      */
     public function query()
     {
         return $this->query;
+    }
+
+    /**
+     * Adds where condition to relation
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function where($field, $value, $comparison = '==', $logical = 'and')
+    {
+        $this->conditions[] = func_get_args();
+
+        return $this;
+    }
+
+    /**
+     * Adds sorting to relation
+     *
+     * @param string       $field
+     * @param string|array $order
+     *
+     * @return $this
+     */
+    public function order($field, $order = 'desc')
+    {
+        $this->conditions[] = func_get_args();
+
+        return $this;
+    }
+
+    /**
+     * Sets limits to relation
+     *
+     * @param int      $limit
+     * @param null|int $offset
+     *
+     * @return $this
+     */
+    public function limit($limit, $offset = null)
+    {
+        $this->limit = $limit;
+        $this->offset = $offset;
+
+        return $this;
     }
 
     /**
@@ -82,53 +139,21 @@ abstract class AbstractRelation implements RelationInterface
      */
     public function with($relation)
     {
-        $this->query()
-            ->with($relation);
+        $this->relations[] = $relation;
 
         return $this;
     }
 
     /**
-     * Returns sub relation instance
+     * Returns relation instance
      *
      * @param string $relation
      *
-     * @return Query
+     * @return RelationInterface
      */
     public function relation($relation)
     {
-        return $this->query()
-            ->relation($relation);
-    }
 
-    /**
-     * Returns var type
-     *
-     * @param mixed $var
-     *
-     * @return string
-     */
-    private function getType($var)
-    {
-        return is_object($var) ? get_class($var) : gettype($var);
-    }
-
-    /**
-     * Throws exception when entity is not required instance
-     *
-     * @param mixed $entity
-     *
-     * @return bool
-     * @throws RelationException
-     */
-    protected function assertInstance($entity)
-    {
-        $entityClass = $this->relation->entity();
-        if (!$entity instanceof $entityClass) {
-            throw new RelationException(sprintf('Relation table must be instance of %s, got %s', $entityClass, $this->getType($entity)));
-        }
-
-        return true;
     }
 
     /**
@@ -140,108 +165,13 @@ abstract class AbstractRelation implements RelationInterface
      */
     protected function assertEntity($entity)
     {
-        foreach ($this->relation->localValues() as $local => $value) {
-            if ($this->accessProperty($entity, $local) != $value) {
+        foreach ($this->definition->localValues() as $local => $value) {
+            if ($this->getPropertyValue($entity, $local) != $value) {
                 return false;
             }
         }
 
         return true;
-    }
-
-    /**
-     * Checks if container has array access
-     *
-     * @param $container
-     *
-     * @throws RelationException
-     */
-    protected function assertArrayAccess($container)
-    {
-        if (!$container instanceof \ArrayAccess && !is_array($container)) {
-            throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', $this->getType($container)));
-        }
-    }
-
-    /**
-     * Fetches collection of entities matching set conditions
-     *
-     * @param string $entity
-     * @param array  $conditions
-     * @param bool   $reset
-     *
-     * @return array
-     */
-    protected function fetch($entity, array $conditions, $reset = false)
-    {
-        $query = clone $this->query;
-
-        if ($reset) {
-            $query->reset();
-        }
-
-        $query->read($entity);
-
-        foreach ($conditions as $field => $values) {
-            $query->where($field, $values);
-        }
-
-        return $query->execute();
-    }
-
-    /**
-     * Removes obsolete entities that match conditions but don't exist in collection
-     *
-     * @param string $entity
-     * @param array  $collection
-     * @param array  $conditions
-     */
-    protected function cleanup($entity, array $collection, array $conditions)
-    {
-        if (!$existing = $this->isCleanupNecessary($entity, $conditions)) {
-            return;
-        }
-
-        $identifiers = [];
-        foreach ($collection as $instance) {
-            $identifiers[] = $this->identifyEntity($entity, $instance);
-        }
-
-        foreach ($existing as $instance) {
-            if (in_array($this->identifyEntity($entity, $instance), $identifiers)) {
-                continue;
-            }
-
-            $query = clone $this->query;
-            $query->reset()
-                ->delete($entity, $instance)
-                ->execute();
-        }
-
-        return;
-    }
-
-    /**
-     * Returns array with entities that should be deleted or false otherwise
-     *
-     * @param $entity
-     * @param $conditions
-     *
-     * @return array|bool
-     */
-    private function isCleanupNecessary($entity, $conditions)
-    {
-        if (empty($collection) || empty($conditions)) {
-            return false;
-        }
-
-        $existing = $this->fetch($entity, $conditions);
-
-        if (empty($existing)) {
-            return false;
-        }
-
-        return $existing;
     }
 
     /**
@@ -284,47 +214,122 @@ abstract class AbstractRelation implements RelationInterface
     {
         $key = [];
         foreach ($pairs as $local => $refer) {
-            $key[] = $local . ':' . $this->accessProperty($entity, $refer);
+            $key[] = $local . ':' . $this->getPropertyValue($entity, $refer);
         }
 
         return implode('-', $key);
     }
 
     /**
-     * Returns property value
-     * If third parameter passed, value will be set to it
+     * Fetches collection of entities matching set conditions
+     * Optionally sorts it and limits it
      *
-     * @param array|object $entity
-     * @param string       $field
-     * @param null|mixed   $value
+     * @param string $entity
+     * @param array  $conditions
+     * @param bool   $result
      *
-     * @return mixed|null
+     * @return array
+     */
+    protected function fetch($entity, array $conditions, $result = false)
+    {
+        $query = clone $this->query->read($entity);
+
+        foreach ($conditions as $field => $values) {
+            $query->where($field, $values);
+        }
+
+        if (!$result) {
+            return $query->execute();
+        }
+
+        foreach ($this->relations as $relation) {
+            $query->with($relation);
+        }
+
+        foreach ($this->conditions as $condition) {
+            $query->where($condition[0], $condition[1], $condition[2], $condition[3]);
+        }
+
+        foreach ($this->orders as $order) {
+            $query->order($order[0], $order[1]);
+        }
+
+        if ($this->limit !== null || $this->offset !== null) {
+            $query->limit($this->limit, $this->offset);
+        }
+
+        return $query->execute();
+    }
+
+    /**
+     * Throws exception when entity is not required instance
+     *
+     * @param mixed $entity
+     *
+     * @return bool
      * @throws RelationException
      */
-    protected function accessProperty(&$entity, $field, $value = null)
+    protected function assertInstance($entity)
     {
-        if (is_array($entity) || $entity instanceof \ArrayAccess) {
-            if ($value !== null) {
-                $entity[$field] = $value;
+        $entityClass = $this->definition->entity();
+        if (!$entity instanceof $entityClass) {
+            throw new RelationException(sprintf('Relation entity must be instance of %s, got %s', $entityClass, $this->getType($entity)));
+        }
+
+        return true;
+    }
+
+    /**
+     * Removes obsolete entities that match conditions but don't exist in collection
+     *
+     * @param string $entity
+     * @param array  $collection
+     * @param array  $conditions
+     */
+    protected function cleanup($entity, array $collection, array $conditions)
+    {
+        if (!$existing = $this->isCleanupNecessary($entity, $conditions)) {
+            return;
+        }
+
+        $identifiers = [];
+        foreach ($collection as $instance) {
+            $identifiers[] = $this->identifyEntity($entity, $instance);
+        }
+
+        foreach ($existing as $instance) {
+            if (in_array($this->identifyEntity($entity, $instance), $identifiers)) {
+                continue;
             }
 
-            return isset($entity[$field]) ? $entity[$field] : null;
+            $this->query->delete($entity, $instance)
+                ->execute();
         }
 
-        $ref = new \ReflectionObject($entity);
+        return;
+    }
 
-        if (!$ref->hasProperty($field)) {
-            $entity->$field = $value;
+    /**
+     * Returns array with entities that should be deleted or false otherwise
+     *
+     * @param $entity
+     * @param $conditions
+     *
+     * @return array|bool
+     */
+    private function isCleanupNecessary($entity, $conditions)
+    {
+        if (empty($collection) || empty($conditions)) {
+            return false;
         }
 
-        $prop = $ref->getProperty($field);
-        $prop->setAccessible(true);
+        $existing = $this->fetch($entity, $conditions);
 
-        if ($value !== null) {
-            $prop->setValue($entity, $value);
+        if (empty($existing)) {
+            return false;
         }
 
-        return $prop->getValue($entity);
+        return $existing;
     }
 
     /**
@@ -343,9 +348,35 @@ abstract class AbstractRelation implements RelationInterface
 
         $id = [];
         foreach ($indexes as $field) {
-            $id[] = $this->accessProperty($instance, $field->name());
+            $id[] = $this->getPropertyValue($instance, $field->name());
         }
 
         return implode(':', $id);
+    }
+
+    /**
+     * Checks if container has array access
+     *
+     * @param $container
+     *
+     * @throws RelationException
+     */
+    protected function assertArrayAccess($container)
+    {
+        if (!$container instanceof \ArrayAccess && !is_array($container)) {
+            throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', $this->getType($container)));
+        }
+    }
+
+    /**
+     * Returns var type
+     *
+     * @param mixed $var
+     *
+     * @return string
+     */
+    protected function getType($var)
+    {
+        return is_object($var) ? get_class($var) : gettype($var);
     }
 }

@@ -19,23 +19,24 @@ trait PropertyAccessorTrait
      *
      * @param null|array|object $entity
      * @param string            $field
+     * @param mixed             $default
      *
      * @return mixed
      * @throws QueryException
      */
-    protected function getPropertyValue($entity, $field)
+    protected function getPropertyValue($entity, $field, $default = null)
     {
         if (!$entity) {
             throw new QueryException('Unable to access entity properties, missing instance');
         }
 
         if (is_array($entity) || $entity instanceof \ArrayAccess) {
-            return isset($entity[$field]) ? $entity[$field] : null;
+            return isset($entity[$field]) ? $entity[$field] : $default;
         }
 
         $ref = new \ReflectionObject($entity);
         if (!$ref->hasProperty($field)) {
-            return null;
+            return $default;
         }
 
         $prop = $ref->getProperty($field);

@@ -21,7 +21,7 @@ namespace Moss\Storage\Query;
 interface CountQueryInterface extends QueryInterface
 {
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value
@@ -33,7 +33,7 @@ interface CountQueryInterface extends QueryInterface
     public function where($field, $value, $comparison = '==', $logical = 'and');
 
     /**
-     * Adds having condition to builder
+     * Adds having condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

@@ -55,7 +55,10 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     public function mockRelFactory()
     {
         $factoryMock = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
-
+        $factoryMock->expects($this->any())->method('relation')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('where')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('order')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('limit')->willReturnSelf();
         $factoryMock->expects($this->any())
             ->method('splitRelationName')
             ->will($this->returnCallback(function ($arg) { return array_merge(explode('.', $arg), ['', null]); }));

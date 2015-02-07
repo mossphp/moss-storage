@@ -33,7 +33,7 @@ abstract class AbstractConditionalQuery extends AbstractQuery
     const LOGICAL_OR = 'or';
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

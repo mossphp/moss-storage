@@ -18,7 +18,6 @@ use Doctrine\DBAL\Connection;
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
- * @todo This should be renamed to QueryInterface when original one is no more needed
  */
 interface QueryInterface
 {
@@ -28,27 +27,6 @@ interface QueryInterface
      * @return Connection
      */
     public function connection();
-
-    /**
-     * Adds relation to query
-     *
-     * @param string|array $relation
-     * @param array        $conditions
-     * @param array        $order
-     *
-     * @return $this
-     * @throws QueryException
-     */
-    public function with($relation, array $conditions = [], array $order = []);
-
-    /**
-     * Returns query instance from requested relation
-     *
-     * @param string $relation
-     *
-     * @return QueryInterface
-     */
-    public function relation($relation);
 
     /**
      * Executes query

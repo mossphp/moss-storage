@@ -90,7 +90,7 @@ class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
     }
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value
@@ -116,7 +116,7 @@ class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
     }
 
     /**
-     * Adds having condition to builder
+     * Adds having condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

@@ -91,7 +91,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterfa
     }
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

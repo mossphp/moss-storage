@@ -604,13 +604,33 @@ class ReadQueryTest extends QueryMocks
         $relation = $this->mockRelation();
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->once())
-            ->method('create')
-            ->with($model, 'relation', [['foo', 'bar', '=']], ['foo', 'asc'])
+        $factory->expects($this->at(0))
+            ->method('reset')
+            ->with()
+            ->willReturnSelf();
+        $factory->expects($this->at(1))
+            ->method('relation')
+            ->with($model, 'relation')
+            ->willReturnSelf();
+        $factory->expects($this->at(2))
+            ->method('where')
+            ->with('foo', 'bar', '=', 'and')
+            ->willReturnSelf();
+        $factory->expects($this->at(3))
+            ->method('order')
+            ->with('foo', 'asc')
+            ->willReturnSelf();
+        $factory->expects($this->at(4))
+            ->method('limit')
+            ->with(1, 2)
+            ->willReturnSelf();
+        $factory->expects($this->at(5))
+            ->method('build')
+            ->with()
             ->willReturn($relation);
 
         $query = new ReadQuery($dbal, $model, $converter, $factory);
-        $query->with('relation', [['foo', 'bar', '=']], ['foo', 'asc']);
+        $query->with('relation', [['foo', 'bar', '=']], ['foo', 'asc'], 1, 2);
     }
 
     public function testRelation()
@@ -626,7 +646,7 @@ class ReadQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->once())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new ReadQuery($dbal, $model, $converter, $factory);
@@ -653,7 +673,7 @@ class ReadQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new ReadQuery($dbal, $model, $converter, $factory);
@@ -710,7 +730,7 @@ class ReadQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new ReadQuery($dbal, $model, $converter, $factory);
@@ -747,7 +767,7 @@ class ReadQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new ReadQuery($dbal, $model, $converter, $factory);
@@ -784,7 +804,7 @@ class ReadQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new ReadQuery($dbal, $model, $converter, $factory);

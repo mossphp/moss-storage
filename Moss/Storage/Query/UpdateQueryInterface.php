@@ -17,7 +17,7 @@ namespace Moss\Storage\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface UpdateQueryInterface extends QueryInterface
+interface UpdateQueryInterface extends QueryInterface, RelationalInterface
 {
     /**
      * Sets field names which values will be written
@@ -38,7 +38,7 @@ interface UpdateQueryInterface extends QueryInterface
     public function value($field);
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

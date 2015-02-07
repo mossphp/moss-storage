@@ -12,6 +12,7 @@
 namespace Moss\Storage\Query\Relation;
 
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 
 /**
  * Relationship factory interface
@@ -22,19 +23,61 @@ use Moss\Storage\Model\ModelInterface;
 interface RelationFactoryInterface
 {
     /**
-     * Adds relation to query with optional conditions and sorting (as key value pairs)
-     *
      * @param ModelInterface $model
-     * @param string|array   $relation
-     * @param array          $conditions
-     * @param array          $order
+     * @param string         $relation
+     *
+     * @return $this
+     */
+    public function relation(ModelInterface $model, $relation);
+
+    /**
+     * Adds where condition to relation
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function where($field, $value, $comparison = '=', $logical = 'and');
+
+    /**
+     * Adds sorting to relation
+     *
+     * @param string       $field
+     * @param string|array $order
+     *
+     * @return $this
+     */
+    public function order($field, $order = 'desc');
+
+    /**
+     * Sets limits to relation
+     *
+     * @param int      $limit
+     * @param null|int $offset
+     *
+     * @return $this
+     */
+    public function limit($limit, $offset = null);
+
+    /**
+     * Builds relation instance
      *
      * @return RelationInterface
      */
-    public function create(ModelInterface $model, $relation, array $conditions = [], array $order = []);
+    public function build();
 
     /**
-     * Splits relation name
+     * Resets builder
+     *
+     * @return $this
+     */
+    public function reset();
+
+    /**
+     * Splits relation names
      *
      * @param string $relationName
      *

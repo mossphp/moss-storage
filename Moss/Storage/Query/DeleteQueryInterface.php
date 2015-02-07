@@ -18,10 +18,10 @@ namespace Moss\Storage\Query;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface DeleteQueryInterface extends QueryInterface
+interface DeleteQueryInterface extends QueryInterface, RelationalInterface
 {
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

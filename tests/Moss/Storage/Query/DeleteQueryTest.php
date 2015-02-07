@@ -323,13 +323,20 @@ class DeleteQueryTest extends QueryMocks
         $relation = $this->mockRelation();
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->once())
-            ->method('create')
-            ->with($model, 'relation', [['foo', 'bar', '=']], ['foo', 'asc'])
+        $factory->expects($this->at(0))
+            ->method('reset')
+            ->with()
+            ->willReturnSelf();
+        $factory->expects($this->at(1))
+            ->method('relation')
+            ->with($model, 'relation')
+            ->willReturnSelf();
+        $factory->expects($this->at(2))
+            ->method('build')
             ->willReturn($relation);
 
         $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
-        $query->with('relation', [['foo', 'bar', '=']], ['foo', 'asc']);
+        $query->with('relation');
     }
 
     public function testRelation()
@@ -347,7 +354,7 @@ class DeleteQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->once())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
@@ -376,7 +383,7 @@ class DeleteQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
@@ -433,7 +440,7 @@ class DeleteQueryTest extends QueryMocks
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())
-            ->method('create')
+            ->method('build')
             ->willReturn($relation);
 
         $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);

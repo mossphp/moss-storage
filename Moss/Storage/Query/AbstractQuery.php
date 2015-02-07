@@ -79,18 +79,18 @@ abstract class AbstractQuery
     }
 
     /**
-     * Adds relation to query with optional conditions and sorting (as key value pairs)
+     * Adds relation to query
      *
-     * @param string|array $relation
-     * @param array        $conditions
-     * @param array        $order
+     * @param string $relation
      *
      * @return $this
      * @throws QueryException
      */
-    public function with($relation, array $conditions = [], array $order = [])
+    public function with($relation)
     {
-        $instance = $this->factory->create($this->model, $relation, $conditions, $order);
+        $this->factory->reset();
+        $instance = $this->factory->relation($this->model, $relation)
+            ->build();
         $this->relations[$instance->name()] = $instance;
 
         return $this;

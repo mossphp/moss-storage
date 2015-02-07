@@ -11,7 +11,7 @@
 
 namespace Moss\Storage\Model;
 
-use Moss\Storage\NormalizeClassNameTrait;
+use Moss\Storage\NormalizeNamespaceTrait;
 
 /**
  * Registry containing models
@@ -21,7 +21,7 @@ use Moss\Storage\NormalizeClassNameTrait;
  */
 class ModelBag
 {
-    use NormalizeClassNameTrait;
+    use NormalizeNamespaceTrait;
 
     /**
      * @var array|ModelInterface
@@ -58,7 +58,7 @@ class ModelBag
      */
     public function get($alias)
     {
-        $alias = $this->normalizeClassName($alias);
+        $alias = $this->normalizeNamespace($alias);
 
         if (isset($this->byAlias[$alias])) {
             return $this->byAlias[$alias];
@@ -89,7 +89,7 @@ class ModelBag
             $this->byAlias[$model->alias($alias)] = &$this->collection[$hash];
         }
 
-        $this->byEntity[$this->normalizeClassName($model->entity())] = &$this->collection[$hash];
+        $this->byEntity[$this->normalizeNamespace($model->entity())] = &$this->collection[$hash];
 
         return $this;
     }
@@ -103,7 +103,7 @@ class ModelBag
      */
     public function has($alias)
     {
-        $alias = $this->normalizeClassName($alias);
+        $alias = $this->normalizeNamespace($alias);
 
         if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
             return true;

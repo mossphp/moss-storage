@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
 
 /**
  * Query interface
@@ -20,6 +18,24 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface ClearQueryInterface extends QueryInterface, RelationalInterface
+interface RelationalInterface
 {
+    /**
+     * Adds relation to query
+     *
+     * @param string|array $relation
+     *
+     * @return $this
+     * @throws QueryException
+     */
+    public function with($relation);
+
+    /**
+     * Returns relation instance
+     *
+     * @param string $relation
+     *
+     * @return QueryInterface
+     */
+    public function relation($relation);
 }

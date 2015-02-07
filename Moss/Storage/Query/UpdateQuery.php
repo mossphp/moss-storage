@@ -172,7 +172,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
     }
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value

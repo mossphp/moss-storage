@@ -11,7 +11,7 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
-use Moss\Storage\NormalizeClassNameTrait;
+use Moss\Storage\NormalizeNamespaceTrait;
 
 /**
  * One to one trough mediator table (with pivot table)
@@ -21,7 +21,7 @@ use Moss\Storage\NormalizeClassNameTrait;
  */
 class OneTrough extends Relation
 {
-    use NormalizeClassNameTrait;
+    use NormalizeNamespaceTrait;
 
     /**
      * @param string      $entity
@@ -32,11 +32,11 @@ class OneTrough extends Relation
      */
     public function __construct($entity, array $in, array $out, $mediator, $container = null)
     {
-        $this->entity = $this->normalizeClassName($entity);
+        $this->entity = $this->normalizeNamespace($entity);
         $this->type = 'oneTrough';
         $this->container = $this->containerName($container);
 
-        $this->mediator = $this->normalizeClassName($entity);
+        $this->mediator = $this->normalizeNamespace($entity);
 
         $this->assertTroughKeys($in, $out);
         $this->assignKeys($in, $this->in);

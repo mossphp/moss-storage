@@ -303,7 +303,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     }
 
     /**
-     * Adds where condition to builder
+     * Adds where condition to query
      *
      * @param mixed  $field
      * @param mixed  $value
@@ -329,7 +329,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     }
 
     /**
-     * Adds having condition to builder
+     * Adds having condition to query
      *
      * @param mixed  $field
      * @param mixed  $value
@@ -385,6 +385,58 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
         if (!in_array($order, [self::ORDER_ASC, self::ORDER_DESC])) {
             throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
         }
+    }
+
+    /**
+     * Adds relation to query with optional conditions and sorting (as key value pairs)
+     *
+     * @param string|array $relation
+     * @param array        $conditions
+     * @param array        $order
+     *
+     * @return $this
+     */
+    public function with($relation, array $conditions = [], array $order = [], $limit = null, $offset = null)
+    {
+        $this->factory->reset();
+        $this->factory->relation($this->model, $relation);
+
+        foreach ($conditions as $condition) {
+            $condition = $this->applyDefaults($condition, [null, null, '=', 'and']);
+            $this->factory->where($condition[0], $condition[1], $condition[2], $condition[3]);
+        }
+
+        if (!empty($order)) {
+            $order = $this->applyDefaults($order, [null, 'asc']);
+            $this->factory->order($order[0], $order[1]);
+        }
+
+        if ($limit !== null || $offset !== null) {
+            $this->factory->limit($limit, $offset);
+        }
+
+        $instance = $this->factory->build();
+
+        $this->relations[$instance->name()] = $instance;
+
+        return $this;
+    }
+
+    /**
+     * Applies default values for missing keys in array
+     *
+     * @param array $array
+     * @param array $defaults
+     *
+     * @return array
+     */
+    public function applyDefaults(array $array, array $defaults = [])
+    {
+        foreach ($defaults as $key => $value) {
+            $array[$key] = array_key_exists($key, $array) ? $array[$key] : $value;
+        }
+
+        return $array;
     }
 
     /**

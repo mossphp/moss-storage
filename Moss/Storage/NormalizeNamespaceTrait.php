@@ -12,7 +12,7 @@
 namespace Moss\Storage;
 
 
-trait NormalizeClassNameTrait
+trait NormalizeNamespaceTrait
 {
     /**
      * Returns fully qualified absolute class name
@@ -21,9 +21,9 @@ trait NormalizeClassNameTrait
      *
      * @return string
      */
-    public function normalizeClassName($class)
+    public function normalizeNamespace($class)
     {
-        if($class === null) {
+        if ($class === null) {
             return null;
         }
 

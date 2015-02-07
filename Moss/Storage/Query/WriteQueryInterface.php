@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Query;
 
-use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
 
 /**
  * Query interface
@@ -20,7 +18,7 @@ use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface WriteQueryInterface extends QueryInterface
+interface WriteQueryInterface extends QueryInterface, RelationalInterface
 {
     /**
      * Sets field names which values will be written

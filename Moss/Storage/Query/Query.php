@@ -16,7 +16,7 @@ use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
-use Moss\Storage\NormalizeClassNameTrait;
+use Moss\Storage\NormalizeNamespaceTrait;
 
 /**
  * Query used to create and execute CRUD operations on entities
@@ -26,7 +26,7 @@ use Moss\Storage\NormalizeClassNameTrait;
  */
 class Query
 {
-    use NormalizeClassNameTrait;
+    use NormalizeNamespaceTrait;
 
     /**
      * @var Connection
@@ -235,7 +235,7 @@ class Query
     protected function reassignEntity($entity, $instance = null)
     {
         if (is_object($entity)) {
-            return [$this->normalizeClassName($entity), $entity];
+            return [$this->normalizeNamespace($entity), $entity];
         }
 
         return [$entity, $instance];
