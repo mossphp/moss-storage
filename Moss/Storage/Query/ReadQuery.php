@@ -515,7 +515,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
         $this->query->resetQueryParts();
         $this->relations = [];
         $this->casts = [];
-        $this->binds = [];
+        $this->resetBinds();
 
         $this->setQuery();
         $this->fields();

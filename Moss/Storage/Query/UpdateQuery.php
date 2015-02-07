@@ -111,8 +111,8 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
      */
     public function values($fields = [])
     {
-        $this->query->values([]);
-        $this->binds = [];
+        $this->query->resetQueryPart('set');
+        $this->resetBinds('value');
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
@@ -225,7 +225,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
     {
         $this->query->resetQueryParts();
         $this->relations = [];
-        $this->binds = [];
+        $this->resetBinds();
 
         $this->setQuery();
         $this->values();

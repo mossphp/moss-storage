@@ -146,7 +146,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterfa
     {
         $this->query->resetQueryParts();
         $this->relations = [];
-        $this->binds = [];
+        $this->resetBinds();
 
         $this->setQuery();
         $this->setPrimaryConditions();

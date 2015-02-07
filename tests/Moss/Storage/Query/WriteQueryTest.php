@@ -85,23 +85,48 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute');
-        $stmt->expects($this->any())->method('rowCount')->willReturn(0);
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('rowCount')
+            ->willReturn(0);
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))->method('getSQL')->with();
-        $builder->expects($this->at(6))->method('insert')->with('`table`');
-        $builder->expects($this->at(7))->method('values')->with([]);
-        $builder->expects($this->at(8))->method('setValue')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))
+            ->method('getSQL')
+            ->with();
+        $builder->expects($this->at(6))
+            ->method('insert')
+            ->with('`table`');
+        $builder->expects($this->at(7))
+            ->method('resetQueryPart')
+            ->with('values');
+        $builder->expects($this->at(8))
+            ->method('setValue')
+            ->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))
+            ->method('setValue')
+            ->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
@@ -117,23 +142,48 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute');
-        $stmt->expects($this->any())->method('rowCount')->willReturn(10);
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('rowCount')
+            ->willReturn(10);
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))->method('getSQL')->with();
-        $builder->expects($this->at(6))->method('update')->with('`table`');
-        $builder->expects($this->at(7))->method('values')->with([]);
-        $builder->expects($this->at(8))->method('set')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))
+            ->method('getSQL')
+            ->with();
+        $builder->expects($this->at(6))
+            ->method('update')
+            ->with('`table`');
+        $builder->expects($this->at(7))
+            ->method('resetQueryPart')
+            ->with('set');
+        $builder->expects($this->at(8))
+            ->method('set')
+            ->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))
+            ->method('set')
+            ->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
@@ -149,23 +199,48 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute');
-        $stmt->expects($this->any())->method('rowCount')->willReturn(0);
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('rowCount')
+            ->willReturn(0);
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))->method('getSQL')->with();
-        $builder->expects($this->at(6))->method('insert')->with('`table`');
-        $builder->expects($this->at(7))->method('values')->with([]);
-        $builder->expects($this->at(8))->method('setValue')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))
+            ->method('getSQL')
+            ->with();
+        $builder->expects($this->at(6))
+            ->method('insert')
+            ->with('`table`');
+        $builder->expects($this->at(7))
+            ->method('resetQueryPart')
+            ->with('values');
+        $builder->expects($this->at(8))
+            ->method('setValue')
+            ->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))
+            ->method('setValue')
+            ->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
@@ -182,23 +257,48 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute');
-        $stmt->expects($this->any())->method('rowCount')->willReturn(10);
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('rowCount')
+            ->willReturn(10);
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))->method('getSQL')->with();
-        $builder->expects($this->at(6))->method('update')->with('`table`');
-        $builder->expects($this->at(7))->method('values')->with([]);
-        $builder->expects($this->at(8))->method('set')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))->method('set')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))
+            ->method('getSQL')
+            ->with();
+        $builder->expects($this->at(6))
+            ->method('update')
+            ->with('`table`');
+        $builder->expects($this->at(7))
+            ->method('resetQueryPart')
+            ->with('set');
+        $builder->expects($this->at(8))
+            ->method('set')
+            ->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))
+            ->method('set')
+            ->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
@@ -353,8 +453,12 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
-        $dbal->expects($this->any())->method('lastInsertId')->willReturn('id');
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('lastInsertId')
+            ->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
@@ -372,8 +476,12 @@ class WriteQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
-        $dbal->expects($this->any())->method('lastInsertId')->willReturn('id');
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('lastInsertId')
+            ->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();
@@ -389,23 +497,48 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute');
-        $stmt->expects($this->any())->method('rowCount')->willReturn(0);
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('rowCount')
+            ->willReturn(0);
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))->method('getSQL')->with();
-        $builder->expects($this->at(6))->method('insert')->with('`table`');
-        $builder->expects($this->at(7))->method('values')->with([]);
-        $builder->expects($this->at(8))->method('setValue')->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))->method('setValue')->with('`bar`', ':value_1_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(5))
+            ->method('getSQL')
+            ->with();
+        $builder->expects($this->at(6))
+            ->method('insert')
+            ->with('`table`');
+        $builder->expects($this->at(7))
+            ->method('resetQueryPart')
+            ->with('values');
+        $builder->expects($this->at(8))
+            ->method('setValue')
+            ->with('`foo`', ':value_0_foo');
+        $builder->expects($this->at(9))
+            ->method('setValue')
+            ->with('`bar`', ':value_1_bar');
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $converter = $this->mockConverter();

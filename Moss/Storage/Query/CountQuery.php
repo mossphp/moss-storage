@@ -163,7 +163,7 @@ class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
     {
         $this->query->resetQueryParts();
         $this->relations = [];
-        $this->binds = [];
+        $this->resetBinds();
 
         $this->setQuery();
         $this->setPrimaryFields();

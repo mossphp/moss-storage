@@ -18,8 +18,12 @@ class ClearQueryTest extends QueryMocks
     public function testClear()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('getSQL')->will($this->returnValue('generatedSQL'));
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('getSQL')
+            ->will($this->returnValue('generatedSQL'));
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
         $stmt->expects($this->at(0))

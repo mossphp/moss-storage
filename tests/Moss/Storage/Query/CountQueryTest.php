@@ -19,11 +19,21 @@ class CountQueryTest extends QueryMocks
     public function testWhereSimple()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`bar` = :condition_0_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`bar` = :condition_0_bar');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -37,11 +47,21 @@ class CountQueryTest extends QueryMocks
     public function testWhereWithNullValue()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('`bar` IS NULL');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('`bar` IS NULL');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -55,11 +75,21 @@ class CountQueryTest extends QueryMocks
     public function testWhereWithMultipleFields()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -73,11 +103,21 @@ class CountQueryTest extends QueryMocks
     public function testWhereWithMultipleValues()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -91,11 +131,21 @@ class CountQueryTest extends QueryMocks
     public function testWhereWithMultipleFieldsAndValues()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -112,11 +162,21 @@ class CountQueryTest extends QueryMocks
     public function testWhereComparisonOperators($operator, $expected)
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andWhere')->with($expected);
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andWhere')
+            ->with($expected);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -148,18 +208,30 @@ class CountQueryTest extends QueryMocks
     public function testWhereLogicalOperators($operator)
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
 
         switch ($operator) {
             case 'or':
-                $builder->expects($this->at(4))->method('orWhere')->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(4))
+                    ->method('orWhere')
+                    ->with('`bar` = :condition_0_bar');
                 break;
             case 'and':
             default:
-                $builder->expects($this->at(4))->method('andWhere')->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(4))
+                    ->method('andWhere')
+                    ->with('`bar` = :condition_0_bar');
         }
 
 
@@ -190,11 +262,21 @@ class CountQueryTest extends QueryMocks
     public function testHavingSimple()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andHaving')->with('`bar` = :condition_0_bar');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andHaving')
+            ->with('`bar` = :condition_0_bar');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -208,11 +290,21 @@ class CountQueryTest extends QueryMocks
     public function testHavingWithNullValue()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andHaving')->with('`bar` IS NULL');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andHaving')
+            ->with('`bar` IS NULL');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -226,11 +318,21 @@ class CountQueryTest extends QueryMocks
     public function testHavingWithMultipleFields()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andHaving')->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andHaving')
+            ->with('(`foo` = :condition_0_foo and `bar` = :condition_1_bar)');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -244,11 +346,21 @@ class CountQueryTest extends QueryMocks
     public function testHavingWithMultipleValues()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andHaving')->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andHaving')
+            ->with('(`bar` = :condition_0_bar or `bar` = :condition_1_bar)');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -262,11 +374,21 @@ class CountQueryTest extends QueryMocks
     public function testHavingWithMultipleFieldsAndValues()
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andHaving')->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andHaving')
+            ->with('((`foo` = :condition_0_foo or `foo` = :condition_1_foo) and (`bar` = :condition_2_bar or `bar` = :condition_3_bar))');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -283,11 +405,21 @@ class CountQueryTest extends QueryMocks
     public function testHavingComparisonOperators($operator, $expected)
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
-        $builder->expects($this->at(4))->method('andHaving')->with($expected);
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
+        $builder->expects($this->at(4))
+            ->method('andHaving')
+            ->with($expected);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -319,18 +451,30 @@ class CountQueryTest extends QueryMocks
     public function testHavingLogicalOperators($operator)
     {
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('select')->with(null);
-        $builder->expects($this->at(1))->method('from')->with('`table`');
-        $builder->expects($this->at(2))->method('select')->with([]);
-        $builder->expects($this->at(3))->method('addSelect')->with('`foo`');
+        $builder->expects($this->at(0))
+            ->method('select')
+            ->with(null);
+        $builder->expects($this->at(1))
+            ->method('from')
+            ->with('`table`');
+        $builder->expects($this->at(2))
+            ->method('select')
+            ->with([]);
+        $builder->expects($this->at(3))
+            ->method('addSelect')
+            ->with('`foo`');
 
         switch ($operator) {
             case 'or':
-                $builder->expects($this->at(4))->method('orHaving')->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(4))
+                    ->method('orHaving')
+                    ->with('`bar` = :condition_0_bar');
                 break;
             case 'and':
             default:
-                $builder->expects($this->at(4))->method('andHaving')->with('`bar` = :condition_0_bar');
+                $builder->expects($this->at(4))
+                    ->method('andHaving')
+                    ->with('`bar` = :condition_0_bar');
         }
 
         $dbal = $this->mockDBAL($builder);

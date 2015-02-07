@@ -171,6 +171,26 @@ abstract class AbstractQuery
     }
 
     /**
+     * Removes bound values by their prefix
+     * If prefix is null - clears all bound values
+     *
+     * @param null|string $prefix
+     */
+    protected function resetBinds($prefix = null)
+    {
+        if ($prefix === null) {
+            $this->binds = [];
+            return;
+        }
+
+        foreach ($this->binds as $key => $value) {
+            if (strpos($key, $prefix) === 1) {
+                unset($this->binds[$key]);
+            }
+        }
+    }
+
+    /**
      * Returns array with bound values and their placeholders as keys
      *
      * @return array

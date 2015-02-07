@@ -84,9 +84,15 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(2))->method('andWhere')->with('`bar` = :condition_1_bar');
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))
+            ->method('andWhere')
+            ->with('`bar` = :condition_1_bar');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -102,9 +108,15 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => null];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(2))->method('andWhere')->with('`bar` IS NULL');
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))
+            ->method('andWhere')
+            ->with('`bar` IS NULL');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -120,9 +132,15 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(2))->method('andWhere')->with('(`foo` = :condition_1_foo and `bar` = :condition_2_bar)');
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))
+            ->method('andWhere')
+            ->with('(`foo` = :condition_1_foo and `bar` = :condition_2_bar)');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -138,9 +156,15 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(2))->method('andWhere')->with('(`bar` = :condition_1_bar or `bar` = :condition_2_bar)');
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))
+            ->method('andWhere')
+            ->with('(`bar` = :condition_1_bar or `bar` = :condition_2_bar)');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -156,9 +180,15 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(2))->method('andWhere')->with('((`foo` = :condition_1_foo or `foo` = :condition_2_foo) and (`bar` = :condition_3_bar or `bar` = :condition_4_bar))');
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))
+            ->method('andWhere')
+            ->with('((`foo` = :condition_1_foo or `foo` = :condition_2_foo) and (`bar` = :condition_3_bar or `bar` = :condition_4_bar))');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -177,9 +207,15 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(2))->method('andWhere')->with($expected);
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(2))
+            ->method('andWhere')
+            ->with($expected);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -229,16 +265,24 @@ class DeleteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('delete')->with('`table`');
-        $builder->expects($this->at(1))->method('andWhere')->with('`foo` = :condition_0_foo');
+        $builder->expects($this->at(0))
+            ->method('delete')
+            ->with('`table`');
+        $builder->expects($this->at(1))
+            ->method('andWhere')
+            ->with('`foo` = :condition_0_foo');
 
         switch ($operator) {
             case 'or':
-                $builder->expects($this->at(2))->method('orWhere')->with('`bar` = :condition_1_bar');
+                $builder->expects($this->at(2))
+                    ->method('orWhere')
+                    ->with('`bar` = :condition_1_bar');
                 break;
             case 'and':
             default:
-                $builder->expects($this->at(2))->method('andWhere')->with('`bar` = :condition_1_bar');
+                $builder->expects($this->at(2))
+                    ->method('andWhere')
+                    ->with('`bar` = :condition_1_bar');
         }
 
         $dbal = $this->mockDBAL($builder);
@@ -282,8 +326,12 @@ class DeleteQueryTest extends QueryMocks
         $offset = 20;
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())->method('setFirstResult')->with($offset);
-        $builder->expects($this->once())->method('setMaxResults')->with($limit);
+        $builder->expects($this->once())
+            ->method('setFirstResult')
+            ->with($offset);
+        $builder->expects($this->once())
+            ->method('setMaxResults')
+            ->with($limit);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -300,8 +348,11 @@ class DeleteQueryTest extends QueryMocks
         $limit = 10;
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->never())->method('setFirstResult');
-        $builder->expects($this->once())->method('setMaxResults')->with($limit);
+        $builder->expects($this->never())
+            ->method('setFirstResult');
+        $builder->expects($this->once())
+            ->method('setMaxResults')
+            ->with($limit);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);

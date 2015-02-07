@@ -86,8 +86,8 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
      */
     public function values($fields = [])
     {
-        $this->query->values([]);
-        $this->binds = [];
+        $this->query->resetQueryPart('values');
+        $this->resetBinds('value');
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
@@ -183,7 +183,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
     {
         $this->query->resetQueryParts();
         $this->relations = [];
-        $this->binds = [];
+        $this->resetBinds();
 
         $this->setQuery();
         $this->values();
