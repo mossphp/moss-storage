@@ -13,8 +13,6 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Converter\ConverterInterface;
-use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
@@ -32,12 +30,11 @@ class ReadOneQuery extends ReadQuery
      *
      * @param Connection               $connection
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
     {
-        parent::__construct($connection, $model, $converter, $factory);
+        parent::__construct($connection, $model, $factory);
         $this->limit(1);
     }
 
@@ -60,9 +57,6 @@ class ReadOneQuery extends ReadQuery
         }
 
         $result = array_slice($result, 0, 1, false);
-
-        $ref = new \ReflectionClass($this->model->entity());
-        $this->restoreObject($result[0], $this->casts, $ref);
 
         foreach ($this->relations as $relation) {
             $result = $relation->read($result);

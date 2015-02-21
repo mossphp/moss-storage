@@ -13,7 +13,6 @@ namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
@@ -39,11 +38,6 @@ abstract class AbstractQuery
      * @var ModelInterface
      */
     protected $model;
-
-    /**
-     * @var ConverterInterface
-     */
-    protected $converter;
 
     /**
      * @var RelationFactoryInterface
@@ -181,6 +175,25 @@ abstract class AbstractQuery
     }
 
     /**
+     * Binds values and executes passed query string, returns statement
+     *
+     * @return \Doctrine\DBAL\Driver\Statement
+     */
+    protected function bindAndExecuteQuery()
+    {
+        $stmt = $this->connection->prepare($this->queryString());
+
+        foreach ($this->binds as $key => $bind) {
+            list($type, $value) = $bind;
+            $stmt->bindValue($key, $value, $type);
+        }
+
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    /**
      * Binds value to unique key and returns it
      *
      * @param string $operation
@@ -193,7 +206,7 @@ abstract class AbstractQuery
     protected function bind($operation, $field, $type, $value)
     {
         $key = ':' . implode('_', [$operation, count($this->binds), $field]);
-        $this->binds[$key] = $this->converter->store($value, $type);
+        $this->binds[$key] = [$type, $value];
 
         return $key;
     }

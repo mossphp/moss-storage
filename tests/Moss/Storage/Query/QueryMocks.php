@@ -26,6 +26,10 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
             ->method('createQueryBuilder')
             ->will($this->returnValue($queryBuilderMock));
 
+        $dbalMock->expects($this->any())
+            ->method('getDatabasePlatform')
+            ->will($this->returnValue($this->getMockForAbstractClass('\Doctrine\DBAL\Platforms\AbstractPlatform')));
+
         return $dbalMock;
     }
 

@@ -14,10 +14,9 @@ class DeleteQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        new DeleteQuery($dbal, null, $model, $converter, $factory);
+        new DeleteQuery($dbal, null, $model, $factory);
     }
 
     /**
@@ -28,53 +27,48 @@ class DeleteQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        new DeleteQuery($dbal, new \stdClass(), $model, $converter, $factory);
+        new DeleteQuery($dbal, new \stdClass(), $model, $factory);
     }
 
     public function testEntityWithPublicProperties()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
-        new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        new DeleteQuery($dbal, $entity, $model, $factory);
     }
 
     public function testEntityWithProtectedProperties()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = new TestEntity('foo', 'bar');
-        new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        new DeleteQuery($dbal, $entity, $model, $factory);
     }
 
     public function testEntityIsArray()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
-        new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        new DeleteQuery($dbal, $entity, $model, $factory);
     }
 
     public function testConnection()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, ['foo' => 'foo'], $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, ['foo' => 'foo'], $model, $factory);
 
         $this->assertSame($dbal, $query->connection());
     }
@@ -96,10 +90,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', '=', 'and');
     }
 
@@ -120,10 +113,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', null, '=', 'and');
     }
 
@@ -144,10 +136,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
@@ -168,10 +159,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -192,10 +182,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -219,10 +208,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', $operator, 'and');
     }
 
@@ -250,10 +238,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', 'xyz', 'and');
     }
 
@@ -287,10 +274,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', '=', $operator);
     }
 
@@ -312,10 +298,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', '=', 'xyz');
     }
 
@@ -335,10 +320,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->limit($limit, $offset);
     }
 
@@ -356,10 +340,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->limit($limit);
     }
 
@@ -369,7 +352,6 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
 
@@ -386,7 +368,7 @@ class DeleteQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
     }
 
@@ -396,7 +378,6 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -408,7 +389,7 @@ class DeleteQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $result = $query->with('relation')
             ->relation('relation');
 
@@ -421,7 +402,6 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -437,7 +417,7 @@ class DeleteQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $result = $query->with('relation.relation')
             ->relation('relation.relation');
 
@@ -454,11 +434,10 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -481,7 +460,6 @@ class DeleteQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())
@@ -494,7 +472,7 @@ class DeleteQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
         $query->execute();
     }
@@ -516,11 +494,10 @@ class DeleteQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo', 'bar']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $this->assertEquals($entity, $query->execute());
     }
 
@@ -541,11 +518,10 @@ class DeleteQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->execute();
 
         $this->assertEmpty($entity->foo);
@@ -568,11 +544,10 @@ class DeleteQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->execute();
 
         $this->assertEmpty($entity->getFoo());
@@ -588,10 +563,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->queryString();
     }
 
@@ -603,11 +577,10 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
-        $this->assertEquals([':condition_0_foo' => 'foo'], $query->binds());
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $this->assertEquals([':condition_0_foo' => ['string', 'foo']], $query->binds());
     }
 
     public function testReset()
@@ -620,10 +593,9 @@ class DeleteQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new DeleteQuery($dbal, $entity, $model, $factory);
         $query->reset();
     }
 }

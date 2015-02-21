@@ -13,10 +13,9 @@ class UpdateQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        new UpdateQuery($dbal, null, $model, $converter, $factory);
+        new UpdateQuery($dbal, null, $model, $factory);
     }
 
     /**
@@ -27,43 +26,39 @@ class UpdateQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        new UpdateQuery($dbal, new \stdClass(), $model, $converter, $factory);
+        new UpdateQuery($dbal, new \stdClass(), $model, $factory);
     }
 
     public function testEntityWithPublicProperties()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
-        new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        new UpdateQuery($dbal, $entity, $model, $factory);
     }
 
     public function testEntityWithProtectedProperties()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = new TestEntity('foo', 'bar');
-        new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        new UpdateQuery($dbal, $entity, $model, $factory);
     }
 
     public function testEntityIsArray()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
-        new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        new UpdateQuery($dbal, $entity, $model, $factory);
     }
 
     public function testConnection()
@@ -72,10 +67,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
 
         $this->assertSame($dbal, $query->connection());
     }
@@ -100,10 +94,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->values(['foo', 'bar']);
     }
 
@@ -133,10 +126,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->value('bar');
     }
 
@@ -151,11 +143,10 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
-        $this->assertEquals([':value_0_foo' => null, ':value_1_bar' => 'bar'], $query->binds());
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
+        $this->assertEquals([':value_0_foo' => ['string', null], ':value_1_bar' => ['string', 'bar']], $query->binds());
     }
 
     public function testValueFromRelationalEntity()
@@ -169,11 +160,10 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
-        $this->assertEquals([':value_0_foo' => 'yada', ':value_1_bar' => 'bar'], $query->binds());
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
+        $this->assertEquals([':value_0_foo' => ['string', 'yada'], ':value_1_bar' => ['string', 'bar']], $query->binds());
     }
 
     public function testWhereSimple()
@@ -202,10 +192,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', '=', 'and');
     }
 
@@ -235,10 +224,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', null, '=', 'and');
     }
 
@@ -268,10 +256,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
@@ -301,10 +288,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -334,10 +320,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -370,10 +355,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', $operator, 'and');
     }
 
@@ -401,10 +385,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', 'xyz', 'and');
     }
 
@@ -448,10 +431,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', '=', $operator);
     }
 
@@ -473,10 +455,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->where('bar', 'barbar', '=', 'xyz');
     }
 
@@ -496,10 +477,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->limit($limit, $offset);
     }
 
@@ -517,10 +497,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->limit($limit);
     }
 
@@ -530,7 +509,6 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
 
@@ -547,7 +525,7 @@ class UpdateQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
     }
 
@@ -557,7 +535,6 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -569,7 +546,7 @@ class UpdateQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $result = $query->with('relation')
             ->relation('relation');
 
@@ -582,7 +559,6 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -598,7 +574,7 @@ class UpdateQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $result = $query->with('relation.relation')
             ->relation('relation.relation');
 
@@ -615,11 +591,10 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -642,7 +617,6 @@ class UpdateQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())
@@ -655,7 +629,7 @@ class UpdateQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
         $query->execute();
     }
@@ -677,10 +651,9 @@ class UpdateQueryTest extends QueryMocks
             ->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->execute();
         $this->assertEquals('foo', $entity->foo);
     }
@@ -700,10 +673,9 @@ class UpdateQueryTest extends QueryMocks
             ->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->execute();
         $this->assertEquals('foo', $entity->getFoo());
     }
@@ -718,10 +690,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->queryString();
     }
 
@@ -733,12 +704,11 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->values(['foo']);
-        $this->assertEquals([':condition_2_foo' => 'foo', ':value_1_foo' => 'foo'], $query->binds());
+        $this->assertEquals([':condition_2_foo' => ['string', 'foo'], ':value_1_foo' => ['string', 'foo']], $query->binds());
     }
 
     public function testReset()
@@ -751,10 +721,9 @@ class UpdateQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new UpdateQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->reset();
     }
 }

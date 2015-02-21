@@ -9,10 +9,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
 
         $this->assertSame($dbal, $query->connection());
     }
@@ -47,10 +46,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->fields(['foo', 'bar']);
     }
 
@@ -81,10 +79,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->fields([]);
         $query->field('foo');
     }
@@ -116,10 +113,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', [['foo', 'string', [], 'foo_foo'], 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->fields([]);
         $query->field('foo');
     }
@@ -151,10 +147,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         call_user_func([$query, $method], 'foo', 'alias');
     }
 
@@ -178,10 +173,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->aggregate('foo', 'foo');
     }
 
@@ -194,10 +188,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->group('foo');
     }
 
@@ -225,10 +218,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', '=', 'and');
     }
 
@@ -256,10 +248,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', null, '=', 'and');
     }
 
@@ -287,10 +278,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
@@ -318,10 +308,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -349,10 +338,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -383,10 +371,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', $operator, 'and');
     }
 
@@ -398,10 +385,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', 'xyz', 'and');
     }
 
@@ -443,10 +429,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', '=', $operator);
     }
 
@@ -458,10 +443,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', '=', 'xyz');
     }
 
@@ -489,10 +473,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', '=', 'and');
     }
 
@@ -520,10 +503,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', null, '=', 'and');
     }
 
@@ -551,10 +533,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
@@ -582,10 +563,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -613,10 +593,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -647,10 +626,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', $operator, 'and');
     }
 
@@ -662,10 +640,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', 'xyz', 'and');
     }
 
@@ -706,10 +683,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', '=', $operator);
     }
 
@@ -721,10 +697,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', '=', 'xyz');
     }
 
@@ -762,10 +737,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->order('foo', $order);
     }
 
@@ -785,10 +759,9 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->order('foo', 'xyz');
     }
 
@@ -807,10 +780,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->limit($limit, $offset);
     }
 
@@ -827,10 +799,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->limit($limit);
     }
 
@@ -838,7 +809,6 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
 
@@ -868,7 +838,7 @@ class ReadQueryTest extends QueryMocks
             ->with()
             ->willReturn($relation);
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->with('relation', [['foo', 'bar', '=']], ['foo', 'asc'], 1, 2);
     }
 
@@ -876,7 +846,6 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -888,7 +857,7 @@ class ReadQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $result = $query->with('relation')
             ->relation('relation');
 
@@ -899,7 +868,6 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -915,7 +883,7 @@ class ReadQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $result = $query->with('relation.relation')
             ->relation('relation.relation');
 
@@ -930,11 +898,10 @@ class ReadQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -959,7 +926,6 @@ class ReadQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())
@@ -972,7 +938,7 @@ class ReadQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->with('relation');
         $query->execute();
     }
@@ -996,7 +962,6 @@ class ReadQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())
@@ -1009,7 +974,7 @@ class ReadQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->with('relation');
         $query->execute();
     }
@@ -1033,7 +998,6 @@ class ReadQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())
@@ -1046,7 +1010,7 @@ class ReadQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->with('relation');
         $query->execute();
     }
@@ -1059,10 +1023,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->queryString();
     }
 
@@ -1072,12 +1035,11 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->where('foo', 'foo');
-        $this->assertEquals([':condition_0_foo' => 'foo'], $query->binds());
+        $this->assertEquals([':condition_0_foo' => ['string', 'foo']], $query->binds());
     }
 
     public function testReset()
@@ -1088,10 +1050,9 @@ class ReadQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new ReadQuery($dbal, $model, $converter, $factory);
+        $query = new ReadQuery($dbal, $model, $factory);
         $query->reset();
     }
 }
