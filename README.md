@@ -37,8 +37,7 @@ Documentation is available in ./docs/
 
 ## Requirements
 
-Just PHP >= 5.3.7, PDO with MySQL or PostgreSQL and that's it.
-(Other SQL engines will come later)
+Just PHP >= 5.4, Doctrine DBAL and SQL database.
 
 ## Installation
 

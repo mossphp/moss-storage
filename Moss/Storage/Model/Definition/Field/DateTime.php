@@ -33,7 +33,7 @@ class DateTime extends String
             $field,
             $attributes,
             $mapping,
-            ['null', 'default']
+            ['notnull', 'default']
         );
     }
 }

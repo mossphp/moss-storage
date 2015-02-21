@@ -9,7 +9,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
      */
     public function testConstructorWithInvalidFieldInstance()
     {
-        new Model('Foo', 'foo', array(new \stdClass()));
+        new Model('Foo', 'foo', [new \stdClass()]);
     }
 
     /**
@@ -20,7 +20,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
     {
         $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
 
-        new Model('Foo', 'foo', array($field), array(new \stdClass()));
+        new Model('Foo', 'foo', [$field], [new \stdClass()]);
     }
 
     /**
@@ -37,16 +37,16 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
         $index->expects($this->once())
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
 
-        new Model('Foo', 'foo', array($field), array($index), array(new \stdClass()));
+        new Model('Foo', 'foo', [$field], [$index], [new \stdClass()]);
     }
 
     public function testTable()
     {
         $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
 
-        $model = new Model('Foo', 'foo', array($field));
+        $model = new Model('Foo', 'foo', [$field]);
         $this->assertEquals('foo', $model->table());
     }
 
@@ -54,7 +54,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
     {
         $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
 
-        $model = new Model('\Foo', 'foo', array($field));
+        $model = new Model('\Foo', 'foo', [$field]);
         $this->assertEquals('Foo', $model->entity());
     }
 
@@ -62,36 +62,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
     {
         $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
 
-        $model = new Model('\Foo', 'foo', array($field));
+        $model = new Model('\Foo', 'foo', [$field]);
         $this->assertEquals('foofoo', $model->alias('foofoo'));
-    }
-
-    public function testIsNamedByEntityName()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $model = new Model('\Foo', 'foo', array($field));
-
-        $this->assertTrue($model->isNamed('\Foo'));
-    }
-
-    public function testIsNamedByTableName()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $model = new Model('\Foo', 'foo', array($field));
-
-        $this->assertTrue($model->isNamed('foo'));
-    }
-
-    public function testIsNamedByItsAlias()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-
-        $model = new Model('\Foo', 'foo', array($field));
-        $model->alias('foofoo');
-
-        $this->assertTrue($model->isNamed('foofoo'));
     }
 
     public function testHasField()
@@ -101,7 +73,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->method('name')
             ->will($this->returnValue('foo'));
 
-        $model = new Model('Foo', 'foo', array($field));
+        $model = new Model('Foo', 'foo', [$field]);
         $this->assertTrue($model->hasField('foo'));
     }
 
@@ -112,8 +84,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->method('name')
             ->will($this->returnValue('foo'));
 
-        $model = new Model('Foo', 'foo', array($field));
-        $this->assertEquals(array('foo' => $field), $model->fields());
+        $model = new Model('Foo', 'foo', [$field]);
+        $this->assertEquals(['foo' => $field], $model->fields());
     }
 
     public function testField()
@@ -123,7 +95,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->method('name')
             ->will($this->returnValue('foo'));
 
-        $model = new Model('Foo', 'foo', array($field));
+        $model = new Model('Foo', 'foo', [$field]);
         $this->assertEquals($field, $model->field('foo'));
     }
 
@@ -140,9 +112,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(true));
         $index->expects($this->exactly(2))
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array($index));
+        $model = new Model('Foo', 'foo', [$field], [$index]);
         $this->assertTrue($model->isPrimary('foo'));
     }
 
@@ -164,10 +136,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue(true));
         $index->expects($this->exactly(2))
             ->method('fields')
-            ->will($this->returnValue(array('foo', 'bar')));
+            ->will($this->returnValue(['foo', 'bar']));
 
-        $model = new Model('Foo', 'foo', array($foo, $bar), array($index));
-        $this->assertEquals(array($foo, $bar), $model->primaryFields());
+        $model = new Model('Foo', 'foo', [$foo, $bar], [$index]);
+        $this->assertEquals([$foo, $bar], $model->primaryFields());
     }
 
     public function testIsIndex()
@@ -180,9 +152,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
         $index->expects($this->exactly(2))
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array($index));
+        $model = new Model('Foo', 'foo', [$field], [$index]);
         $this->assertTrue($model->isIndex('foo'));
     }
 
@@ -196,13 +168,13 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
         $index->expects($this->once())
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
         $index->expects($this->once())
             ->method('hasField')
             ->will($this->returnValue(true));
 
-        $model = new Model('Foo', 'foo', array($field), array($index));
-        $this->assertEquals(array($index), $model->inIndex('foo'));
+        $model = new Model('Foo', 'foo', [$field], [$index]);
+        $this->assertEquals([$index], $model->inIndex('foo'));
     }
 
     public function testIndexFields()
@@ -228,7 +200,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('fooBar'));
         $fooBar->expects($this->exactly(2))
             ->method('fields')
-            ->will($this->returnValue(array('foo', 'bar')));
+            ->will($this->returnValue(['foo', 'bar']));
 
         $barYada = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
         $barYada->expects($this->exactly(1))
@@ -236,10 +208,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('barYada'));
         $barYada->expects($this->exactly(2))
             ->method('fields')
-            ->will($this->returnValue(array('bar', 'yada')));
+            ->will($this->returnValue(['bar', 'yada']));
 
-        $model = new Model('Foo', 'foo', array($foo, $bar, $yada), array($fooBar, $barYada));
-        $this->assertEquals(array($foo, $bar, $yada), $model->indexFields());
+        $model = new Model('Foo', 'foo', [$foo, $bar, $yada], [$fooBar, $barYada]);
+        $this->assertEquals([$foo, $bar, $yada], $model->indexFields());
     }
 
     public function testHasIndex()
@@ -255,9 +227,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('foo'));
         $index->expects($this->once())
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array($index));
+        $model = new Model('Foo', 'foo', [$field], [$index]);
         $this->assertTrue($model->hasIndex('foo'));
     }
 
@@ -274,10 +246,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('foo'));
         $index->expects($this->once())
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array($index));
-        $this->assertEquals(array('foo' => $index), $model->indexes());
+        $model = new Model('Foo', 'foo', [$field], [$index]);
+        $this->assertEquals(['foo' => $index], $model->indexes());
     }
 
     public function testIndex()
@@ -293,9 +265,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('foo'));
         $index->expects($this->once())
             ->method('fields')
-            ->will($this->returnValue(array('foo')));
+            ->will($this->returnValue(['foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array($index));
+        $model = new Model('Foo', 'foo', [$field], [$index]);
         $this->assertEquals($index, $model->index('foo'));
     }
 
@@ -310,7 +282,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->method('name')
             ->will($this->returnValue('foo'));
 
-        $model = new Model('Foo', 'foo', array($field));
+        $model = new Model('Foo', 'foo', [$field]);
         $model->index('yada');
     }
 
@@ -328,31 +300,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
         $relation->expects($this->once())
             ->method('keys')
-            ->will($this->returnValue(array('yada' => 'yada')));
+            ->will($this->returnValue(['yada' => 'yada']));
 
-        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
-    }
-
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Relation field "yada" does not exist in entity model "Foo"
-     */
-    public function testUndefinedRelationLocalField()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-        $field->expects($this->once())
-            ->method('name')
-            ->will($this->returnValue('foo'));
-
-        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
-        $relation->expects($this->once())
-            ->method('keys')
-            ->will($this->returnValue(array('foo' => 'foo')));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue(array('yada' => 'yada')));
-
-        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
+        new Model('Foo', 'foo', [$field], [], [$relation]);
     }
 
     public function testRelations()
@@ -368,13 +318,10 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('Bar'));
         $relation->expects($this->once())
             ->method('keys')
-            ->will($this->returnValue(array('foo' => 'foo')));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue(array()));
+            ->will($this->returnValue(['foo' => 'foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
-        $this->assertEquals(array('Bar' => $relation), $model->relations());
+        $model = new Model('Foo', 'foo', [$field], [], [$relation]);
+        $this->assertEquals(['Bar' => $relation], $model->relations());
     }
 
     public function testHasRelations()
@@ -390,12 +337,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('Bar'));
         $relation->expects($this->once())
             ->method('keys')
-            ->will($this->returnValue(array('foo' => 'foo')));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue(array()));
+            ->will($this->returnValue(['foo' => 'foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
+        $model = new Model('Foo', 'foo', [$field], [], [$relation]);
         $this->assertTrue($model->hasRelation('Bar'));
     }
 
@@ -412,12 +356,9 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->will($this->returnValue('Bar'));
         $relation->expects($this->once())
             ->method('keys')
-            ->will($this->returnValue(array('foo' => 'foo')));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue(array()));
+            ->will($this->returnValue(['foo' => 'foo']));
 
-        $model = new Model('Foo', 'foo', array($field), array(), array($relation));
+        $model = new Model('Foo', 'foo', [$field], [], [$relation]);
         $this->assertEquals($relation, $model->relation('Bar'));
     }
 
@@ -432,7 +373,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->method('name')
             ->will($this->returnValue('foo'));
 
-        $model = new Model('Foo', 'foo', array($field));
+        $model = new Model('Foo', 'foo', [$field]);
         $model->relation('Bar');
     }
 }

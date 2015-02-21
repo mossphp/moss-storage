@@ -11,9 +11,11 @@
 
 namespace Moss\Storage\Model;
 
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\IndexInterface;
 use Moss\Storage\Model\Definition\RelationInterface;
+use Moss\Storage\NormalizeNamespaceTrait;
 
 /**
  * Model describing entity and its relationship to other entities
@@ -23,6 +25,8 @@ use Moss\Storage\Model\Definition\RelationInterface;
  */
 class Model implements ModelInterface
 {
+    use NormalizeNamespaceTrait;
+    use GetTypeTrait;
 
     protected $table;
     protected $entity;
@@ -57,7 +61,7 @@ class Model implements ModelInterface
     public function __construct($entityClass, $table, array $fields, array $indexes = [], array $relations = [])
     {
         $this->table = $table;
-        $this->entity = $entityClass ? ltrim($entityClass, '\\') : null;
+        $this->entity = $entityClass ? $this->normalizeNamespace($entityClass) : null;
 
         $this->assignFields($fields);
         $this->assignIndexes($indexes);
@@ -133,30 +137,8 @@ class Model implements ModelInterface
                 }
             }
 
-            foreach ($relation->localValues() as $field => $trash) {
-                if (!$this->hasField($field)) {
-                    throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
-                }
-            }
-
             $this->relations[$relation->name()] = $relation;
         }
-    }
-
-    /**
-     * Returns variable type or its class
-     *
-     * @param mixed $var
-     *
-     * @return string
-     */
-    private function getType($var)
-    {
-        if (is_object($var)) {
-            return get_class($var);
-        }
-
-        return gettype($var);
     }
 
     /**
@@ -193,18 +175,6 @@ class Model implements ModelInterface
         }
 
         return $this->alias;
-    }
-
-    /**
-     * Returns true if models table, entity or alias matches name
-     *
-     * @param string $name
-     *
-     * @return boolean
-     */
-    public function isNamed($name)
-    {
-        return $this->table == $name || $this->entity == ltrim($name, '\\') || $this->alias == $name;
     }
 
     /**
@@ -392,6 +362,27 @@ class Model implements ModelInterface
     }
 
     /**
+     * Returns all relation where field is listed as local key
+     *
+     * @param string $field
+     *
+     * @return array|RelationInterface[]
+     */
+    public function referredIn($field)
+    {
+        $result = [];
+        foreach($this->relations as $relation) {
+            if(false === $i = array_search($field, $relation->localKeys())) {
+                continue;
+            }
+
+            $result[$relation->foreignKeys()[$i]] = $relation;
+        }
+
+        return $result;
+    }
+
+    /**
      * Returns true if at last one relation is defined
      *
      * @return bool
@@ -410,7 +401,7 @@ class Model implements ModelInterface
      */
     public function hasRelation($relationName)
     {
-        return $this->findRelation($relationName) !== false;
+        return $this->findRelationByName($relationName) !== false;
     }
 
     /**
@@ -433,7 +424,7 @@ class Model implements ModelInterface
      */
     public function relation($relationName)
     {
-        if (!$relation = $this->findRelation($relationName)) {
+        if (!$relation = $this->findRelationByName($relationName)) {
             throw new ModelException(sprintf('Unknown relation, relation "%s" not found in model "%s"', $relationName, $this->entity));
         }
 
@@ -441,13 +432,13 @@ class Model implements ModelInterface
     }
 
     /**
+     * Finds relation by its name
      *
-     *
-     * @param $relationName
+     * @param string $relationName
      *
      * @return bool|RelationInterface
      */
-    private function findRelation($relationName)
+    protected function findRelationByName($relationName)
     {
         foreach ($this->relations as $relation) {
             if ($relation->name() == $relationName || $relation->entity() == $relationName) {

@@ -33,7 +33,7 @@ class Decimal extends String
             $field,
             array_merge(['length' => 11, 'precision' => 4], $attributes),
             $mapping,
-            ['length', 'precision', 'null', 'default']
+            ['length', 'precision', 'notnull', 'default']
         );
     }
 }

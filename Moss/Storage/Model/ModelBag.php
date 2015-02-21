@@ -11,6 +11,8 @@
 
 namespace Moss\Storage\Model;
 
+use Moss\Storage\NormalizeNamespaceTrait;
+
 /**
  * Registry containing models
  *
@@ -19,6 +21,8 @@ namespace Moss\Storage\Model;
  */
 class ModelBag
 {
+    use NormalizeNamespaceTrait;
+
     /**
      * @var array|ModelInterface
      */
@@ -33,11 +37,6 @@ class ModelBag
      * @var array|ModelInterface
      */
     protected $byEntity = [];
-
-    /**
-     * @var array|ModelInterface
-     */
-    protected $byTable = [];
 
     /**
      * Construct
@@ -59,7 +58,7 @@ class ModelBag
      */
     public function get($alias)
     {
-        $alias = ltrim($alias, '\\');
+        $alias = $this->normalizeNamespace($alias);
 
         if (isset($this->byAlias[$alias])) {
             return $this->byAlias[$alias];
@@ -67,10 +66,6 @@ class ModelBag
 
         if (isset($this->byEntity[$alias])) {
             return $this->byEntity[$alias];
-        }
-
-        if (isset($this->byTable[$alias])) {
-            return $this->byTable[$alias];
         }
 
         throw new ModelException(sprintf('Model for entity "%s" does not exists', $alias));
@@ -88,18 +83,13 @@ class ModelBag
     {
         $hash = spl_object_hash($model);
 
-        $this->collection[$hash] = & $model;
+        $this->collection[$hash] = &$model;
 
-        $key = preg_replace('/_?[^\w\d]+/i', '_', $model->table());
+        if ($alias) {
+            $this->byAlias[$model->alias($alias)] = &$this->collection[$hash];
+        }
 
-        $alias = $model->alias($alias ? $alias : $key);
-        $this->byAlias[$alias] = & $this->collection[$hash];
-
-        $entity = $model->entity() ? ltrim($model->entity(), '\\') : $key;
-        $this->byEntity[$entity] = & $this->collection[$hash];
-
-        $entity = $model->table();
-        $this->byTable[$entity] = & $this->collection[$hash];
+        $this->byEntity[$this->normalizeNamespace($model->entity())] = &$this->collection[$hash];
 
         return $this;
     }
@@ -113,9 +103,9 @@ class ModelBag
      */
     public function has($alias)
     {
-        $alias = ltrim($alias, '\\');
+        $alias = $this->normalizeNamespace($alias);
 
-        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias]) || isset($this->byTable[$alias])) {
+        if (isset($this->byAlias[$alias]) || isset($this->byEntity[$alias])) {
             return true;
         }
 

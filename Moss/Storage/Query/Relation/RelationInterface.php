@@ -21,12 +21,6 @@ use Moss\Storage\Query\QueryInterface;
  */
 interface RelationInterface
 {
-    // Relation types
-    const RELATION_ONE = 'one';
-    const RELATION_MANY = 'many';
-    const RELATION_ONE_TROUGH = 'oneTrough';
-    const RELATION_MANY_TROUGH = 'manyTrough';
-
     /**
      * Returns relation name
      *
@@ -42,6 +36,38 @@ interface RelationInterface
     public function query();
 
     /**
+     * Adds where condition to query
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     */
+    public function where($field, $value, $comparison = '==', $logical = 'and');
+
+    /**
+     * Adds sorting to relation
+     *
+     * @param string       $field
+     * @param string|array $order
+     *
+     * @return $this
+     */
+    public function order($field, $order = 'desc');
+
+    /**
+     * Sets limits to relation
+     *
+     * @param int      $limit
+     * @param null|int $offset
+     *
+     * @return $this
+     */
+    public function limit($limit, $offset = null);
+
+    /**
      * Adds sub relation
      *
      * @param string $relation
@@ -51,7 +77,7 @@ interface RelationInterface
     public function with($relation);
 
     /**
-     * Returns sub relation instance
+     * Returns query instance
      *
      * @param string $relation
      *
@@ -85,9 +111,4 @@ interface RelationInterface
      * @return array|\ArrayAccess
      */
     public function delete(&$result);
-
-    /**
-     * Executes clear relation
-     */
-    public function clear();
 }

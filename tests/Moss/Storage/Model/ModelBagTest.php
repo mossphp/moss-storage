@@ -25,18 +25,6 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($model, $bag->get('Foo'));
     }
 
-    public function testGetByTableName()
-    {
-        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
-        $model->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue('foo'));
-
-        $bag = new ModelBag();
-        $bag->set($model);
-        $this->assertEquals($model, $bag->get('foo'));
-    }
-
     public function testGetByAlias()
     {
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
@@ -67,18 +55,6 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($bag->has('Foo'));
     }
 
-    public function testHasByTableName()
-    {
-        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
-        $model->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue('foo'));
-
-        $bag = new ModelBag();
-        $bag->set($model);
-        $this->assertTrue($bag->has('foo'));
-    }
-
     public function testHasByAlias()
     {
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
@@ -91,4 +67,3 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($bag->has('foofoo'));
     }
 }
- 

@@ -9,13 +9,13 @@ class UniqueTest extends \PHPUnit_Framework_TestCase
 
     public function testName()
     {
-        $index = new Unique('foo', array('foo', 'bar'));
+        $index = new Unique('foo', ['foo', 'bar']);
         $this->assertEquals('foo', $index->name());
     }
 
     public function testType()
     {
-        $index = new Unique('foo', array('foo', 'bar'));
+        $index = new Unique('foo', ['foo', 'bar']);
         $this->assertEquals('unique', $index->type());
     }
 
@@ -29,11 +29,11 @@ class UniqueTest extends \PHPUnit_Framework_TestCase
     }
 
     public function fieldsProvider() {
-        return array(
-            array(array('foo')),
-            array(array('foo', 'bar')),
-            array(array('foo', 'bar', 'yada'))
-        );
+        return [
+            [['foo']],
+            [['foo', 'bar']],
+            [['foo', 'bar', 'yada']]
+        ];
     }
 
     /**
@@ -42,31 +42,31 @@ class UniqueTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutAnyFields()
     {
-        new Unique('foo', array());
+        new Unique('foo', []);
     }
 
     public function testHasField()
     {
-        $index = new Unique('foo', array('foo', 'bar'));
+        $index = new Unique('foo', ['foo', 'bar']);
         $this->assertTrue($index->hasField('foo'));
         $this->assertTrue($index->hasField('bar'));
     }
 
     public function testWithoutField()
     {
-        $index = new Unique('foo', array('foo', 'bar'));
+        $index = new Unique('foo', ['foo', 'bar']);
         $this->assertFalse($index->hasField('yada'));
     }
 
     public function testIsPrimary()
     {
-        $index = new Unique('foo', array('foo', 'bar'));
+        $index = new Unique('foo', ['foo', 'bar']);
         $this->assertFalse($index->isPrimary());
     }
 
     public function testIsUnique()
     {
-        $index = new Unique('foo', array('foo', 'bar'));
+        $index = new Unique('foo', ['foo', 'bar']);
         $this->assertTrue($index->isUnique());
     }
 }

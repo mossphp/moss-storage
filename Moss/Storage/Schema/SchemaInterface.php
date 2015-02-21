@@ -11,8 +11,7 @@
 
 namespace Moss\Storage\Schema;
 
-use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Builder\QueryBuilderInterface as BuilderInterface;
+use Doctrine\DBAL\Connection;
 
 /**
  * Schema interface
@@ -25,25 +24,9 @@ interface SchemaInterface
     /**
      * Returns driver instance
      *
-     * @return DriverInterface
+     * @return Connection
      */
-    public function driver();
-
-    /**
-     * Returns builder instance
-     *
-     * @return BuilderInterface
-     */
-    public function builder();
-
-    /**
-     * Sets check operation
-     *
-     * @param array $entity
-     *
-     * @return $this
-     */
-    public function check($entity = []);
+    public function connection();
 
     /**
      * Sets create operation

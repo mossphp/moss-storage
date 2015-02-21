@@ -10,8 +10,8 @@ First one grants access to database engine, second one - builds queries in datab
 
 ```php
 $dsn = sprintf('%s:dbname=%s;host=%s;port=%u', 'mysql', 'database', 'localhost', 3306);
-$mutator = new \Moss\Storage\Driver\Mutator();
-$driver = new \Moss\Storage\Driver\PDO($dsn, 'user', 'password', $mutator);
+$Converter = new \Moss\Storage\Driver\Converter();
+$driver = new \Moss\Storage\Driver\PDO($dsn, 'user', 'password', $Converter);
 
 $builder = new \Moss\Storage\Builder\MySQL\QueryBuilder();
 
@@ -23,7 +23,7 @@ $storage->register('...'); // register models
 You must register models, without them storage will be unable to work.
 
 ***Important***
-`Mutator` is used to cast entity values into/from proper type/format eg \DateTime instance into timestamp or array into serialized string.
+`Converter` is used to cast entity values into/from proper type/format eg \DateTime instance into timestamp or array into serialized string.
 When you don't use
 
 ## Execute and queryString

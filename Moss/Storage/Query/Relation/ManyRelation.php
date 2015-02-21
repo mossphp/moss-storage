@@ -17,51 +17,44 @@ namespace Moss\Storage\Query\Relation;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ManyRelation extends Relation
+class ManyRelation extends AbstractRelation implements RelationInterface
 {
     /**
      * Executes read for one-to-many relation
      *
-     * @param array|\Traversable $result
+     * @param array $result
      *
-     * @return array|\Traversable
+     * @return array
      */
     public function read(&$result)
     {
         $relations = [];
         $conditions = [];
 
-        foreach ($this->relation->foreignValues() as $refer => $value) {
-            $conditions[$refer][] = $value;
-        }
-
         foreach ($result as $i => $entity) {
-            if (!$this->assertEntity($entity)) {
-                continue;
+            $container = $this->getPropertyValue($entity, $this->definition->container());
+            if (empty($container)) {
+                $this->setPropertyValue($entity, $this->definition->container(), []);
             }
 
-            if (!isset($entity->{$this->relation->container()})) {
-                $entity->{$this->relation->container()} = [];
+            foreach ($this->definition->keys() as $local => $refer) {
+                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
             }
 
-            foreach ($this->relation->keys() as $local => $refer) {
-                $conditions[$refer][] = $this->accessProperty($entity, $local);
-            }
-
-            $relations[$this->buildLocalKey($entity, $this->relation->keys())][] = & $result[$i];
+            $relations[$this->buildLocalKey($entity, $this->definition->keys())][] = &$result[$i];
         }
 
-        $collection = $this->fetch($this->relation->entity(), $conditions);
+        $collection = $this->fetch($this->definition->entity(), $conditions, true);
 
         foreach ($collection as $relEntity) {
-            $key = $this->buildForeignKey($relEntity, $this->relation->keys());
+            $key = $this->buildForeignKey($relEntity, $this->definition->keys());
 
             if (!isset($relations[$key])) {
                 continue;
             }
 
             foreach ($relations[$key] as &$entity) {
-                $entity->{$this->relation->container()}[] = $relEntity;
+                $this->addPropertyValue($entity, $this->definition->container(), $relEntity);
                 unset($entity);
             }
         }
@@ -79,39 +72,36 @@ class ManyRelation extends Relation
      */
     public function write(&$result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        $container = $this->getPropertyValue($result, $this->definition->container());
+        if (empty($container)) {
+            $conditions = [];
+            foreach ($this->definition->keys() as $local => $foreign) {
+                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+            }
+
+            $this->cleanup($this->definition->entity(), [], $conditions);
             return $result;
         }
 
-        $container = & $result->{$this->relation->container()};
         $this->assertArrayAccess($container);
 
         foreach ($container as $relEntity) {
-            foreach ($this->relation->foreignValues() as $field => $value) {
-                $this->accessProperty($relEntity, $field, $value);
+            foreach ($this->definition->keys() as $local => $foreign) {
+                $this->setPropertyValue($relEntity, $foreign, $this->getPropertyValue($result, $local));
             }
 
-            foreach ($this->relation->keys() as $local => $foreign) {
-                $this->accessProperty($relEntity, $foreign, $this->accessProperty($result, $local));
-            }
-
-            $query = clone $this->query;
-            $query->write($this->relation->entity(), $relEntity)
+            $this->query->write($this->definition->entity(), $relEntity)
                 ->execute();
         }
 
-        // cleanup
+        $this->setPropertyValue($result, $this->definition->container(), $container);
 
         $conditions = [];
-        foreach ($this->relation->foreignValues() as $field => $value) {
-            $conditions[$field] = $value;
+        foreach ($this->definition->keys() as $local => $foreign) {
+            $conditions[$foreign] = $this->getPropertyValue($result, $local);
         }
 
-        foreach ($this->relation->keys() as $local => $foreign) {
-            $conditions[$foreign] = $this->accessProperty($result, $local);
-        }
-
-        $this->cleanup($this->relation->entity(), $container, $conditions);
+        $this->cleanup($this->definition->entity(), $container, $conditions);
 
         return $result;
     }
@@ -126,29 +116,20 @@ class ManyRelation extends Relation
      */
     public function delete(&$result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        $container = $this->getPropertyValue($result, $this->definition->container());
+        if (empty($container)) {
             return $result;
         }
 
-        $container = & $result->{$this->relation->container()};
         $this->assertArrayAccess($container);
 
-        foreach ($result->{$this->relation->container()} as $relEntity) {
-            $query = clone $this->query;
-            $query->delete($this->relation->entity(), $relEntity)
+        foreach ($container as $relEntity) {
+            $this->query->delete($this->definition->entity(), $relEntity)
                 ->execute();
         }
 
-        return $result;
-    }
+        $this->setPropertyValue($result, $this->definition->container(), $container);
 
-    /**
-     * Executes clear for one-to-many relation
-     */
-    public function clear()
-    {
-        $query = clone $this->query;
-        $query->clear($this->relation->entity())
-            ->execute();
+        return $result;
     }
 }

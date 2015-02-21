@@ -41,8 +41,8 @@ class String implements FieldInterface
             'string',
             $field,
             array_merge(['length' => null], $attributes),
-            $mapping,
-            ['length', 'null', 'default']
+            empty($mapping) ? null : $mapping,
+            ['length', 'notnull', 'default']
         );
     }
 
@@ -80,10 +80,11 @@ class String implements FieldInterface
                 $attributes[$value] = true;
                 continue;
             }
+        }
 
-            if ($key == 'default') {
-                $attributes['null'] = true;
-            }
+        if(isset($attributes['null'])) {
+            unset($attributes['null']);
+            $attributes['notnull'] = false;
         }
 
         return $attributes;
@@ -142,13 +143,13 @@ class String implements FieldInterface
     }
 
     /**
-     * Returns field table mapping or null when no mapping
+     * Returns mapped table cell or null when no mapping
      *
      * @return null|string
      */
     public function mapping()
     {
-        return $this->mapping ? $this->mapping : $this->name;
+        return $this->mapping;
     }
 
     /**
