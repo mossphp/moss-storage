@@ -31,7 +31,7 @@ abstract class AbstractRelation
     use GetTypeTrait;
 
     /**
-     * @var Query|RelationalQueryInterface
+     * @var Query
      */
     protected $query;
 

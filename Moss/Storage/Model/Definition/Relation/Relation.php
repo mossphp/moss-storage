@@ -45,7 +45,7 @@ abstract class Relation implements RelationInterface
      */
     protected function containerName($container = null)
     {
-        if ($container) {
+        if ($container !== null) {
             return $container;
         }
 

@@ -127,7 +127,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      */
     protected function assignField(FieldInterface $field)
     {
-        if ($field->mapping()) {
+        if ($field->mapping() !== null) {
             $this->query->addSelect(
                 sprintf(
                     '%s AS %s',
@@ -354,8 +354,8 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     /**
      * Adds sorting to query
      *
-     * @param string       $field
-     * @param string|array $order
+     * @param string $field
+     * @param string $order
      *
      * @return $this
      */
@@ -391,10 +391,30 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      * @param string|array $relation
      * @param array        $conditions
      * @param array        $order
+     * @param int          $limit
+     * @param int          $offset
      *
      * @return $this
      */
     public function with($relation, array $conditions = [], array $order = [], $limit = null, $offset = null)
+    {
+        foreach ((array) $relation as $node) {
+            $this->assignRelation($node, $conditions, $order, $limit, $offset);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Adds relation to query
+     *
+     * @param string $relation
+     * @param array  $conditions
+     * @param array  $order
+     * @param int    $limit
+     * @param int    $offset
+     */
+    protected function assignRelation($relation, array $conditions, array $order, $limit, $offset)
     {
         $this->factory->reset();
         $this->factory->relation($this->model, $relation);
@@ -416,8 +436,6 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
         $instance = $this->factory->build();
 
         $this->relations[$instance->name()] = $instance;
-
-        return $this;
     }
 
     /**

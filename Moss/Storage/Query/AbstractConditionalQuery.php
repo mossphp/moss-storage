@@ -220,7 +220,7 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      */
     public function limit($limit, $offset = null)
     {
-        if ($offset) {
+        if ($offset !== null) {
             $this->query->setFirstResult((int) $offset);
         }
 

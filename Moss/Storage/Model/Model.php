@@ -284,7 +284,7 @@ class Model implements ModelInterface
      *
      * @param string $field
      *
-     * @return bool
+     * @return array
      * @throws ModelException
      */
     public function inIndex($field)
@@ -436,7 +436,7 @@ class Model implements ModelInterface
      *
      * @param string $relationName
      *
-     * @return bool|RelationInterface
+     * @return RelationInterface
      */
     protected function findRelationByName($relationName)
     {
@@ -446,6 +446,6 @@ class Model implements ModelInterface
             }
         }
 
-        return false;
+        return null;
     }
 }
