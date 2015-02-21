@@ -13,7 +13,7 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Converter\ConverterInterface;
+use Doctrine\DBAL\Types\Type;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
@@ -47,14 +47,12 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      *
      * @param Connection               $connection
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
-        $this->converter = $converter;
         $this->factory = $factory;
 
         $this->setQuery();
@@ -447,9 +445,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      */
     public function execute()
     {
-        $stmt = $this->connection->prepare($this->queryString());
-        $stmt->execute($this->binds);
-
+        $stmt = $this->bindAndExecuteQuery();
         $result = $stmt->fetchAll(\PDO::FETCH_CLASS, $this->model->entity());
 
         $ref = new \ReflectionClass($this->model->entity());
@@ -481,7 +477,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
                     continue;
                 }
 
-                $entity[$field] = $this->converter->restore($entity[$field], $type);
+                $entity[$field] = $this->convertToPHPValue($entity[$field], $type);
                 continue;
             }
 
@@ -490,7 +486,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
                     continue;
                 }
 
-                $entity->$field = $this->converter->restore($entity->$field, $type);
+                $entity->$field = $this->convertToPHPValue($entity->$field, $type);
                 continue;
             }
 
@@ -498,11 +494,26 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
             $prop->setAccessible(true);
 
             $value = $prop->getValue($entity);
-            $value = $this->converter->restore($value, $type);
+            $value = $this->convertToPHPValue($value, $type);
             $prop->setValue($entity, $value);
         }
 
         return $entity;
+    }
+
+    /**
+     * Converts read value to its php representation
+     *
+     * @param mixed $value
+     * @param string $type
+     *
+     * @return mixed
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    protected function convertToPHPValue($value, $type)
+    {
+        return Type::getType($type)
+            ->convertToPHPValue($value, $this->connection->getDatabasePlatform());
     }
 
     /**

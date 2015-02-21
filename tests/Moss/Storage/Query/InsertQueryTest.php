@@ -14,10 +14,9 @@ class InsertQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        new InsertQuery($dbal, null, $model, $converter, $factory);
+        new InsertQuery($dbal, null, $model, $factory);
     }
 
     /**
@@ -28,43 +27,39 @@ class InsertQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        new InsertQuery($dbal, new \stdClass(), $model, $converter, $factory);
+        new InsertQuery($dbal, new \stdClass(), $model, $factory);
     }
 
     public function testEntityWithPublicProperties()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
-        new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        new InsertQuery($dbal, $entity, $model, $factory);
     }
 
     public function testEntityWithProtectedProperties()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = new TestEntity('foo', 'bar');
-        new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        new InsertQuery($dbal, $entity, $model, $factory);
     }
 
     public function testEntityIsArray()
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
-        new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        new InsertQuery($dbal, $entity, $model, $factory);
     }
 
     public function testConnection()
@@ -73,10 +68,9 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
 
         $this->assertSame($dbal, $query->connection());
     }
@@ -101,10 +95,9 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->values(['foo', 'bar']);
     }
 
@@ -137,10 +130,9 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->values(['foo']);
         $query->value('bar');
     }
@@ -156,11 +148,10 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
-        $this->assertEquals([':value_0_foo' => null, ':value_1_bar' => 'bar'], $query->binds());
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
+        $this->assertEquals([':value_0_foo' => ['string', null], ':value_1_bar' => ['string', 'bar']], $query->binds());
     }
 
     public function testValueFromRelationalEntity()
@@ -174,11 +165,10 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
-        $this->assertEquals([':value_0_foo' => 'yada', ':value_1_bar' => 'bar'], $query->binds());
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
+        $this->assertEquals([':value_0_foo' => ['string', 'yada'], ':value_1_bar' => ['string', 'bar']], $query->binds());
     }
 
     public function testWith()
@@ -187,7 +177,6 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
 
@@ -204,7 +193,7 @@ class InsertQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
     }
 
@@ -214,7 +203,6 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -226,7 +214,7 @@ class InsertQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $result = $query->with('relation')
             ->relation('relation');
 
@@ -239,7 +227,6 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -255,7 +242,7 @@ class InsertQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $result = $query->with('relation.relation')
             ->relation('relation.relation');
 
@@ -272,11 +259,10 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -299,7 +285,6 @@ class InsertQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())
@@ -312,7 +297,7 @@ class InsertQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
         $query->execute();
     }
@@ -332,10 +317,9 @@ class InsertQueryTest extends QueryMocks
             ->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->execute();
         $this->assertEquals('id', $entity->foo);
     }
@@ -355,10 +339,9 @@ class InsertQueryTest extends QueryMocks
             ->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->execute();
         $this->assertEquals('id', $entity->getFoo());
     }
@@ -373,10 +356,9 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->queryString();
     }
 
@@ -388,12 +370,11 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->values(['foo']);
-        $this->assertEquals([':value_0_foo' => 'foo'], $query->binds());
+        $this->assertEquals([':value_0_foo' => ['string', 'foo']], $query->binds());
     }
 
     public function testReset()
@@ -406,10 +387,9 @@ class InsertQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new InsertQuery($dbal, $entity, $model, $converter, $factory);
+        $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->reset();
     }
 }

@@ -13,8 +13,6 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Converter\ConverterInterface;
-use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
@@ -42,14 +40,12 @@ class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
      *
      * @param Connection               $connection
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
-        $this->converter = $converter;
         $this->factory = $factory;
 
         $this->setQuery();
@@ -148,8 +144,7 @@ class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
      */
     public function execute()
     {
-        $stmt = $this->connection->prepare($this->queryString());
-        $stmt->execute($this->binds);
+        $stmt = $this->bindAndExecuteQuery();
 
         return $stmt->rowCount();
     }

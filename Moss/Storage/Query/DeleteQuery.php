@@ -13,7 +13,6 @@ namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 
@@ -31,14 +30,12 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterfa
      * @param Connection               $connection
      * @param mixed                    $entity
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
-        $this->converter = $converter;
         $this->factory = $factory;
 
         $this->assertEntityInstance($entity);

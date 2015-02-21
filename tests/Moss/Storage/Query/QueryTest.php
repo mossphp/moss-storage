@@ -19,10 +19,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertSame($dbal, $query->connection());
     }
 
@@ -34,10 +33,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\CountQueryInterface', $query->count('\\stdClass'));
     }
 
@@ -49,10 +47,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->read('\\stdClass'));
     }
 
@@ -64,10 +61,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->readOne('\\stdClass'));
     }
 
@@ -79,10 +75,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\WriteQueryInterface', $query->write($entity, $instance));
     }
 
@@ -94,10 +89,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\InsertQueryInterface', $query->insert($entity, $instance));
     }
 
@@ -109,10 +103,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\UpdateQueryInterface', $query->update($entity, $instance));
     }
 
@@ -124,10 +117,9 @@ class QueryTest extends QueryMocks
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
         $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $converter, $factory);
+        $query = new Query($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\DeleteQueryInterface', $query->delete($entity, $instance));
     }
 

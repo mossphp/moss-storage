@@ -13,7 +13,6 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\Query\Relation\RelationInterface;
@@ -41,14 +40,12 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
      * @param Connection               $connection
      * @param mixed                    $entity
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
-        $this->converter = $converter;
         $this->factory = $factory;
 
         $this->assertEntityInstance($entity);
@@ -152,9 +149,9 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
     protected function buildQuery()
     {
         if ($this->checkIfEntityExists()) {
-            $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->converter, $this->factory);
+            $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->factory);
         } else {
-            $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->converter, $this->factory);
+            $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->factory);
         }
 
         $query->values($this->values);
@@ -169,7 +166,7 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
      */
     protected function checkIfEntityExists()
     {
-        $query = new CountQuery($this->connection, $this->model, $this->converter, $this->factory);
+        $query = new CountQuery($this->connection, $this->model, $this->factory);
 
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->getPropertyValue($this->instance, $field->name());

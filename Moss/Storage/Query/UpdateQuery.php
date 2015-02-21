@@ -13,7 +13,6 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
@@ -32,14 +31,12 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
      * @param Connection               $connection
      * @param mixed                    $entity
      * @param ModelInterface           $model
-     * @param ConverterInterface       $converter
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, ConverterInterface $converter, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
     {
         $this->connection = $connection;
         $this->model = $model;
-        $this->converter = $converter;
         $this->factory = $factory;
 
         $this->assertEntityInstance($entity);
@@ -205,9 +202,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
      */
     public function execute()
     {
-        $this->connection
-            ->prepare($this->queryString())
-            ->execute($this->binds);
+        $this->bindAndExecuteQuery();
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);

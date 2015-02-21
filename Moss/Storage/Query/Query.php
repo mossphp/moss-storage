@@ -13,7 +13,6 @@ namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelBag;
-use Moss\Storage\Converter\ConverterInterface;
 use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\NormalizeNamespaceTrait;
@@ -39,11 +38,6 @@ class Query
     protected $models;
 
     /**
-     * @var ConverterInterface
-     */
-    protected $converter;
-
-    /**
      * @var RelationFactoryInterface
      */
     protected $factory;
@@ -51,15 +45,13 @@ class Query
     /**
      * Constructor
      *
-     * @param Connection         $connection
-     * @param ModelBag           $models
-     * @param ConverterInterface $converter
+     * @param Connection $connection
+     * @param ModelBag   $models
      */
-    public function __construct(Connection $connection, ModelBag $models, ConverterInterface $converter)
+    public function __construct(Connection $connection, ModelBag $models)
     {
         $this->connection = $connection;
         $this->models = $models;
-        $this->converter = $converter;
         $this->factory = new RelationFactory($this, $models);
     }
 
@@ -85,62 +77,49 @@ class Query
         return new CountQuery(
             $this->connection,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }
 
     /**
      * Sets read operation
-
-
-*
-*@param string $entity
-
-
-*
-*@return ReadQueryInterface
+     *
+     * @param string $entity
+     *
+     * @return ReadQueryInterface
      */
     public function read($entity)
     {
         return new ReadQuery(
             $this->connection,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }
 
     /**
      * Sets read one operation
-
-
-*
-*@param string $entity
-
-
-*
-*@return ReadQueryInterface
+     *
+     * @param string $entity
+     *
+     * @return ReadQueryInterface
      */
     public function readOne($entity)
     {
         return new ReadOneQuery(
             $this->connection,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }
 
     /**
      * Sets write operation
-
      *
-*@param string|object     $entity
+     * @param string|object     $entity
      * @param null|array|object $instance
-
      *
-*@return WriteQueryInterface
+     * @return WriteQueryInterface
      */
     public function write($entity, $instance = null)
     {
@@ -150,20 +129,17 @@ class Query
             $this->connection,
             $instance,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }
 
     /**
      * Sets insert operation
-
      *
-*@param string|object     $entity
+     * @param string|object     $entity
      * @param null|array|object $instance
-
      *
-*@return InsertQueryInterface
+     * @return InsertQueryInterface
      */
     public function insert($entity, $instance)
     {
@@ -173,18 +149,15 @@ class Query
             $this->connection,
             $instance,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }
 
     /**
      * Sets update operation
-
      *
-*@param string|object     $entity
+     * @param string|object     $entity
      * @param null|array|object $instance
-
      *
      * @return UpdateQueryInterface
      */
@@ -196,18 +169,15 @@ class Query
             $this->connection,
             $instance,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }
 
     /**
      * Sets delete operation
-
      *
-*@param string|object     $entity
+     * @param string|object     $entity
      * @param null|array|object $instance
-
      *
      * @return DeleteQueryInterface
      */
@@ -219,7 +189,6 @@ class Query
             $this->connection,
             $instance,
             $this->models->get($entity),
-            $this->converter,
             $this->factory
         );
     }

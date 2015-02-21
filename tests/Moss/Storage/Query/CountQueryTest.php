@@ -8,10 +8,9 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
 
         $this->assertSame($dbal, $query->connection());
     }
@@ -37,10 +36,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', '=', 'and');
     }
 
@@ -65,10 +63,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', null, '=', 'and');
     }
 
@@ -93,10 +90,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
@@ -121,10 +117,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -149,10 +144,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -180,10 +174,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', $operator, 'and');
     }
 
@@ -195,10 +188,9 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', 'xyz', 'and');
     }
 
@@ -237,10 +229,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', '=', $operator);
     }
 
@@ -252,10 +243,9 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('bar', 'barbar', '=', 'xyz');
     }
 
@@ -280,10 +270,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', '=', 'and');
     }
 
@@ -308,10 +297,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', null, '=', 'and');
     }
 
@@ -336,10 +324,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
@@ -364,10 +351,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -392,10 +378,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -423,10 +408,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', $operator, 'and');
     }
 
@@ -438,10 +422,9 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', 'xyz', 'and');
     }
 
@@ -479,10 +462,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', '=', $operator);
     }
 
@@ -494,10 +476,9 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->having('bar', 'barbar', '=', 'xyz');
     }
 
@@ -527,7 +508,6 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
 
@@ -544,7 +524,7 @@ class CountQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->with('relation');
     }
 
@@ -552,7 +532,6 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -564,7 +543,7 @@ class CountQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $result = $query->with('relation')
             ->relation('relation');
 
@@ -575,7 +554,6 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())
@@ -591,7 +569,7 @@ class CountQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $result = $query->with('relation.relation')
             ->relation('relation.relation');
 
@@ -606,11 +584,10 @@ class CountQueryTest extends QueryMocks
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -633,7 +610,6 @@ class CountQueryTest extends QueryMocks
             ->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
 
         $relation = $this->mockRelation();
 
@@ -642,7 +618,7 @@ class CountQueryTest extends QueryMocks
             ->method('build')
             ->willReturn($relation);
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->with('relation');
 
         $this->assertEquals(10, $query->execute());
@@ -656,10 +632,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->queryString();
     }
 
@@ -669,12 +644,11 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->where('foo', 'foo');
-        $this->assertEquals([':condition_0_foo' => 'foo'], $query->binds());
+        $this->assertEquals([':condition_0_foo' => ['string', 'foo']], $query->binds());
     }
 
     public function testReset()
@@ -685,10 +659,9 @@ class CountQueryTest extends QueryMocks
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $converter = $this->mockConverter();
         $factory = $this->mockRelFactory();
 
-        $query = new CountQuery($dbal, $model, $converter, $factory);
+        $query = new CountQuery($dbal, $model, $factory);
         $query->reset();
     }
 }
