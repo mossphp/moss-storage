@@ -183,7 +183,8 @@ abstract class AbstractQuery
     {
         $stmt = $this->connection->prepare($this->queryString());
 
-        foreach ($this->binds as $key => list($type, $value)) {
+        foreach ($this->binds as $key => $bind) {
+            list($type, $value) = $bind;
             $stmt->bindValue($key, $value, $type);
         }
 
