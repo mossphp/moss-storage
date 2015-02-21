@@ -41,11 +41,13 @@ class OneRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
         $collection = [
             (object) ['id' => 1, 'rel' => null],
         ];
 
-        $definition = new OneRelation($query, $definition, $models);
+        $definition = new OneRelation($query, $definition, $models, $factory);
         $result = $definition->read($collection);
 
         $this->assertEquals($expected, $result);
@@ -71,7 +73,9 @@ class OneRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new OneRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneRelation($query, $definition, $models, $factory);
         $relation->write($entity);
     }
 
@@ -109,7 +113,9 @@ class OneRelationTest extends \PHPUnit_Framework_TestCase
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
         $models->expects($this->once())->method('get')->willReturn($model);
 
-        $relation = new OneRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneRelation($query, $definition, $models, $factory);
         $relation->write($entity);
     }
 
@@ -132,7 +138,9 @@ class OneRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new OneRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneRelation($query, $definition, $models, $factory);
         $relation->delete($entity);
     }
 
@@ -153,7 +161,9 @@ class OneRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $definition = new OneRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $definition = new OneRelation($query, $definition, $models, $factory);
         $definition->delete($entity);
     }
 }

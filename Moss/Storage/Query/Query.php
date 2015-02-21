@@ -92,10 +92,14 @@ class Query
 
     /**
      * Sets read operation
-     *
-     * @param string $entity
-     *
-     * @return ReadQueryInterface
+
+
+*
+*@param string $entity
+
+
+*
+*@return ReadQueryInterface
      */
     public function read($entity)
     {
@@ -109,10 +113,14 @@ class Query
 
     /**
      * Sets read one operation
-     *
-     * @param string $entity
-     *
-     * @return ReadQueryInterface
+
+
+*
+*@param string $entity
+
+
+*
+*@return ReadQueryInterface
      */
     public function readOne($entity)
     {
@@ -126,11 +134,13 @@ class Query
 
     /**
      * Sets write operation
+
      *
-     * @param string|object     $entity
+*@param string|object     $entity
      * @param null|array|object $instance
+
      *
-     * @return WriteQueryInterface
+*@return WriteQueryInterface
      */
     public function write($entity, $instance = null)
     {
@@ -147,11 +157,13 @@ class Query
 
     /**
      * Sets insert operation
+
      *
-     * @param string|object     $entity
+*@param string|object     $entity
      * @param null|array|object $instance
+
      *
-     * @return InsertQueryInterface
+*@return InsertQueryInterface
      */
     public function insert($entity, $instance)
     {
@@ -168,9 +180,11 @@ class Query
 
     /**
      * Sets update operation
+
      *
-     * @param string|object     $entity
+*@param string|object     $entity
      * @param null|array|object $instance
+
      *
      * @return UpdateQueryInterface
      */
@@ -189,9 +203,11 @@ class Query
 
     /**
      * Sets delete operation
+
      *
-     * @param string|object     $entity
+*@param string|object     $entity
      * @param null|array|object $instance
+
      *
      * @return DeleteQueryInterface
      */

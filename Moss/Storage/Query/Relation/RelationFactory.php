@@ -133,16 +133,16 @@ class RelationFactory implements RelationFactoryInterface
 
         switch ($definition->type()) {
             case self::RELATION_ONE:
-                $instance = new OneRelation($this->query, $definition, $this->bag);
+                $instance = new OneRelation($this->query, $definition, $this->bag, $this);
                 break;
             case self::RELATION_MANY:
-                $instance = new ManyRelation($this->query, $definition, $this->bag);
+                $instance = new ManyRelation($this->query, $definition, $this->bag, $this);
                 break;
             case self::RELATION_ONE_TROUGH:
-                $instance = new OneTroughRelation($this->query, $definition, $this->bag);
+                $instance = new OneTroughRelation($this->query, $definition, $this->bag, $this);
                 break;
             case self::RELATION_MANY_TROUGH:
-                $instance = new ManyTroughRelation($this->query, $definition, $this->bag);
+                $instance = new ManyTroughRelation($this->query, $definition, $this->bag, $this);
                 break;
             default:
                 throw new QueryException(sprintf('Invalid read relation type "%s" for "%s"', $definition->type(), $definition->entity()));

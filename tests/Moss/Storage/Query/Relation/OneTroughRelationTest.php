@@ -46,11 +46,13 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
         $collection = [
             (object) ['id' => 1, 'rel' => null],
         ];
 
-        $definition = new OneTroughRelation($query, $definition, $models);
+        $definition = new OneTroughRelation($query, $definition, $models, $factory);
         $result = $definition->read($collection);
 
         $this->assertEquals($expected, $result);
@@ -86,7 +88,9 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new OneTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneTroughRelation($query, $definition, $models, $factory);
         $relation->write($entity);
     }
 
@@ -121,7 +125,9 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
         $models->expects($this->once())->method('get')->willReturn($model);
 
-        $relation = new OneTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneTroughRelation($query, $definition, $models, $factory);
         $relation->write($entity);
     }
 
@@ -146,7 +152,9 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new OneTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneTroughRelation($query, $definition, $models, $factory);
         $relation->delete($entity);
     }
 
@@ -164,7 +172,9 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new OneTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new OneTroughRelation($query, $definition, $models, $factory);
         $relation->delete($entity);
     }
 }

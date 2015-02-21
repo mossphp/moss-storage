@@ -17,6 +17,7 @@ use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\PropertyAccessorTrait;
 use Moss\Storage\Query\Query;
 use Moss\Storage\Query\QueryInterface;
+use Moss\Storage\Query\RelationalQueryInterface;
 
 /**
  * Abstract class for basic relation methods
@@ -30,7 +31,7 @@ abstract class AbstractRelation
     use GetTypeTrait;
 
     /**
-     * @var Query
+     * @var Query|RelationalQueryInterface
      */
     protected $query;
 
@@ -40,10 +41,18 @@ abstract class AbstractRelation
     protected $models;
 
     /**
+     * @var RelationFactoryInterface
+     */
+    protected $factory;
+
+    /**
      * @var DefinitionInterface
      */
     protected $definition;
 
+    /**
+     * @var array|RelationInterface[]
+     */
     protected $relations = [];
     protected $conditions = [];
     protected $orders = [];
@@ -57,11 +66,12 @@ abstract class AbstractRelation
      * @param DefinitionInterface $relation
      * @param ModelBag            $models
      */
-    public function __construct(Query $query, DefinitionInterface $relation, ModelBag $models)
+    public function __construct(Query $query, DefinitionInterface $relation, ModelBag $models, RelationFactoryInterface $factory)
     {
         $this->query = $query;
         $this->definition = $relation;
         $this->models = $models;
+        $this->factory = $factory;
     }
 
     /**
@@ -141,7 +151,9 @@ abstract class AbstractRelation
      */
     public function with($relation)
     {
-        $this->relations[] = $relation;
+        $this->factory->reset();
+        $instance = $this->factory->relation($this->models->get($this->definition->entity()), $relation)->build();
+        $this->setRelation($instance);
 
         return $this;
     }
@@ -155,7 +167,46 @@ abstract class AbstractRelation
      */
     public function relation($relation)
     {
-        // TODO
+        list($relation, $furtherRelations) = $this->factory->splitRelationName($relation);
+
+        $instance = $this->getRelation($relation);
+
+        if ($furtherRelations) {
+            return $instance->relation($furtherRelations);
+        }
+
+        return $instance;
+    }
+
+    /**
+     * Adds relation or if relation with same name exists - replaces it with new one
+     *
+     * @param RelationInterface $relation
+     *
+     * @return $this
+     */
+    public function setRelation(RelationInterface $relation)
+    {
+        $this->relations[$relation->name()] = $relation;
+
+        return $this;
+    }
+
+    /**
+     * Returns relation with set name
+     *
+     * @param string $name
+     *
+     * @return RelationInterface
+     * @throws RelationException
+     */
+    public function getRelation($name)
+    {
+        if (!isset($this->relations[$name])) {
+            throw new RelationException(sprintf('Unable to retrieve relation "%s", relation does not exists "%s"', $name, $this->definition->entity()));
+        }
+
+        return $this->relations[$name];
     }
 
     /**
@@ -227,7 +278,7 @@ abstract class AbstractRelation
         }
 
         foreach ($this->relations as $relation) {
-            $query->with($relation);
+            $query->setRelation($relation);
         }
 
         foreach ($this->conditions as $condition) {

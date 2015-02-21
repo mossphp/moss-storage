@@ -46,11 +46,13 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
         $collection = [
             (object) ['id' => 1, 'rel' => []],
         ];
 
-        $definition = new ManyTroughRelation($query, $definition, $models);
+        $definition = new ManyTroughRelation($query, $definition, $models, $factory);
         $result = $definition->read($collection);
 
         $this->assertEquals($expected, $result);
@@ -90,13 +92,66 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new ManyTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new ManyTroughRelation($query, $definition, $models, $factory);
         $relation->write($entity);
     }
 
     public function testWriteRelationalEntityAndCleanup()
     {
-        $this->markTestIncomplete();
+        $entity = (object) [
+            'id' => 1,
+            'rel' => [ (object) ['rel_id' => 1] ]
+        ];
+
+        $entityUpdateQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
+        $entityUpdateQuery->expects($this->once())->method('execute')->willReturn(true);
+
+        $mediatorUpdateQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
+        $mediatorUpdateQuery->expects($this->once())->method('execute')->willReturn(true);
+
+        $readQuery = $this->getMock('\Moss\Storage\Query\ReadQueryInterface');
+        $readQuery->expects($this->once())->method('execute')->willReturn(
+            [
+                (object) ['id' => 1, 'rel_id' => 1],
+                (object) ['id' => 2, 'rel_id' => 2]
+            ]
+        );
+
+        $deleteQuery = $this->getMock('\Moss\Storage\Query\DeleteQueryInterface');
+        $deleteQuery->expects($this->exactly(2))->method('execute')->willReturn(true);
+
+        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query->expects($this->exactly(2))->method('write')->willReturnMap(
+            [
+                ['entity', $entity->rel[0], $entityUpdateQuery],
+                ['mediator', ['l_id' => 1, 'f_id' => 1], $mediatorUpdateQuery],
+            ]
+        );
+        $query->expects($this->once())->method('read')->willReturn($readQuery);
+        $query->expects($this->exactly(2))->method('delete')->willReturn($deleteQuery);
+
+        $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
+        $definition->expects($this->once())->method('entity')->willReturn('entity');
+        $definition->expects($this->exactly(2))->method('mediator')->willReturn('mediator');
+        $definition->expects($this->exactly(2))->method('container')->willReturn('rel');
+        $definition->expects($this->exactly(2))->method('localKeys')->willReturn(['id' => 'l_id']);
+        $definition->expects($this->once())->method('foreignKeys')->willReturn(['f_id' => 'rel_id']);
+
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->exactly(3))->method('name')->willReturn('id');
+
+        $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
+        $model->expects($this->exactly(3))->method('primaryFields')->willReturn([$field]);
+
+        $models = $this->getMock('\Moss\Storage\Model\ModelBag');
+        $models->expects($this->exactly(3))->method('get')->willReturn($model);
+
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new ManyTroughRelation($query, $definition, $models, $factory);
+        $relation->write($entity);
     }
 
     public function testWriteWithCleanupOnly()
@@ -130,7 +185,9 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
         $models->expects($this->once())->method('get')->willReturn($model);
 
-        $relation = new ManyTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new ManyTroughRelation($query, $definition, $models, $factory);
         $relation->write($entity);
     }
 
@@ -155,7 +212,9 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new ManyTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new ManyTroughRelation($query, $definition, $models, $factory);
         $relation->delete($entity);
     }
 
@@ -173,7 +232,9 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
 
         $models = $this->getMock('\Moss\Storage\Model\ModelBag');
 
-        $relation = new ManyTroughRelation($query, $definition, $models);
+        $factory = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
+
+        $relation = new ManyTroughRelation($query, $definition, $models, $factory);
         $relation->delete($entity);
     }
 }

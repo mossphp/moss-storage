@@ -91,9 +91,8 @@ abstract class AbstractQuery
     public function with($relation)
     {
         $this->factory->reset();
-        $instance = $this->factory->relation($this->model, $relation)
-            ->build();
-        $this->relations[$instance->name()] = $instance;
+        $instance = $this->factory->relation($this->model, $relation)->build();
+        $this->setRelation($instance);
 
         return $this;
     }
@@ -110,17 +109,44 @@ abstract class AbstractQuery
     {
         list($relation, $furtherRelations) = $this->factory->splitRelationName($relation);
 
-        if (!isset($this->relations[$relation])) {
-            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $relation, $this->model->entity()));
-        }
-
-        $instance = $this->relations[$relation];
+        $instance = $this->getRelation($relation);
 
         if ($furtherRelations) {
             return $instance->relation($furtherRelations);
         }
 
         return $instance;
+    }
+
+    /**
+     * Adds relation to query or if relation with same name exists - replaces it with new one
+     *
+     * @param RelationInterface $relation
+     *
+     * @return $this
+     */
+    public function setRelation(RelationInterface $relation)
+    {
+        $this->relations[$relation->name()] = $relation;
+
+        return $this;
+    }
+
+    /**
+     * Returns relation with set name
+     *
+     * @param string $name
+     *
+     * @return RelationInterface
+     * @throws QueryException
+     */
+    public function getRelation($name)
+    {
+        if (!isset($this->relations[$name])) {
+            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $name, $this->model->entity()));
+        }
+
+        return $this->relations[$name];
     }
 
     /**
