@@ -15,12 +15,12 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
 
     public function tableProvider()
     {
-        return array(
-            array(null, null),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['foo', 'foo'],
+            ['bar', 'bar'],
+            ['yada', 'yada'],
+        ];
     }
 
     public function testName()
@@ -40,24 +40,22 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
      */
     public function testMapping($mapping, $expected)
     {
-        $field = new Decimal('foo', array('length' => 10), $mapping);
+        $field = new Decimal('foo', ['length' => 10], $mapping);
         $this->assertEquals($expected, $field->mapping());
     }
 
     public function mappingProvider()
     {
-        return array(
-            array(null, 'foo'),
-            array('', 'foo'),
-            array('foo', 'foo'),
-            array('bar', 'bar'),
-            array('yada', 'yada'),
-        );
+        return [
+            [null, null],
+            ['', null],
+            ['foo', 'foo'],
+        ];
     }
 
     public function testNonExistentAttribute()
     {
-        $field = new Decimal('foo', array('length' => 10, 'precision' => 4), 'bar');
+        $field = new Decimal('foo', ['length' => 10, 'precision' => 4], 'bar');
         $this->assertNull($field->attribute('NonExistentAttribute'));
     }
 
@@ -72,18 +70,18 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
 
     public function attributeValueProvider()
     {
-        return array(
-            array(array('length' => 10), 'length', 10),
-            array(array('precision' => 2), 'precision', 2),
-            array(array('null'), 'null', true),
-            array(array('default' => 12.34), 'default', 12.34)
-        );
+        return [
+            [['length' => 10], 'length', 10],
+            [['precision' => 2], 'precision', 2],
+            [['notnull'], 'notnull', true],
+            [['default' => 12.34], 'default', 12.34]
+        ];
     }
 
     /**
      * @dataProvider attributeArrayProvider
      */
-    public function testAttributes($attribute, $expected = array())
+    public function testAttributes($attribute, $expected = [])
     {
         $field = new Decimal('foo', $attribute, 'bar');
         $this->assertEquals($expected, $field->attributes());
@@ -91,12 +89,12 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
 
     public function attributeArrayProvider()
     {
-        return array(
-            array(array('length' => 10), array('length' => 10, 'precision' => 4)),
-            array(array('precision' => 2), array('length' => 11, 'precision' => 2)),
-            array(array('null'), array('length' => 11, 'precision' => 4, 'null' => true)),
-            array(array('default' => 12.34), array('length' => 11, 'precision' => 4, 'null' => true, 'default' => 12.34))
-        );
+        return [
+            [['length' => 10], ['length' => 10, 'precision' => 4]],
+            [['precision' => 2], ['length' => 11, 'precision' => 2]],
+            [['notnull'], ['length' => 11, 'precision' => 4, 'notnull' => true]],
+            [['default' => 12.34], ['length' => 11, 'precision' => 4, 'default' => 12.34]]
+        ];
     }
 
     /**
@@ -106,13 +104,13 @@ class DecimalTest extends \PHPUnit_Framework_TestCase
      */
     public function testForbiddenAttributes($attribute)
     {
-        new Decimal('foo', array($attribute), 'bar');
+        new Decimal('foo', [$attribute], 'bar');
     }
 
     public function forbiddenAttributeProvider()
     {
-        return array(
-            array('auto_increment'),
-        );
+        return [
+            ['auto_increment'],
+        ];
     }
 }

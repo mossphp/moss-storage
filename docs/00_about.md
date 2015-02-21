@@ -32,8 +32,7 @@ This would write article entity into database with set comments.
 
 ## Requirements
 
-Just PHP >= 5.3.7, PDO with MySQL or PostgreSQL and that's it.
-(Other SQL engines will come later)
+Just PHP >= 5.4, Doctrine DBAL
 
 ## Installation
 

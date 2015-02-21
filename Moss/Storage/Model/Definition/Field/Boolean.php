@@ -26,14 +26,14 @@ class Boolean extends String
      * @param array  $attributes
      * @param null|string $mapping
      */
-    public function __construct($field, $attributes = array(), $mapping = null)
+    public function __construct($field, $attributes = [], $mapping = null)
     {
         $this->initialize(
             'boolean',
             $field,
             $attributes,
             $mapping,
-            array('null', 'default')
+            ['notnull', 'default']
         );
     }
 }

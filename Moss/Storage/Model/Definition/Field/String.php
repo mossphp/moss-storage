@@ -35,14 +35,14 @@ class String implements FieldInterface
      * @param array       $attributes
      * @param null|string $mapping
      */
-    public function __construct($field, $attributes = array(), $mapping = null)
+    public function __construct($field, $attributes = [], $mapping = null)
     {
         $this->initialize(
             'string',
             $field,
-            array_merge(array('length' => null), $attributes),
-            $mapping,
-            array('length', 'null', 'default')
+            array_merge(['length' => null], $attributes),
+            empty($mapping) ? null : $mapping,
+            ['length', 'notnull', 'default']
         );
     }
 
@@ -55,7 +55,7 @@ class String implements FieldInterface
      * @param null|string  $mapping
      * @param array $allowedAttr
      */
-    protected function initialize($type, $field, array $attributes, $mapping = null, $allowedAttr = array())
+    protected function initialize($type, $field, array $attributes, $mapping = null, $allowedAttr = [])
     {
         $this->name = $field;
         $this->type = $type;
@@ -80,10 +80,11 @@ class String implements FieldInterface
                 $attributes[$value] = true;
                 continue;
             }
+        }
 
-            if ($key == 'default') {
-                $attributes['null'] = true;
-            }
+        if(isset($attributes['null'])) {
+            unset($attributes['null']);
+            $attributes['notnull'] = false;
         }
 
         return $attributes;
@@ -96,7 +97,7 @@ class String implements FieldInterface
      *
      * @throws DefinitionException
      */
-    protected function verifyAttribute($allowed = array())
+    protected function verifyAttribute($allowed = [])
     {
         foreach (array_keys($this->attributes) as $attr) {
             if (!in_array($attr, $allowed)) {
@@ -142,13 +143,13 @@ class String implements FieldInterface
     }
 
     /**
-     * Returns field table mapping or null when no mapping
+     * Returns mapped table cell or null when no mapping
      *
      * @return null|string
      */
     public function mapping()
     {
-        return $this->mapping ? $this->mapping : $this->name;
+        return $this->mapping;
     }
 
     /**

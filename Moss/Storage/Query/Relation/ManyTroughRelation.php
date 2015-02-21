@@ -17,62 +17,50 @@ namespace Moss\Storage\Query\Relation;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ManyTroughRelation extends Relation
+class ManyTroughRelation extends AbstractRelation implements RelationInterface
 {
     /**
      * Executes read for one-to-many relation
      *
-     * @param array|\Traversable $result
+     * @param array $result
      *
-     * @return array|\Traversable
+     * @return array
      */
     public function read(&$result)
     {
-        $relations = array();
-        $conditions = array();
-
-        foreach ($this->relation->foreignValues() as $refer => $value) {
-            $conditions[$refer][] = $value;
-        }
+        $relations = [];
+        $conditions = [];
 
         foreach ($result as $i => $entity) {
-            if (!$this->assertEntity($entity)) {
-                continue;
+            foreach ($this->definition->localKeys() as $local => $refer) {
+                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
             }
 
-            if (!$this->accessProperty($entity, $this->relation->container())) {
-                $this->accessProperty($entity, $this->relation->container(), null);
-            }
-
-            foreach ($this->relation->localKeys() as $local => $refer) {
-                $conditions[$refer][] = $this->accessProperty($entity, $local);
-            }
-
-            $relations[$this->buildLocalKey($entity, $this->relation->localKeys())][] = & $result[$i];
+            $relations[$this->buildLocalKey($entity, $this->definition->localKeys())][] = &$result[$i];
         }
 
-        $collection = $this->fetch($this->relation->mediator(), $conditions, true);
+        $collection = $this->fetch($this->definition->mediator(), $conditions, false);
 
 // --- MEDIATOR START
 
-        $mediator = array();
-        $conditions = array();
+        $mediator = [];
+        $conditions = [];
         foreach ($collection as $entity) {
-            foreach ($this->relation->foreignKeys() as $local => $refer) {
-                $conditions[$refer][] = $this->accessProperty($entity, $local);
+            foreach ($this->definition->foreignKeys() as $local => $refer) {
+                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
             }
 
-            $in = $this->buildForeignKey($entity, $this->relation->localKeys());
-            $out = $this->buildLocalKey($entity, $this->relation->foreignKeys());
+            $in = $this->buildForeignKey($entity, $this->definition->localKeys());
+            $out = $this->buildLocalKey($entity, $this->definition->foreignKeys());
             $mediator[$out][] = $in;
         }
 
-        $collection = $this->fetch($this->relation->entity(), $conditions);
+        $collection = $this->fetch($this->definition->entity(), $conditions, true);
 
 // --- MEDIATOR END
 
         foreach ($collection as $relEntity) {
-            $key = $this->buildForeignKey($relEntity, $this->relation->foreignKeys());
+            $key = $this->buildForeignKey($relEntity, $this->definition->foreignKeys());
 
             if (!isset($mediator[$key])) {
                 continue;
@@ -83,9 +71,7 @@ class ManyTroughRelation extends Relation
                 }
 
                 foreach ($relations[$mkey] as &$entity) {
-                    $value = $this->accessProperty($entity, $this->relation->container());
-                    $value[] = $relEntity;
-                    $this->accessProperty($entity, $this->relation->container(), $value);
+                    $this->addPropertyValue($entity, $this->definition->container(), $relEntity);
                     unset($entity);
                 }
             }
@@ -104,49 +90,50 @@ class ManyTroughRelation extends Relation
      */
     public function write(&$result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        $container = $this->getPropertyValue($result, $this->definition->container());
+        if (empty($container)) {
+            $conditions = [];
+            foreach ($this->definition->localKeys() as $local => $foreign) {
+                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+            }
+
+            $this->cleanup($this->definition->mediator(), [], $conditions);
             return $result;
         }
 
-        $container = & $result->{$this->relation->container()};
-
         foreach ($container as $entity) {
-            $query = clone $this->query;
-            $query->write($this->relation->entity(), $entity)
-                ->execute();
+            $this->query->write($this->definition->entity(), $entity)->execute();
         }
 
-        $fields = array_merge(array_values($this->relation->localKeys()), array_keys($this->relation->foreignKeys()));
-        $mediators = array();
+        $mediators = [];
 
         foreach ($container as $entity) {
-            $mediator = array();
+            $mediator = [];
 
-            foreach ($this->relation->localKeys() as $local => $foreign) {
-                $mediator[$foreign] = $this->accessProperty($result, $local);
+            foreach ($this->definition->localKeys() as $local => $foreign) {
+                $mediator[$foreign] = $this->getPropertyValue($result, $local);
             }
 
-            foreach ($this->relation->foreignKeys() as $foreign => $local) {
-                $mediator[$foreign] = $this->accessProperty($entity, $local);
+            foreach ($this->definition->foreignKeys() as $foreign => $local) {
+                $mediator[$foreign] = $this->getPropertyValue($entity, $local);
             }
 
-            $query = clone $this->query;
-            $query->reset()
-                ->write($this->relation->mediator(), $mediator)
-                ->fields($fields)
+            $this->query->write($this->definition->mediator(), $mediator)
                 ->execute();
 
             $mediators[] = $mediator;
         }
 
-        $conditions = array();
-        foreach ($this->relation->localKeys() as $foreign) {
+        $this->setPropertyValue($result, $this->definition->container(), $container);
+
+        $conditions = [];
+        foreach ($this->definition->localKeys() as $foreign) {
             foreach ($mediators as $mediator) {
-                $conditions[$foreign][] = $this->accessProperty($mediator, $foreign);
+                $conditions[$foreign][] = $this->getPropertyValue($mediator, $foreign);
             }
         }
 
-        $this->cleanup($this->relation->mediator(), $mediators, $conditions);
+        $this->cleanup($this->definition->mediator(), $mediators, $conditions);
 
         return $result;
     }
@@ -161,40 +148,29 @@ class ManyTroughRelation extends Relation
      */
     public function delete(&$result)
     {
-        if (!isset($result->{$this->relation->container()})) {
+        $container = $this->getPropertyValue($result, $this->definition->container());
+        if (empty($container)) {
             return $result;
         }
 
-        $container = & $result->{$this->relation->container()};
-
         foreach ($container as $entity) {
-            $mediator = array();
+            $mediator = [];
 
-            foreach ($this->relation->localKeys() as $local => $foreign) {
-                $mediator[$foreign] = $this->accessProperty($result, $local);
+            foreach ($this->definition->localKeys() as $local => $foreign) {
+                $mediator[$foreign] = $this->getPropertyValue($result, $local);
             }
 
-            foreach ($this->relation->foreignKeys() as $foreign => $local) {
-                $mediator[$foreign] = $this->accessProperty($entity, $local);
+            foreach ($this->definition->foreignKeys() as $foreign => $local) {
+                $mediator[$foreign] = $this->getPropertyValue($entity, $local);
             }
 
-            $query = clone $this->query;
-            $query->reset()
-                ->delete($this->relation->mediator(), $mediator)
+            $this->query
+                ->delete($this->definition->mediator(), $mediator)
                 ->execute();
 
         }
+        $this->setPropertyValue($result, $this->definition->container(), $container);
 
         return $result;
-    }
-
-    /**
-     * Executes clear for one-to-many relation
-     */
-    public function clear()
-    {
-        $query = clone $this->query;
-        $query->clear($this->relation->mediator())
-            ->execute();
     }
 }

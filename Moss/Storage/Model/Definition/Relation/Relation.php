@@ -11,6 +11,7 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\DefinitionException;
 use Moss\Storage\Model\Definition\RelationInterface;
 
@@ -22,6 +23,8 @@ use Moss\Storage\Model\Definition\RelationInterface;
  */
 abstract class Relation implements RelationInterface
 {
+    use GetTypeTrait;
+
     protected $entity;
 
     protected $mediator;
@@ -29,12 +32,9 @@ abstract class Relation implements RelationInterface
     protected $type;
     protected $container;
 
-    protected $keys = array();
-    protected $in = array();
-    protected $out = array();
-
-    protected $local = array();
-    protected $foreign = array();
+    protected $keys = [];
+    protected $in = [];
+    protected $out = [];
 
     /**
      * Returns container name or builds it from namespaced class name if passed name is empty string
@@ -125,7 +125,7 @@ abstract class Relation implements RelationInterface
         }
 
         if (!is_string($field)) {
-            throw new DefinitionException(sprintf('Invalid field name for relation "%s.%s" must be string, %s given', $this->entity, $field, gettype($field)));
+            throw new DefinitionException(sprintf('Invalid field name for relation "%s.%s" must be string, %s given', $this->entity, $field, $this->getType($field)));
         }
     }
 
@@ -207,47 +207,5 @@ abstract class Relation implements RelationInterface
     public function foreignKeys()
     {
         return $this->out;
-    }
-
-    /**
-     * Returns associative array containing local key - value pairs
-     *
-     * @param array $localValues ;
-     *
-     * @return array
-     * @throws DefinitionException
-     */
-    public function localValues($localValues = array())
-    {
-        if ($localValues !== array()) {
-            foreach ($localValues as $field => $value) {
-                $this->assertField($field);
-
-                $this->local[$field] = $value;
-            }
-        }
-
-        return $this->local;
-    }
-
-    /**
-     * Returns associative array containing foreign key - value pairs
-     *
-     * @param array $foreignValues ;
-     *
-     * @return array
-     * @throws DefinitionException
-     */
-    public function foreignValues($foreignValues = array())
-    {
-        if ($foreignValues !== array()) {
-            foreach ($foreignValues as $field => $value) {
-                $this->assertField($field);
-
-                $this->foreign[$field] = $value;
-            }
-        }
-
-        return $this->foreign;
     }
 }

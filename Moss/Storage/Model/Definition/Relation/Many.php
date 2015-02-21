@@ -12,6 +12,7 @@
 namespace Moss\Storage\Model\Definition\Relation;
 
 use Moss\Storage\Model\Definition\DefinitionException;
+use Moss\Storage\NormalizeNamespaceTrait;
 
 /**
  * One to Many relation
@@ -21,6 +22,8 @@ use Moss\Storage\Model\Definition\DefinitionException;
  */
 class Many extends Relation
 {
+    use NormalizeNamespaceTrait;
+
     /**
      * Constructor
      *
@@ -32,7 +35,7 @@ class Many extends Relation
      */
     public function __construct($entity, array $keys, $container = null)
     {
-        $this->entity = $entity ? ltrim($entity, '\\') : null;
+        $this->entity = $this->normalizeNamespace($entity);
         $this->type = 'many';
         $this->container = $this->containerName($container);
 
