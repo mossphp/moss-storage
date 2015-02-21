@@ -112,4 +112,3 @@ class OneRelation extends AbstractRelation implements RelationInterface
         return $result;
     }
 }
-

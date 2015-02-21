@@ -12,7 +12,6 @@
 namespace Moss\Storage\Query\Relation;
 
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 
 /**
  * Relationship factory interface

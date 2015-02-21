@@ -371,8 +371,8 @@ class Model implements ModelInterface
     public function referredIn($field)
     {
         $result = [];
-        foreach($this->relations as $relation) {
-            if(false === $i = array_search($field, $relation->localKeys())) {
+        foreach ($this->relations as $relation) {
+            if (false === $i = array_search($field, $relation->localKeys())) {
                 continue;
             }
 

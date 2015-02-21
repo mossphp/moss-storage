@@ -18,7 +18,6 @@ use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
-
 /**
  * Query used to read data from table
  *
