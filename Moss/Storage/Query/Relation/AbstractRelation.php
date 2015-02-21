@@ -17,7 +17,6 @@ use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\PropertyAccessorTrait;
 use Moss\Storage\Query\Query;
 use Moss\Storage\Query\QueryInterface;
-use Moss\Storage\Query\RelationalQueryInterface;
 
 /**
  * Abstract class for basic relation methods
@@ -31,7 +30,7 @@ abstract class AbstractRelation
     use GetTypeTrait;
 
     /**
-     * @var Query|RelationalQueryInterface
+     * @var Query
      */
     protected $query;
 
@@ -62,9 +61,10 @@ abstract class AbstractRelation
     /**
      * Constructor
      *
-     * @param Query               $query
-     * @param DefinitionInterface $relation
-     * @param ModelBag            $models
+     * @param Query                    $query
+     * @param DefinitionInterface      $relation
+     * @param ModelBag                 $models
+     * @param RelationFactoryInterface $factory
      */
     public function __construct(Query $query, DefinitionInterface $relation, ModelBag $models, RelationFactoryInterface $factory)
     {

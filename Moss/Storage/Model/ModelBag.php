@@ -85,7 +85,7 @@ class ModelBag
 
         $this->collection[$hash] = &$model;
 
-        if ($alias) {
+        if ($alias !== null) {
             $this->byAlias[$model->alias($alias)] = &$this->collection[$hash];
         }
 

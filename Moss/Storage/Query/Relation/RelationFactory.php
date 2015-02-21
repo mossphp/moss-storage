@@ -250,7 +250,6 @@ class RelationFactory implements RelationFactoryInterface
     public function reset()
     {
         $this->model = null;
-        $this->operation = null;
         $this->relation = null;
         $this->conditions = [];
         $this->orders = [];

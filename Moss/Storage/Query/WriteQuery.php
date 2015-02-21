@@ -189,7 +189,6 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
     public function reset()
     {
         $this->values = [];
-        $this->where = [];
         $this->relations = [];
 
         return $this;

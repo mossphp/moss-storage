@@ -11,10 +11,10 @@
 
 namespace Moss\Storage\Query;
 
+
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
-
 
 /**
  * Query used to delete data from table

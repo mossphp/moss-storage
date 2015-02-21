@@ -104,7 +104,7 @@ interface ModelInterface
      *
      * @param string $field
      *
-     * @return bool
+     * @return array
      * @throws ModelException
      */
     public function inIndex($field);

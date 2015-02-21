@@ -284,7 +284,7 @@ class Model implements ModelInterface
      *
      * @param string $field
      *
-     * @return bool
+     * @return array
      * @throws ModelException
      */
     public function inIndex($field)
@@ -371,8 +371,8 @@ class Model implements ModelInterface
     public function referredIn($field)
     {
         $result = [];
-        foreach($this->relations as $relation) {
-            if(false === $i = array_search($field, $relation->localKeys())) {
+        foreach ($this->relations as $relation) {
+            if (false === $i = array_search($field, $relation->localKeys())) {
                 continue;
             }
 
@@ -436,7 +436,7 @@ class Model implements ModelInterface
      *
      * @param string $relationName
      *
-     * @return bool|RelationInterface
+     * @return RelationInterface
      */
     protected function findRelationByName($relationName)
     {
@@ -446,6 +446,6 @@ class Model implements ModelInterface
             }
         }
 
-        return false;
+        return null;
     }
 }

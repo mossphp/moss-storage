@@ -81,7 +81,7 @@ interface RelationInterface
      *
      * @param string $relation
      *
-     * @return QueryInterface
+     * @return RelationInterface
      */
     public function relation($relation);
 
