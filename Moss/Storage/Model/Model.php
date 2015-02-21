@@ -11,6 +11,7 @@
 
 namespace Moss\Storage\Model;
 
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\Definition\IndexInterface;
 use Moss\Storage\Model\Definition\RelationInterface;
@@ -25,6 +26,7 @@ use Moss\Storage\NormalizeNamespaceTrait;
 class Model implements ModelInterface
 {
     use NormalizeNamespaceTrait;
+    use GetTypeTrait;
 
     protected $table;
     protected $entity;
@@ -135,30 +137,8 @@ class Model implements ModelInterface
                 }
             }
 
-            foreach ($relation->localValues() as $field => $trash) {
-                if (!$this->hasField($field)) {
-                    throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
-                }
-            }
-
             $this->relations[$relation->name()] = $relation;
         }
-    }
-
-    /**
-     * Returns variable type or its class
-     *
-     * @param mixed $var
-     *
-     * @return string
-     */
-    private function getType($var)
-    {
-        if (is_object($var)) {
-            return get_class($var);
-        }
-
-        return gettype($var);
     }
 
     /**

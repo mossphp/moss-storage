@@ -383,7 +383,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     protected function assertOrder($order)
     {
         if (!in_array($order, [self::ORDER_ASC, self::ORDER_DESC])) {
-            throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', is_scalar($order) ? $order : gettype($order), $this->model->entity()));
+            throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', $this->getType($order), $this->model->entity()));
         }
     }
 

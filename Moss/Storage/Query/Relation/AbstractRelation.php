@@ -11,6 +11,7 @@
 
 namespace Moss\Storage\Query\Relation;
 
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\PropertyAccessorTrait;
@@ -26,6 +27,7 @@ use Moss\Storage\Query\QueryInterface;
 abstract class AbstractRelation
 {
     use PropertyAccessorTrait;
+    use GetTypeTrait;
 
     /**
      * @var Query
@@ -153,25 +155,7 @@ abstract class AbstractRelation
      */
     public function relation($relation)
     {
-
-    }
-
-    /**
-     * Checks if entity fits to relation requirements
-     *
-     * @param mixed $entity
-     *
-     * @return bool
-     */
-    protected function assertEntity($entity)
-    {
-        foreach ($this->definition->localValues() as $local => $value) {
-            if ($this->getPropertyValue($entity, $local) != $value) {
-                return false;
-            }
-        }
-
-        return true;
+        // TODO
     }
 
     /**
@@ -232,7 +216,7 @@ abstract class AbstractRelation
      */
     protected function fetch($entity, array $conditions, $result = false)
     {
-        $query = clone $this->query->read($entity);
+        $query = $this->query->read($entity);
 
         foreach ($conditions as $field => $values) {
             $query->where($field, $values);
@@ -312,14 +296,14 @@ abstract class AbstractRelation
     /**
      * Returns array with entities that should be deleted or false otherwise
      *
-     * @param $entity
-     * @param $conditions
+     * @param string $entity
+     * @param array $conditions
      *
      * @return array|bool
      */
     private function isCleanupNecessary($entity, $conditions)
     {
-        if (empty($collection) || empty($conditions)) {
+        if (empty($conditions)) {
             return false;
         }
 
@@ -343,11 +327,11 @@ abstract class AbstractRelation
      */
     protected function identifyEntity($entity, $instance)
     {
-        $indexes = $this->models->get($entity)
+        $fields = $this->models->get($entity)
             ->primaryFields();
 
         $id = [];
-        foreach ($indexes as $field) {
+        foreach ($fields as $field) {
             $id[] = $this->getPropertyValue($instance, $field->name());
         }
 
@@ -360,23 +344,12 @@ abstract class AbstractRelation
      * @param $container
      *
      * @throws RelationException
+     * @todo - should check if container can be iterated instead ArrayAccess
      */
     protected function assertArrayAccess($container)
     {
         if (!$container instanceof \ArrayAccess && !is_array($container)) {
             throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', $this->getType($container)));
         }
-    }
-
-    /**
-     * Returns var type
-     *
-     * @param mixed $var
-     *
-     * @return string
-     */
-    protected function getType($var)
-    {
-        return is_object($var) ? get_class($var) : gettype($var);
     }
 }

@@ -109,19 +109,4 @@ class ManyTest extends \PHPUnit_Framework_TestCase
             [[1 => [1, 2]]],
         ];
     }
-
-    public function testLocalValues()
-    {
-        $relation = new Many('\Foo', ['foo' => 'bar'], 'Foobar');
-        $relation->localValues(['yada' => 'yada']);
-        $this->assertEquals(['yada' => 'yada'], $relation->localValues());
-    }
-
-    public function testReferencedValues()
-    {
-        $relation = new Many('\Foo', ['foo' => 'bar'], 'Foobar');
-        $relation->foreignValues(['yada' => 'yada']);
-
-        $this->assertEquals(['yada' => 'yada'], $relation->foreignValues());
-    }
 }

@@ -111,9 +111,4 @@ interface RelationInterface
      * @return array|\ArrayAccess
      */
     public function delete(&$result);
-
-    /**
-     * Executes clear relation
-     */
-    public function clear();
 }

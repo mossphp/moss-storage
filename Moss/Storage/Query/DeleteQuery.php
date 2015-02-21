@@ -64,7 +64,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterfa
         }
 
         if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for deleting must be an instance of "%s" or array got "%s"', $entityClass, is_object($entity) ? get_class($entity) : gettype($entity)));
+            throw new QueryException(sprintf('Entity for deleting must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
         }
     }
 

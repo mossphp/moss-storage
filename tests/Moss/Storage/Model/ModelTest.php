@@ -302,29 +302,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
             ->method('keys')
             ->will($this->returnValue(['yada' => 'yada']));
 
-        $model = new Model('Foo', 'foo', [$field], [], [$relation]);
-    }
-
-    /**
-     * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Relation field "yada" does not exist in entity model "Foo"
-     */
-    public function testUndefinedRelationLocalField()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-        $field->expects($this->once())
-            ->method('name')
-            ->will($this->returnValue('foo'));
-
-        $relation = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
-        $relation->expects($this->once())
-            ->method('keys')
-            ->will($this->returnValue(['foo' => 'foo']));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue(['yada' => 'yada']));
-
-        $model = new Model('Foo', 'foo', [$field], [], [$relation]);
+        new Model('Foo', 'foo', [$field], [], [$relation]);
     }
 
     public function testRelations()
@@ -341,9 +319,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $relation->expects($this->once())
             ->method('keys')
             ->will($this->returnValue(['foo' => 'foo']));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue([]));
 
         $model = new Model('Foo', 'foo', [$field], [], [$relation]);
         $this->assertEquals(['Bar' => $relation], $model->relations());
@@ -363,9 +338,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $relation->expects($this->once())
             ->method('keys')
             ->will($this->returnValue(['foo' => 'foo']));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue([]));
 
         $model = new Model('Foo', 'foo', [$field], [], [$relation]);
         $this->assertTrue($model->hasRelation('Bar'));
@@ -385,9 +357,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $relation->expects($this->once())
             ->method('keys')
             ->will($this->returnValue(['foo' => 'foo']));
-        $relation->expects($this->once())
-            ->method('localValues')
-            ->will($this->returnValue([]));
 
         $model = new Model('Foo', 'foo', [$field], [], [$relation]);
         $this->assertEquals($relation, $model->relation('Bar'));

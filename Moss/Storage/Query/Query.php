@@ -209,22 +209,6 @@ class Query
     }
 
     /**
-     * Sets clear operation
-     *
-     * @param string $entity
-     *
-     * @return ClearInterface
-     */
-    public function clear($entity)
-    {
-        return new ClearQuery(
-            $this->connection,
-            $this->models->get($entity),
-            $this->factory
-        );
-    }
-
-    /**
      * Reassigns entity/instance variables if entity is object
      *
      * @param string|object     $entity

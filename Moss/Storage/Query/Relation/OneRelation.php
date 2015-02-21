@@ -31,19 +31,7 @@ class OneRelation extends AbstractRelation implements RelationInterface
         $relations = [];
         $conditions = [];
 
-        foreach ($this->definition->foreignValues() as $refer => $value) {
-            $conditions[$refer][] = $value;
-        }
-
         foreach ($result as $i => $entity) {
-            if (!$this->assertEntity($entity)) {
-                continue;
-            }
-
-            if (!$this->getPropertyValue($entity, $this->definition->container())) {
-                $this->setPropertyValue($entity, $this->definition->container(), null);
-            }
-
             foreach ($this->definition->keys() as $local => $refer) {
                 $conditions[$refer][] = $this->getPropertyValue($entity, $local);
             }
@@ -79,35 +67,25 @@ class OneRelation extends AbstractRelation implements RelationInterface
      */
     public function write(&$result)
     {
-        if (!isset($result->{$this->definition->container()})) {
+        $entity = $this->getPropertyValue($result, $this->definition->container());
+        if (empty($entity)) {
+            $conditions = [];
+            foreach ($this->definition->keys() as $local => $foreign) {
+                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+            }
+
+            $this->cleanup($this->definition->entity(), [], $conditions);
             return $result;
         }
 
-        $entity = &$result->{$this->definition->container()};
-
         $this->assertInstance($entity);
-
-        foreach ($this->definition->foreignValues() as $field => $value) {
-            $this->setPropertyValue($entity, $field, $value);
-        }
 
         foreach ($this->definition->keys() as $local => $foreign) {
             $this->setPropertyValue($entity, $foreign, $this->getPropertyValue($result, $local));
         }
 
-        $this->query->write($this->definition->entity(), $entity)
-            ->execute();
-
-        $conditions = [];
-        foreach ($this->definition->foreignValues() as $field => $value) {
-            $conditions[$field][] = $value;
-        }
-
-        foreach ($this->definition->keys() as $foreign) {
-            $conditions[$foreign][] = $this->getPropertyValue($entity, $foreign);
-        }
-
-        $this->cleanup($this->definition->entity(), [$entity], $conditions);
+        $this->query->write($this->definition->entity(), $entity)->execute();
+        $this->setPropertyValue($result, $this->definition->container(), $entity);
 
         return $result;
     }
@@ -122,27 +100,16 @@ class OneRelation extends AbstractRelation implements RelationInterface
      */
     public function delete(&$result)
     {
-        if (!isset($result->{$this->definition->container()})) {
+        $entity = $this->getPropertyValue($result, $this->definition->container());
+        if (empty($entity)) {
             return $result;
         }
 
-        $entity = &$result->{$this->definition->container()};
-
         $this->assertInstance($entity);
 
-        $this->query->delete($this->definition->entity(), $entity)
-            ->execute();
+        $this->query->delete($this->definition->entity(), $entity)->execute();
 
         return $result;
-    }
-
-    /**
-     * Executes clear for one-to-many relation
-     */
-    public function clear()
-    {
-        $this->query->clear($this->definition->entity())
-            ->execute();
     }
 }
 

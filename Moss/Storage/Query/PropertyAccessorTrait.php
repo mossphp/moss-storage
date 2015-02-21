@@ -78,4 +78,45 @@ trait PropertyAccessorTrait
         $prop->setAccessible(true);
         $prop->setValue($entity, $value);
     }
+
+    /**
+     * Adds value to array property
+     * If property is not an array - will be converted into one preserving existing value as first element
+     *
+     * @param null|array|object $entity
+     * @param string            $field
+     * @param mixed             $value
+     *
+     * @throws QueryException
+     */
+    protected function addPropertyValue($entity, $field, $value)
+    {
+        if (!$entity) {
+            throw new QueryException('Unable to access entity properties, missing instance');
+        }
+
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
+            $entity[$field] = $value;
+
+            return;
+        }
+
+        $ref = new \ReflectionObject($entity);
+        if (!$ref->hasProperty($field)) {
+            $entity->{$field} = $value;
+
+            return;
+        }
+
+        $prop = $ref->getProperty($field);
+        $prop->setAccessible(true);
+
+        $container = $prop->getValue($entity);
+        if (!is_array($container)) {
+            $container = empty($container) ? [] : [$container];
+        }
+        $container[] = $value;
+
+        $prop->setValue($entity, $container);
+    }
 }

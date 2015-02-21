@@ -130,19 +130,4 @@ class ManyTroughTest extends \PHPUnit_Framework_TestCase
             [[1 => [1, 2]]],
         ];
     }
-
-    public function testLocalValues()
-    {
-        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
-        $relation->localValues(['yada' => 'yada']);
-        $this->assertEquals(['yada' => 'yada'], $relation->localValues());
-    }
-
-    public function testReferencedValues()
-    {
-        $relation = new ManyTrough('\Foo', ['id' => 'in'], ['out' => 'id'], 'mediator', 'Foobar');
-        $relation->foreignValues(['yada' => 'yada']);
-
-        $this->assertEquals(['yada' => 'yada'], $relation->foreignValues());
-    }
 }

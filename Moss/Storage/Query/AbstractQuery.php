@@ -14,6 +14,7 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Converter\ConverterInterface;
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\Query\Relation\RelationInterface;
@@ -27,6 +28,7 @@ use Moss\Storage\Query\Relation\RelationInterface;
 abstract class AbstractQuery
 {
     use PropertyAccessorTrait;
+    use GetTypeTrait;
 
     /**
      * @var Connection

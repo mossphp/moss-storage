@@ -74,21 +74,6 @@ class QueryTest extends QueryMocks
     /**
      * @dataProvider instanceProvider
      */
-    public function testClear()
-    {
-        $dbal = $this->mockDBAL();
-        $model = $this->mockModel('\\stdClass', 'table');
-        $bag = $this->mockBag([$model]);
-        $converter = $this->mockConverter();
-        $factory = $this->mockRelFactory();
-
-        $query = new Query($dbal, $bag, $converter, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\ClearQueryInterface', $query->clear('\\stdClass'));
-    }
-
-    /**
-     * @dataProvider instanceProvider
-     */
     public function testWrite($entity, $instance)
     {
         $dbal = $this->mockDBAL();
