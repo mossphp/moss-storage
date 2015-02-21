@@ -46,7 +46,7 @@ Or via [Composer](https://getcomposer.org/)
 
 ```json
 	"require": {
-		"moss/storage": ">=9"
+		"moss/storage": ">=0.9"
 	}
 ```
 
