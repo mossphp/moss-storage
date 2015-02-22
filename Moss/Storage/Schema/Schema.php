@@ -193,12 +193,11 @@ class Schema implements SchemaInterface
      */
     protected function buildAlter(array $models)
     {
-        $schemaManager = $this->connection->getSchemaManager();
-        $fromSchema = $schemaManager->createSchema();
+        $fromSchema = $this->connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
         foreach ($models as $model) {
-            if($toSchema->hasTable($model->table())) {
+            if ($toSchema->hasTable($model->table())) {
                 $toSchema->dropTable($model->table());
             }
 
@@ -289,8 +288,7 @@ class Schema implements SchemaInterface
      */
     protected function buildDrop(array $models)
     {
-        $schemaManager = $this->connection->getSchemaManager();
-        $fromSchema = $schemaManager->createSchema();
+        $fromSchema = $this->connection->getSchemaManager()->createSchema();
         $toSchema = clone $fromSchema;
 
         foreach ($models as $model) {
