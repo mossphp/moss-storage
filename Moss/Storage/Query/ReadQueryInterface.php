@@ -39,86 +39,6 @@ interface ReadQueryInterface extends QueryInterface, RelationalQueryInterface
     public function field($field);
 
     /**
-     * Adds distinct method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function distinct($field, $alias = null);
-
-    /**
-     * Adds count method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function count($field, $alias = null);
-
-    /**
-     * Adds average method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function average($field, $alias = null);
-
-    /**
-     * Adds max method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function max($field, $alias = null);
-
-    /**
-     * Adds min method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function min($field, $alias = null);
-
-    /**
-     * Adds sum method to query
-     *
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function sum($field, $alias = null);
-
-    /**
-     * Adds aggregate method to query
-     *
-     * @param string $method
-     * @param string $field
-     * @param string $alias
-     *
-     * @return $this
-     */
-    public function aggregate($method, $field, $alias = null);
-
-    /**
-     * Adds grouping to query
-     *
-     * @param string $field
-     *
-     * @return $this
-     */
-    public function group($field);
-
-    /**
      * Adds where condition to query
      *
      * @param mixed  $field
@@ -129,18 +49,6 @@ interface ReadQueryInterface extends QueryInterface, RelationalQueryInterface
      * @return $this
      */
     public function where($field, $value, $comparison = '==', $logical = 'and');
-
-    /**
-     * Adds having condition to query
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     */
-    public function having($field, $value, $comparison = '==', $logical = 'and');
 
     /**
      * Adds sorting to query
