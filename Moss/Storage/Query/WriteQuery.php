@@ -25,8 +25,6 @@ use Moss\Storage\Query\Relation\RelationInterface;
  */
 class WriteQuery extends AbstractQuery implements WriteQueryInterface
 {
-    use PropertyAccessorTrait;
-
     protected $values = [];
 
     /**

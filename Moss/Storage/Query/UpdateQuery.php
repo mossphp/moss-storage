@@ -149,32 +149,6 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
     }
 
     /**
-     * Adds where condition to query
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     * @throws QueryException
-     */
-    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
-    {
-        $condition = $this->condition($field, $value, $comparison, $logical);
-
-        if ($logical === self::LOGICAL_OR) {
-            $this->query->orWhere($condition);
-
-            return $this;
-        }
-
-        $this->query->andWhere($condition);
-
-        return $this;
-    }
-
-    /**
      * Executes query
      * After execution query is reset
      *
