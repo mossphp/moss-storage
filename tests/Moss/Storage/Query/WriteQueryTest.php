@@ -7,7 +7,7 @@ class WriteQueryTest extends QueryMocks
 {
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Missing required entity for writing class
+     * @expectedExceptionMessage Missing required entity of class
      */
     public function testEntityIsNull()
     {
@@ -20,7 +20,7 @@ class WriteQueryTest extends QueryMocks
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Entity for writing must be an instance of
+     * @expectedExceptionMessage Entity must be an instance of
      */
     public function testEntityIsNotInstanceOfExpectedClass()
     {

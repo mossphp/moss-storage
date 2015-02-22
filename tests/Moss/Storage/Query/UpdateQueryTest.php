@@ -7,7 +7,7 @@ class UpdateQueryTest extends QueryMocks
 {
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Missing required entity for updating class
+     * @expectedExceptionMessage Missing required entity of class
      */
     public function testEntityIsNull()
     {
@@ -20,7 +20,7 @@ class UpdateQueryTest extends QueryMocks
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Entity for updating must be an instance of
+     * @expectedExceptionMessage Entity must be an instance of
      */
     public function testEntityIsNotInstanceOfExpectedClass()
     {

@@ -8,7 +8,7 @@ class DeleteQueryTest extends QueryMocks
 {
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Missing required entity for deleting class
+     * @expectedExceptionMessage Missing required entity of class
      */
     public function testEntityIsNull()
     {
@@ -21,7 +21,7 @@ class DeleteQueryTest extends QueryMocks
 
     /**
      * @expectedException \Moss\Storage\Query\QueryException
-     * @expectedExceptionMessage Entity for deleting must be an instance of
+     * @expectedExceptionMessage Entity must be an instance of
      */
     public function testEntityIsNotInstanceOfExpectedClass()
     {

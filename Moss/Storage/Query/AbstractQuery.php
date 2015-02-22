@@ -253,11 +253,11 @@ abstract class AbstractQuery
         $entityClass = $this->model->entity();
 
         if ($entity === null) {
-            throw new QueryException(sprintf('Missing required entity for inserting class "%s"', $entityClass));
+            throw new QueryException(sprintf('Missing required entity of class "%s"', $entityClass));
         }
 
         if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for inserting must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
+            throw new QueryException(sprintf('Entity must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
         }
     }
 }
