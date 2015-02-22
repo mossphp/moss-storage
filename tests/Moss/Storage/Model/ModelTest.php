@@ -99,25 +99,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($field, $model->field('foo'));
     }
 
-    public function testIsPrimary()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-        $field->expects($this->once())
-            ->method('name')
-            ->will($this->returnValue('foo'));
-
-        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
-        $index->expects($this->once())
-            ->method('isPrimary')
-            ->will($this->returnValue(true));
-        $index->expects($this->exactly(2))
-            ->method('fields')
-            ->will($this->returnValue(['foo']));
-
-        $model = new Model('Foo', 'foo', [$field], [$index]);
-        $this->assertTrue($model->isPrimary('foo'));
-    }
-
     public function testPrimaryFields()
     {
         $foo = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
@@ -140,41 +121,6 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
         $model = new Model('Foo', 'foo', [$foo, $bar], [$index]);
         $this->assertEquals([$foo, $bar], $model->primaryFields());
-    }
-
-    public function testIsIndex()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-        $field->expects($this->once())
-            ->method('name')
-            ->will($this->returnValue('foo'));
-
-        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
-        $index->expects($this->exactly(2))
-            ->method('fields')
-            ->will($this->returnValue(['foo']));
-
-        $model = new Model('Foo', 'foo', [$field], [$index]);
-        $this->assertTrue($model->isIndex('foo'));
-    }
-
-    public function testInIndex()
-    {
-        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-        $field->expects($this->once())
-            ->method('name')
-            ->will($this->returnValue('foo'));
-
-        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
-        $index->expects($this->once())
-            ->method('fields')
-            ->will($this->returnValue(['foo']));
-        $index->expects($this->once())
-            ->method('hasField')
-            ->will($this->returnValue(true));
-
-        $model = new Model('Foo', 'foo', [$field], [$index]);
-        $this->assertEquals([$index], $model->inIndex('foo'));
     }
 
     public function testIndexFields()
@@ -273,6 +219,28 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
+     * @expectedExceptionMessage Unknown field, field "yada" not found in model "Foo"
+     */
+    public function testUndefinedIndexField()
+    {
+        $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
+        $field->expects($this->any())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+
+        $index = $this->getMock('\Moss\Storage\Model\Definition\IndexInterface');
+        $index->expects($this->any())
+            ->method('name')
+            ->will($this->returnValue('foo'));
+        $index->expects($this->any())
+            ->method('fields')
+            ->will($this->returnValue(['yada']));
+
+        new Model('Foo', 'foo', [$field], [$index]);
+    }
+
+    /**
+     * @expectedException \Moss\Storage\Model\ModelException
      * @expectedExceptionMessage Unknown index, index "yada" not found in model "Foo"
      */
     public function testUndefinedIndex()
@@ -288,7 +256,7 @@ class ModelTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @expectedException \Moss\Storage\Model\ModelException
-     * @expectedExceptionMessage Relation field "yada" does not exist in entity model "Foo"
+     * @expectedExceptionMessage Unknown field, field "yada" not found in model "Foo"
      */
     public function testUndefinedRelationKeyField()
     {
