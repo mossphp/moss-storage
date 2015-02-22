@@ -35,7 +35,7 @@ class TroughRelation extends AbstractRelation
         $this->entity = $this->normalizeNamespace($entity);
         $this->container = $this->containerName($container);
 
-        $this->mediator = $this->normalizeNamespace($entity);
+        $this->mediator = $this->normalizeNamespace($mediator);
 
         $this->assertTroughKeys($in, $out);
         $this->assignKeys($in, $this->in);
