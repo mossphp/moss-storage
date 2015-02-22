@@ -19,28 +19,9 @@ use Moss\Storage\NormalizeNamespaceTrait;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class OneTrough extends Relation
+class OneTrough extends TroughRelation
 {
     use NormalizeNamespaceTrait;
 
-    /**
-     * @param string      $entity
-     * @param array       $in
-     * @param array       $out
-     * @param null|string $mediator
-     * @param null|string $container
-     */
-    public function __construct($entity, array $in, array $out, $mediator, $container = null)
-    {
-        $this->entity = $this->normalizeNamespace($entity);
-        $this->type = 'oneTrough';
-        $this->container = $this->containerName($container);
-
-        $this->mediator = $this->normalizeNamespace($entity);
-
-        $this->assertTroughKeys($in, $out);
-        $this->assignKeys($in, $this->in);
-        $this->assignKeys($out, $this->out);
-        $this->keys = array_combine(array_keys($this->in), array_values($this->out));
-    }
+    protected $type = 'oneTrough';
 }

@@ -20,29 +20,9 @@ use Moss\Storage\NormalizeNamespaceTrait;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Many extends Relation
+class Many extends DirectRelation
 {
     use NormalizeNamespaceTrait;
 
-    /**
-     * Constructor
-     *
-     * @param string $entity
-     * @param array $keys
-     * @param null|string  $container
-     *
-     * @throws DefinitionException
-     */
-    public function __construct($entity, array $keys, $container = null)
-    {
-        $this->entity = $this->normalizeNamespace($entity);
-        $this->type = 'many';
-        $this->container = $this->containerName($container);
-
-        $this->assertKeys($keys);
-
-        $this->assignKeys($keys, $this->keys);
-        $this->in = array_keys($this->keys);
-        $this->out = array_values($this->keys);
-    }
+    protected $type = 'many';
 }

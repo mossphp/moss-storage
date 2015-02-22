@@ -21,7 +21,7 @@ use Moss\Storage\Model\Definition\RelationInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-abstract class Relation implements RelationInterface
+abstract class AbstractRelation implements RelationInterface
 {
     use GetTypeTrait;
 
