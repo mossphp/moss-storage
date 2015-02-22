@@ -579,6 +579,36 @@ class ReadQueryTest extends QueryMocks
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
     }
 
+    public function testExecute()
+    {
+        $builder = $this->mockQueryBuilder();
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())
+            ->method('execute');
+        $stmt->expects($this->any())
+            ->method('rowCount')
+            ->willReturn(10);
+
+        $dbal = $this->mockDBAL($builder);
+        $dbal->expects($this->any())
+            ->method('prepare')
+            ->will($this->returnValue($stmt));
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $relation = $this->mockRelation();
+
+        $factory = $this->mockRelFactory();
+        $factory->expects($this->any())
+            ->method('build')
+            ->willReturn($relation);
+
+        $query = new ReadQuery($dbal, $model, $factory);
+
+        $this->assertEquals(10, $query->count());
+    }
+
     public function testExecuteEntitiesAsArray()
     {
         $result = [['foo' => 'foo']];

@@ -69,4 +69,11 @@ interface ReadQueryInterface extends QueryInterface, RelationalQueryInterface
      * @return $this
      */
     public function limit($limit, $offset = null);
+
+    /**
+     * Returns number of entities that will be read
+     *
+     * @return int
+     */
+    public function count();
 }

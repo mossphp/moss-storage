@@ -238,6 +238,18 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     }
 
     /**
+     * Returns number of entities that will be read
+     *
+     * @return int
+     */
+    public function count()
+    {
+        $stmt = $this->bindAndExecuteQuery();
+
+        return (int) $stmt->rowCount();
+    }
+
+    /**
      * Executes query
      * After execution query is reset
      *
@@ -304,7 +316,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     /**
      * Converts read value to its php representation
      *
-     * @param mixed $value
+     * @param mixed  $value
      * @param string $type
      *
      * @return mixed

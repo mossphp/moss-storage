@@ -144,7 +144,7 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
      */
     protected function checkIfEntityExists()
     {
-        $query = new CountQuery($this->connection, $this->model, $this->factory);
+        $query = new ReadQuery($this->connection, $this->model, $this->factory);
 
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->getPropertyValue($this->instance, $field->name());
@@ -153,10 +153,10 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
                 return false;
             }
 
-            $query->where($field->name(), $value, CountQuery::COMPARISON_EQUAL, CountQuery::LOGICAL_AND);
+            $query->where($field->name(), $value, ReadQuery::COMPARISON_EQUAL, ReadQuery::LOGICAL_AND);
         }
 
-        return $query->execute() > 0;
+        return $query->count() > 0;
     }
 
     /**

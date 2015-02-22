@@ -66,22 +66,6 @@ class Query
     }
 
     /**
-     * Sets counting operation
-     *
-     * @param string $entity
-     *
-     * @return CountQueryInterface
-     */
-    public function count($entity)
-    {
-        return new CountQuery(
-            $this->connection,
-            $this->models->get($entity),
-            $this->factory
-        );
-    }
-
-    /**
      * Sets read operation
      *
      * @param string $entity

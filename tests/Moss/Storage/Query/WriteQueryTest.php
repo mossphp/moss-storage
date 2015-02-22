@@ -99,21 +99,24 @@ class WriteQueryTest extends QueryMocks
             ->method('addSelect')
             ->with('`foo`');
         $builder->expects($this->at(4))
+            ->method('addSelect')
+            ->with('`bar`');
+        $builder->expects($this->at(5))
             ->method('andWhere')
             ->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))
+        $builder->expects($this->at(6))
             ->method('getSQL')
             ->with();
-        $builder->expects($this->at(6))
+        $builder->expects($this->at(7))
             ->method('insert')
             ->with('`table`');
-        $builder->expects($this->at(7))
+        $builder->expects($this->at(8))
             ->method('resetQueryPart')
             ->with('values');
-        $builder->expects($this->at(8))
+        $builder->expects($this->at(9))
             ->method('setValue')
             ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))
+        $builder->expects($this->at(10))
             ->method('setValue')
             ->with('`bar`', ':value_1_bar');
 
@@ -155,21 +158,24 @@ class WriteQueryTest extends QueryMocks
             ->method('addSelect')
             ->with('`foo`');
         $builder->expects($this->at(4))
+            ->method('addSelect')
+            ->with('`bar`');
+        $builder->expects($this->at(5))
             ->method('andWhere')
             ->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))
+        $builder->expects($this->at(6))
             ->method('getSQL')
             ->with();
-        $builder->expects($this->at(6))
+        $builder->expects($this->at(7))
             ->method('update')
             ->with('`table`');
-        $builder->expects($this->at(7))
+        $builder->expects($this->at(8))
             ->method('resetQueryPart')
             ->with('set');
-        $builder->expects($this->at(8))
+        $builder->expects($this->at(9))
             ->method('set')
             ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))
+        $builder->expects($this->at(10))
             ->method('set')
             ->with('`bar`', ':value_1_bar');
 
@@ -211,21 +217,24 @@ class WriteQueryTest extends QueryMocks
             ->method('addSelect')
             ->with('`foo`');
         $builder->expects($this->at(4))
+            ->method('addSelect')
+            ->with('`bar`');
+        $builder->expects($this->at(5))
             ->method('andWhere')
             ->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))
+        $builder->expects($this->at(6))
             ->method('getSQL')
             ->with();
-        $builder->expects($this->at(6))
+        $builder->expects($this->at(7))
             ->method('insert')
             ->with('`table`');
-        $builder->expects($this->at(7))
+        $builder->expects($this->at(8))
             ->method('resetQueryPart')
             ->with('values');
-        $builder->expects($this->at(8))
+        $builder->expects($this->at(9))
             ->method('setValue')
             ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))
+        $builder->expects($this->at(10))
             ->method('setValue')
             ->with('`bar`', ':value_1_bar');
 
@@ -268,21 +277,24 @@ class WriteQueryTest extends QueryMocks
             ->method('addSelect')
             ->with('`foo`');
         $builder->expects($this->at(4))
+            ->method('addSelect')
+            ->with('`bar`');
+        $builder->expects($this->at(5))
             ->method('andWhere')
             ->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))
+        $builder->expects($this->at(6))
             ->method('getSQL')
             ->with();
-        $builder->expects($this->at(6))
+        $builder->expects($this->at(7))
             ->method('update')
             ->with('`table`');
-        $builder->expects($this->at(7))
+        $builder->expects($this->at(8))
             ->method('resetQueryPart')
             ->with('set');
-        $builder->expects($this->at(8))
+        $builder->expects($this->at(9))
             ->method('set')
             ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))
+        $builder->expects($this->at(10))
             ->method('set')
             ->with('`bar`', ':value_1_bar');
 
@@ -500,21 +512,24 @@ class WriteQueryTest extends QueryMocks
             ->method('addSelect')
             ->with('`foo`');
         $builder->expects($this->at(4))
+            ->method('addSelect')
+            ->with('`bar`');
+        $builder->expects($this->at(5))
             ->method('andWhere')
             ->with('`foo` = :condition_0_foo');
-        $builder->expects($this->at(5))
+        $builder->expects($this->at(6))
             ->method('getSQL')
             ->with();
-        $builder->expects($this->at(6))
+        $builder->expects($this->at(7))
             ->method('insert')
             ->with('`table`');
-        $builder->expects($this->at(7))
+        $builder->expects($this->at(8))
             ->method('resetQueryPart')
             ->with('values');
-        $builder->expects($this->at(8))
+        $builder->expects($this->at(9))
             ->method('setValue')
             ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(9))
+        $builder->expects($this->at(10))
             ->method('setValue')
             ->with('`bar`', ':value_1_bar');
 

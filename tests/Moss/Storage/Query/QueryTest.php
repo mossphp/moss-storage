@@ -28,20 +28,6 @@ class QueryTest extends QueryMocks
     /**
      * @dataProvider instanceProvider
      */
-    public function testCount()
-    {
-        $dbal = $this->mockDBAL();
-        $model = $this->mockModel('\\stdClass', 'table');
-        $bag = $this->mockBag([$model]);
-        $factory = $this->mockRelFactory();
-
-        $query = new Query($dbal, $bag, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\CountQueryInterface', $query->count('\\stdClass'));
-    }
-
-    /**
-     * @dataProvider instanceProvider
-     */
     public function testRead()
     {
         $dbal = $this->mockDBAL();
