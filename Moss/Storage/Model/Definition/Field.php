@@ -114,6 +114,16 @@ class Field implements FieldInterface
     }
 
     /**
+     * Returns fields mapped name
+     *
+     * @return string
+     */
+    public function mappedName()
+    {
+        return $this->mapping ?: $this->name;
+    }
+
+    /**
      * Returns attribute value or null if not set
      *
      * @param string $attribute

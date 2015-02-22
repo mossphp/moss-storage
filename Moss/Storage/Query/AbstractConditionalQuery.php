@@ -71,8 +71,7 @@ abstract class AbstractConditionalQuery extends AbstractQuery
     {
         $f = $this->model->field($field);
 
-        $fieldName = $f->mapping() ? $f->mapping() : $f->name();
-
+        $fieldName = $f->mappedName();
         return $this->buildConditionString(
             $this->connection->quoteIdentifier($fieldName),
             $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),
@@ -96,7 +95,7 @@ abstract class AbstractConditionalQuery extends AbstractQuery
         foreach ((array) $field as $i => $f) {
             $f = $this->model->field($f);
 
-            $fieldName = $f->mapping() ? $f->mapping() : $f->name();
+            $fieldName = $f->mappedName();
             $conditions[] = $this->buildConditionString(
                 $this->connection->quoteIdentifier($fieldName),
                 $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),

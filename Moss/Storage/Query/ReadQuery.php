@@ -252,7 +252,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
             sprintf(
                 '%s(%s) AS %s',
                 $method,
-                $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+                $this->connection->quoteIdentifier($field->mappedName()),
                 $this->connection->quoteIdentifier($alias)
             )
         );
@@ -294,7 +294,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     {
         $field = $this->model->field($field);
 
-        $this->query->addGroupBy($this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()));
+        $this->query->addGroupBy($this->connection->quoteIdentifier($field->mappedName()));
 
         return $this;
     }
@@ -364,8 +364,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
 
         $this->assertOrder($order);
 
-        $field = $field->mapping() ? $field->mapping() : $field->name();
-        $this->query->addOrderBy($this->connection->quoteIdentifier($field), $order);
+        $this->query->addOrderBy($this->connection->quoteIdentifier($field->mappedName()), $order);
 
         return $this;
     }

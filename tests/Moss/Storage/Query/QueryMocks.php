@@ -183,6 +183,9 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
             ->method('type')
             ->will($this->returnValue($type));
         $fieldMock->expects($this->any())
+            ->method('mappedName')
+            ->will($this->returnValue($mapping ?: $name));
+        $fieldMock->expects($this->any())
             ->method('mapping')
             ->will($this->returnValue($mapping));
 

@@ -310,6 +310,9 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         $fieldMock->expects($this->any())
             ->method('mapping')
             ->will($this->returnValue($mapping));
+        $fieldMock->expects($this->any())
+            ->method('mappedName')
+            ->will($this->returnValue($mapping ?: $name));
 
         $fieldMock->expects($this->any())
             ->method('attribute')

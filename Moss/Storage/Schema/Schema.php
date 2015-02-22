@@ -222,7 +222,7 @@ class Schema implements SchemaInterface
 
         foreach ($model->fields() as $field) {
             $table->addColumn(
-                $this->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+                $this->quoteIdentifier($field->mappedName()),
                 $field->type(),
                 $field->attributes()
             );

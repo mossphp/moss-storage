@@ -70,7 +70,7 @@ class CountQuery extends AbstractConditionalQuery implements CountQueryInterface
     {
         $this->query->select([]);
         foreach ($this->model->primaryFields() as $field) {
-            $this->query->addSelect($this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()));
+            $this->query->addSelect($this->connection->quoteIdentifier($field->mappedName()));
         }
     }
 

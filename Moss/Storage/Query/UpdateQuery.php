@@ -163,7 +163,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
         }
 
         $this->query->set(
-            $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+            $this->connection->quoteIdentifier($field->mappedName()),
             $this->bind('value', $field->name(), $field->type(), $value)
         );
     }

@@ -143,7 +143,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
         }
 
         $this->query->setValue(
-            $this->connection->quoteIdentifier($field->mapping() ? $field->mapping() : $field->name()),
+            $this->connection->quoteIdentifier($field->mappedName()),
             $this->bind('value', $field->name(), $field->type(), $value)
         );
     }

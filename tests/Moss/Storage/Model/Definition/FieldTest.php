@@ -82,6 +82,24 @@ class FieldTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    /**
+     * @dataProvider mappedNameProvider
+     */
+    public function testMappedName($mapping, $expected)
+    {
+        $field = new Field('foo', 'string', [], $mapping);
+        $this->assertEquals($expected, $field->mappedName());
+    }
+
+    public function mappedNameProvider()
+    {
+        return [
+            [null, 'foo'],
+            ['', 'foo'],
+            ['bar', 'bar'],
+        ];
+    }
+
     public function testNonExistentAttribute()
     {
         $field = new Field('foo', 'string', [], 'bar');
