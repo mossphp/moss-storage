@@ -395,11 +395,10 @@ abstract class AbstractRelation
      * @param $container
      *
      * @throws RelationException
-     * @todo - should check if container can be iterated instead ArrayAccess
      */
     protected function assertArrayAccess($container)
     {
-        if (!$container instanceof \ArrayAccess && !is_array($container)) {
+        if (!$container instanceof \Traversable && !is_array($container)) {
             throw new RelationException(sprintf('Relation container must be array or instance of ArrayAccess, got %s', $this->getType($container)));
         }
     }
