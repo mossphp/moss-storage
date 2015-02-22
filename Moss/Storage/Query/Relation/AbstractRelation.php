@@ -87,7 +87,7 @@ abstract class AbstractRelation
     /**
      * Returns relation query instance
      *
-     * @return QueryInterface
+     * @return Query
      */
     public function query()
     {
@@ -374,7 +374,7 @@ abstract class AbstractRelation
      * @param string $entity
      * @param object $instance
      *
-     * @return mixed|null
+     * @return string
      */
     protected function identifyEntity($entity, $instance)
     {
