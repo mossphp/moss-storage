@@ -16,7 +16,6 @@ use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\PropertyAccessorTrait;
 use Moss\Storage\Query\Query;
-use Moss\Storage\Query\QueryInterface;
 
 /**
  * Abstract class for basic relation methods
