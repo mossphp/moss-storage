@@ -104,7 +104,9 @@ class Model implements ModelInterface
             foreach ($index->fields() as $key => $field) {
                 $field = $index->type() == 'foreign' ? $key : $field;
 
-                $this->assertField($field);
+                if (!$this->hasField($field)) {
+                    throw new ModelException(sprintf('Index field "%s" does not exist in entity model "%s"', $field, $this->entity));
+                }
             }
 
             if ($index->type() !== 'foreign') {
@@ -130,7 +132,9 @@ class Model implements ModelInterface
             }
 
             foreach ($relation->keys() as $field => $trash) {
-                $this->assertField($field);
+                if (!$this->hasField($field)) {
+                    throw new ModelException(sprintf('Relation field "%s" does not exist in entity model "%s"', $field, $this->entity));
+                }
             }
 
             $this->relations[$relation->name()] = $relation;
@@ -225,6 +229,21 @@ class Model implements ModelInterface
     }
 
     /**
+     * Returns true if field is primary index
+     *
+     * @param string $field
+     *
+     * @return bool
+     * @throws ModelException
+     */
+    public function isPrimary($field)
+    {
+        $this->assertField($field);
+
+        return in_array($this->field($field), $this->primaryFields(), true);
+    }
+
+    /**
      * Returns array containing names of primary indexes
      *
      * @return array|FieldInterface[]
@@ -239,6 +258,43 @@ class Model implements ModelInterface
 
             foreach ($index->fields() as $field) {
                 $result[] = $this->field($field);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns true if field is index of any type
+     *
+     * @param string $field
+     *
+     * @return bool
+     * @throws ModelException
+     */
+    public function isIndex($field)
+    {
+        $this->assertField($field);
+
+        return in_array($this->field($field), $this->indexFields(), true);
+    }
+
+    /**
+     * Returns array containing all indexes in which field appears
+     *
+     * @param string $field
+     *
+     * @return array
+     * @throws ModelException
+     */
+    public function inIndex($field)
+    {
+        $this->assertField($field);
+
+        $result = [];
+        foreach ($this->indexes as $index) {
+            if ($index->hasField($field)) {
+                $result[] = $index;
             }
         }
 
