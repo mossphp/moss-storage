@@ -60,8 +60,10 @@ class RelationFactory implements RelationFactoryInterface
     }
 
     /**
-     * @param ModelInterface              $model
-     * @param RelationDefinitionInterface $relation
+     * Sets model and its relation
+     *
+     * @param ModelInterface $model
+     * @param string         $relation
      *
      * @return $this
      */
@@ -124,10 +126,18 @@ class RelationFactory implements RelationFactoryInterface
      * Builds relation instance
      *
      * @return RelationInterface
-     * @throws QueryException
+     * @throws RelationException
      */
     public function build()
     {
+        if (!$this->model) {
+            throw new RelationException('Unable to build relation - no model provided');
+        }
+
+        if (!$this->relation) {
+            throw new RelationException('Unable to build relation - no relation definition provided');
+        }
+
         list($current, $further) = $this->splitRelationName($this->relation);
         $definition = $this->fetchDefinition($this->model, $current);
 
@@ -145,7 +155,7 @@ class RelationFactory implements RelationFactoryInterface
                 $instance = new ManyTroughRelation($this->query, $definition, $this->bag, $this);
                 break;
             default:
-                throw new QueryException(sprintf('Invalid read relation type "%s" for "%s"', $definition->type(), $definition->entity()));
+                throw new RelationException(sprintf('Invalid read relation type "%s" for "%s"', $definition->type(), $definition->entity()));
         }
 
         $instance = $this->assignConditions($instance);

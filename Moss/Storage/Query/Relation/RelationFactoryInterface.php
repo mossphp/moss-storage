@@ -22,6 +22,8 @@ use Moss\Storage\Model\ModelInterface;
 interface RelationFactoryInterface
 {
     /**
+     * Sets model and its relation
+     *
      * @param ModelInterface $model
      * @param string         $relation
      *
