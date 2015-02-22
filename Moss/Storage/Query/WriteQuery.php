@@ -53,26 +53,6 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
     }
 
     /**
-     * Asserts entity instance
-     *
-     * @param array|object $entity
-     *
-     * @throws QueryException
-     */
-    protected function assertEntityInstance($entity)
-    {
-        $entityClass = $this->model->entity();
-
-        if ($entity === null) {
-            throw new QueryException(sprintf('Missing required entity for writing class "%s"', $entityClass));
-        }
-
-        if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for writing must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
-        }
-    }
-
-    /**
      * Sets field names which values will be written
      *
      * @param array $fields

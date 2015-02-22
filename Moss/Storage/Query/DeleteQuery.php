@@ -46,26 +46,6 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterfa
     }
 
     /**
-     * Asserts entity instance
-     *
-     * @param array|object $entity
-     *
-     * @throws QueryException
-     */
-    protected function assertEntityInstance($entity)
-    {
-        $entityClass = $this->model->entity();
-
-        if ($entity === null) {
-            throw new QueryException(sprintf('Missing required entity for deleting class "%s"', $entityClass));
-        }
-
-        if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity for deleting must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
-        }
-    }
-
-    /**
      * Sets query instance with delete operation and table
      */
     protected function setQuery()
