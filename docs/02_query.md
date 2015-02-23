@@ -1,30 +1,32 @@
 # StorageQuery
 
-`StorageQuery` should be sufficient to handle all _CRUD_ operations and much more.
+`Query` should be sufficient to handle all _CRUD_ operations and much more.
 Operations described below assume that entity classes, models and tables exist.
 
 ## Create instance
 
-`StorageQuery` instance is dependant on `DriverInterface` and `QueryBuilderInterface`.
-First one grants access to database engine, second one - builds queries in databases language.
+`Query` instance is dependant on `Connection` and `ModelBag`.
+First one grants access to database engine, second one - holds all registered models.
 
 ```php
-$dsn = sprintf('%s:dbname=%s;host=%s;port=%u', 'mysql', 'database', 'localhost', 3306);
-$Converter = new \Moss\Storage\Driver\Converter();
-$driver = new \Moss\Storage\Driver\PDO($dsn, 'user', 'password', $Converter);
+$conn = DriverManager::getConnection([
+    'dbname' => 'test',
+    'user' => 'user',
+    'password' => 'password',
+    'host' => 'localhost',
+    'driver' => 'pdo_mysql',
+    'charset' => 'utf8'
+]);
 
-$builder = new \Moss\Storage\Builder\MySQL\QueryBuilder();
+$models = new ModelBag();
+$models->set(...); // register some models
 
-$storage = new \Moss\Storage\StorageQuery($driver, $builder);
-$storage->register('...'); // register models
+$query = new Query($conn, $models);
+
 ```
 
 **Important**
 You must register models, without them storage will be unable to work.
-
-***Important***
-`Converter` is used to cast entity values into/from proper type/format eg \DateTime instance into timestamp or array into serialized string.
-When you don't use
 
 ## Execute and queryString
 
@@ -35,20 +37,6 @@ In any moment you can call `::queryString()` method to retrieve array with curre
 
 Each operation will be described as SQL query, PHP example and result type.
 
-### Num
-
-Returns number of entities that will be read by query (reads only primary keys).
-Result: `integer`
-
-```sql
-SELECT ... FROM ...
-```
-```php
-$count = $storage
-	->num('entity')
-	->execute();
-```
-
 ### Read & read one
 
 Reads entities matching conditions, returns array of read entities
@@ -58,9 +46,20 @@ Result: `array` of entities
 SELECT ... FROM ...
 ```
 ```php
-$result = $storage
+$result = $query
 	->read('entity')
 	->execute();
+```
+
+Reads number of entities matching conditions.
+Result: `number`
+```sql
+SELECT ... FROM ...
+```
+```php
+$result = $query
+	->read('entity')
+	->count();
 ```
 
 Reads only first matching entity, will throw exception if entity does not exists.
@@ -70,7 +69,7 @@ Result: `entity`
 SELECT ... FROM ... LIMIT 1
 ```
 ```php
-$entity = $storage
+$entity = $query
 	->readOne('entity')
 	->execute();
 ```
@@ -85,7 +84,7 @@ INSERT INTO ... VALUES ...
 ```
 ```php
 $entity = new Entity();
-$bool = $storage
+$bool = $query
 	->insert($entity)
 	->execute();
 ```
@@ -100,7 +99,7 @@ UPDATE ... SET ...
 ```
 ```php
 $entity = new Entity();
-$entity = $storage
+$entity = $query
 	->update($entity)
 	->execute();
 ```
@@ -113,7 +112,7 @@ Result: `entity`
 
 ```php
 $entity = new Entity();
-$entity = $storage
+$entity = $query
 	->write($entity)
 	->execute();
 ```
@@ -128,28 +127,13 @@ DELETE FROM ... WHERE
 ```
 ```php
 	$entity = new Entity();
-	$entity = $storage
+	$entity = $query
 		->delete($entity)
 		->execute();
 ```
-### Clear
-
-Removes all entities from storage (just like truncate table)
-Result: `bool`
-
-```sql
-TRUNCATE TABLE ...
-```
-```php
-$entity = new Entity();
-$bool = $storage
-	->clear('entity)
-	->execute();
-```
-
 ## Operation modifiers
 
-Storage provides modifiers for operations, such as `where`, `having`, `limit`, `order`, `aggregate` etc.
+Storage provides modifiers for operations, such as `where`, `having`, `limit`, `order` etc.
 
 ### Conditions
 
@@ -160,7 +144,7 @@ Both work in same way, accept same kind of attributes, but `having` allows to re
 SELECT ... FROM ... WHERE [condition]
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
 	->where($field, $value, $comparison, $logical)
 	->execute();
 ```
@@ -169,7 +153,7 @@ $result = $storage->read('entity')
 SELECT ... FROM ... HAVING [condition]
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
 	->having($field, $value, $comparison, $logical)
 	->execute();
 ```
@@ -197,7 +181,7 @@ Examples with SQL representation:
 ... WHERE (`foo` = 'bar')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where('foo', 'bar')
     ->execute();
 ```
@@ -206,7 +190,7 @@ $result = $storage->read('entity')
 ... WHERE (`foo` = 'bar' OR `foo` = 'yada')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where('foo', array('bar', 'yada'))
     ->execute();
 ```
@@ -215,7 +199,7 @@ $result = $storage->read('entity')
 ... WHERE (`foo` = 'bar') OR (`foo` = 'yada')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where('foo', 'bar', '=', 'or')
     ->where('bar', 'yada')
     ->execute();
@@ -225,7 +209,7 @@ $result = $storage->read('entity')
 ... WHERE (`foo` = 'bar' OR `bar` = 'yada')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where(array('foo', 'bar'), 'yada')
     ->execute();
 ```
@@ -234,7 +218,7 @@ $result = $storage->read('entity')
 ... WHERE (`foo` = 'bar') OR (`bar` = 'yada')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where('foo', 'yada', '=', 'or')
     ->where('bar', 'yada')
     ->execute();
@@ -244,7 +228,7 @@ $result = $storage->read('entity')
 ... WHERE (`foo` = 'foofoo' OR `bar` = 'barbar')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where(array('foo', 'bar'), array('foofoo', 'barbar'))
     ->execute();
 ```
@@ -253,7 +237,7 @@ $result = $storage->read('entity')
 ... WHERE (`foo` = 'foofoo') OR (`bar` = 'barbar')
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->where('foo', 'foofoo', '=', 'or')
     ->where('bar', 'barbar')
     ->execute();
@@ -267,7 +251,7 @@ To set order for operation type:
 ... ORDER BY field ASC, otherfield DESC
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
 	->order('field', 'asc')
 	->order('otherfield', 'desc')
 	->execute();
@@ -276,7 +260,7 @@ $result = $storage->read('entity')
 Also, you can force order by passing array of values as second argument, eg:
 
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
 	->order('field', array(1,3,2)
 	->execute();
 ```
@@ -292,7 +276,7 @@ Limiting operation result
 ... LIMIT 30,60
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
     ->limit(30,60)
     ->execute();
 ```
@@ -305,7 +289,7 @@ Allows to restrain read fields, if for any reason you don't need all data.
 SELECT `id`, `title`, `slug` FROM ...
 ```
 ```php
-$result = $storage->read('entity')
+$result = $query->read('entity')
 	->fields(array('id', 'title', 'slug'))
 	->execute();
 ```
@@ -313,55 +297,22 @@ $result = $storage->read('entity')
 There is also similar command for restraining fields in `write`/`insert`/`update` operations
 
 ```php
-$result = $storage->write('entity')
+$result = $query->write('entity')
 	->values(array('id', 'title', 'slug'))
 	->execute();
 ```
 
 Only `id`, `title` and `slug` will be written.
 
-### Aggregate
-
-When needed, data can be aggregated and read with rest of entity.
-
-```php
-$result = $storage->read('entity')
-	->aggregate($method, $field)
-	->group($field)
-	->execute();
-```
-
-Where:
-
- * `$method` is one of supported methods:
-    * `distinct`
-    * `count`
-    * `avg`
-    * `max`
-    * `min`
-    * `sum`
- * `$field` aggregated property
-
-Or use alias for above methods
-
-```php
-$result = $storage->read('entity')
-	->count($field)
-	->group($field)
-	->execute();
-```
-
-`Group` method is optional.
-
 ## Relations
 
-By using relations you can read entire object structures, article with author, comments and tag in single query.
+By using relations you can read entire object structures, article with author, comments and tags in single query.
 To use relation, it must be defined in entity model, the rest is easy, just use the `::with()` method.
 
 Assuming that required models and relations exists:
 
 ```php
-	$result = $storage->read('article')
+	$result = $query->read('article')
 		->with('author')
 		->execute();
 ```
@@ -369,16 +320,16 @@ Assuming that required models and relations exists:
 Or in case of many relations:
 
 ```php
-	$result = $storage->read('article')
-		->with(array('author', 'comment', 'tag'))
+	$result = $query->read('article')
+		->with(['author', 'comment', 'tag'])
 		->execute();
 ```
 
 To read comments with their authors:
 
 ```php
-	$result = $storage->read('article')
-		->with(array('author', 'comment.author', 'tag'))
+	$result = $query->read('article')
+		->with(['author', 'comment.author', 'tag'])
 		->execute();
 ```
 
@@ -387,17 +338,17 @@ To read comments with their authors:
 Entities read in relations can be filtered by passing additional conditions in relation:
 
 ```php
-	$result = $storage->read('article')
+	$result = $query->read('article')
 		->with('comment', $relationConditions)
 		->execute();
 ```
 
 Where `$relationCondition` is an array containing conditions for entities read in relation.
-Conditions are represented as arrays with values in same order as those passed to `::where()` method.
+Conditions are represented as arrays with values in same order as arguments passed to `::where()` method.
 
 ```php
-	$result = $storage->read('article')
-		->with('comment', array(array('published' => true)))
+	$result = $query->read('article')
+		->with('comment', [['published', true]])
 		->execute();
 ```
 
@@ -405,70 +356,10 @@ This will read only published comments for articles.
 
 ### Sorting
 
-The `::where()` method has third argument used to sort entities in relation.
+The `::with()` method has third argument used to sort entities in relation.
 
 ```php
-	$result = $storage->read('article')
-		->with('comment', array(array('published', true)), array('created', 'desc'))
+	$result = $query->read('article')
+		->with('comment', [['published', true]], ['created', 'desc'])
 		->execute();
 ```
-
-### Query
-
-If there's a need for more complicated conditions, calling the `::relation($relation)` method will return `Relation` representing `$relation`, that can be accessed for `Query`
-
-```php
-	$storage = $storage->read('article');
-	$storage->with(array('comment', 'author', 'tag'));
-
-	$commentRelation = $storage->relation('comment');
-	$commentQuery = $commentRelation->query();
-
-	$commentQuery->condition(....);
-
-	$result = $storage->execute();
-```
-
-Or simpler way:
-
-```php
-	$storage = $storage->read('article')->with(array('comment', 'author', 'tag'));
-	$storage->relation('comment')->query()->condition(....);
-	$result = $storage->execute();
-```
-
-## Join
-
-When relation definition exists, it is possible to join data from relating entity.
-
-```sql
-SELECT ... FROM ... LEFT OUTER JOIN ...
-```
-```php
-$result = $storage->read('entity')
-	->join('left', 'other')
-	->execute();
-```
-
-Available join methods
-
- * `inner` (alias `innerJoin`) - inner join
- * `left` (alias `leftJoin`) - left outer join
- * `right` (alias `rightJoin`) - right outer join
-
-After joining other entity data into query, all its fields can be read and even aggregated:
-With `leftJoin` alis:
-
-```sql
-SELECT COUNT(`others`.`id`) AS `others`, ... FROM ... LEFT OUTER JOIN ... GROUP BY `entity`.`id`
-```
-```php
-$result = $storage->read('entity')
-	->count('other.id', `others`)
-	->leftJoin('other')
-	->group('id')
-	->execute();
-```
-
-Above query will read from `entity`, each collection element will have a number of relating `other` elements.
-Data from other entities will be available as public properties in read instances, unless such properties exist and are defined as private/public.
