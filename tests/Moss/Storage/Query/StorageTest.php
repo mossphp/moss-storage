@@ -12,7 +12,7 @@
 namespace Moss\Storage\Query;
 
 
-class QueryTest extends QueryMocks
+class StorageTest extends QueryMocks
 {
     public function testConnection()
     {
@@ -21,7 +21,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertSame($dbal, $query->connection());
     }
 
@@ -35,7 +35,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->read('\\stdClass'));
     }
 
@@ -49,7 +49,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->readOne('\\stdClass'));
     }
 
@@ -63,7 +63,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\WriteQueryInterface', $query->write($entity, $instance));
     }
 
@@ -77,7 +77,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\InsertQueryInterface', $query->insert($entity, $instance));
     }
 
@@ -91,7 +91,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\UpdateQueryInterface', $query->update($entity, $instance));
     }
 
@@ -105,7 +105,7 @@ class QueryTest extends QueryMocks
         $bag = $this->mockBag([$model]);
         $factory = $this->mockRelFactory();
 
-        $query = new Query($dbal, $bag, $factory);
+        $query = new Storage($dbal, $bag, $factory);
         $this->assertInstanceOf('\Moss\Storage\Query\DeleteQueryInterface', $query->delete($entity, $instance));
     }
 
