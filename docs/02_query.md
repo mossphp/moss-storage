@@ -21,7 +21,7 @@ $conn = DriverManager::getConnection([
 $models = new ModelBag();
 $models->set(...); // register some models
 
-$query = new Query($conn, $models);
+$storage = new Storage($conn, $models);
 
 ```
 
@@ -46,7 +46,7 @@ Result: `array` of entities
 SELECT ... FROM ...
 ```
 ```php
-$result = $query
+$result = $storage
 	->read('entity')
 	->execute();
 ```
@@ -57,7 +57,7 @@ Result: `number`
 SELECT ... FROM ...
 ```
 ```php
-$result = $query
+$result = $storage
 	->read('entity')
 	->count();
 ```
@@ -69,7 +69,7 @@ Result: `entity`
 SELECT ... FROM ... LIMIT 1
 ```
 ```php
-$entity = $query
+$entity = $storage
 	->readOne('entity')
 	->execute();
 ```
@@ -84,7 +84,7 @@ INSERT INTO ... VALUES ...
 ```
 ```php
 $entity = new Entity();
-$bool = $query
+$bool = $storage
 	->insert($entity)
 	->execute();
 ```
@@ -99,7 +99,7 @@ UPDATE ... SET ...
 ```
 ```php
 $entity = new Entity();
-$entity = $query
+$entity = $storage
 	->update($entity)
 	->execute();
 ```
@@ -112,7 +112,7 @@ Result: `entity`
 
 ```php
 $entity = new Entity();
-$entity = $query
+$entity = $storage
 	->write($entity)
 	->execute();
 ```
@@ -127,7 +127,7 @@ DELETE FROM ... WHERE
 ```
 ```php
 	$entity = new Entity();
-	$entity = $query
+	$entity = $storage
 		->delete($entity)
 		->execute();
 ```
@@ -144,7 +144,7 @@ Both work in same way, accept same kind of attributes, but `having` allows to re
 SELECT ... FROM ... WHERE [condition]
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
 	->where($field, $value, $comparison, $logical)
 	->execute();
 ```
@@ -153,7 +153,7 @@ $result = $query->read('entity')
 SELECT ... FROM ... HAVING [condition]
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
 	->having($field, $value, $comparison, $logical)
 	->execute();
 ```
@@ -181,7 +181,7 @@ Examples with SQL representation:
 ... WHERE (`foo` = 'bar')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where('foo', 'bar')
     ->execute();
 ```
@@ -190,7 +190,7 @@ $result = $query->read('entity')
 ... WHERE (`foo` = 'bar' OR `foo` = 'yada')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where('foo', array('bar', 'yada'))
     ->execute();
 ```
@@ -199,7 +199,7 @@ $result = $query->read('entity')
 ... WHERE (`foo` = 'bar') OR (`foo` = 'yada')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where('foo', 'bar', '=', 'or')
     ->where('bar', 'yada')
     ->execute();
@@ -209,7 +209,7 @@ $result = $query->read('entity')
 ... WHERE (`foo` = 'bar' OR `bar` = 'yada')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where(array('foo', 'bar'), 'yada')
     ->execute();
 ```
@@ -218,7 +218,7 @@ $result = $query->read('entity')
 ... WHERE (`foo` = 'bar') OR (`bar` = 'yada')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where('foo', 'yada', '=', 'or')
     ->where('bar', 'yada')
     ->execute();
@@ -228,7 +228,7 @@ $result = $query->read('entity')
 ... WHERE (`foo` = 'foofoo' OR `bar` = 'barbar')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where(array('foo', 'bar'), array('foofoo', 'barbar'))
     ->execute();
 ```
@@ -237,7 +237,7 @@ $result = $query->read('entity')
 ... WHERE (`foo` = 'foofoo') OR (`bar` = 'barbar')
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->where('foo', 'foofoo', '=', 'or')
     ->where('bar', 'barbar')
     ->execute();
@@ -251,7 +251,7 @@ To set order for operation type:
 ... ORDER BY field ASC, otherfield DESC
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
 	->order('field', 'asc')
 	->order('otherfield', 'desc')
 	->execute();
@@ -260,7 +260,7 @@ $result = $query->read('entity')
 Also, you can force order by passing array of values as second argument, eg:
 
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
 	->order('field', array(1,3,2)
 	->execute();
 ```
@@ -276,7 +276,7 @@ Limiting operation result
 ... LIMIT 30,60
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
     ->limit(30,60)
     ->execute();
 ```
@@ -289,7 +289,7 @@ Allows to restrain read fields, if for any reason you don't need all data.
 SELECT `id`, `title`, `slug` FROM ...
 ```
 ```php
-$result = $query->read('entity')
+$result = $storage->read('entity')
 	->fields(array('id', 'title', 'slug'))
 	->execute();
 ```
@@ -297,7 +297,7 @@ $result = $query->read('entity')
 There is also similar command for restraining fields in `write`/`insert`/`update` operations
 
 ```php
-$result = $query->write('entity')
+$result = $storage->write('entity')
 	->values(array('id', 'title', 'slug'))
 	->execute();
 ```
@@ -312,7 +312,7 @@ To use relation, it must be defined in entity model, the rest is easy, just use 
 Assuming that required models and relations exists:
 
 ```php
-	$result = $query->read('article')
+	$result = $storage->read('article')
 		->with('author')
 		->execute();
 ```
@@ -320,7 +320,7 @@ Assuming that required models and relations exists:
 Or in case of many relations:
 
 ```php
-	$result = $query->read('article')
+	$result = $storage->read('article')
 		->with(['author', 'comment', 'tag'])
 		->execute();
 ```
@@ -328,7 +328,7 @@ Or in case of many relations:
 To read comments with their authors:
 
 ```php
-	$result = $query->read('article')
+	$result = $storage->read('article')
 		->with(['author', 'comment.author', 'tag'])
 		->execute();
 ```
@@ -338,7 +338,7 @@ To read comments with their authors:
 Entities read in relations can be filtered by passing additional conditions in relation:
 
 ```php
-	$result = $query->read('article')
+	$result = $storage->read('article')
 		->with('comment', $relationConditions)
 		->execute();
 ```
@@ -347,7 +347,7 @@ Where `$relationCondition` is an array containing conditions for entities read i
 Conditions are represented as arrays with values in same order as arguments passed to `::where()` method.
 
 ```php
-	$result = $query->read('article')
+	$result = $storage->read('article')
 		->with('comment', [['published', true]])
 		->execute();
 ```
@@ -359,7 +359,7 @@ This will read only published comments for articles.
 The `::with()` method has third argument used to sort entities in relation.
 
 ```php
-	$result = $query->read('article')
+	$result = $storage->read('article')
 		->with('comment', [['published', true]], ['created', 'desc'])
 		->execute();
 ```
