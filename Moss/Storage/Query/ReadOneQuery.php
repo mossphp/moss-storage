@@ -46,9 +46,7 @@ class ReadOneQuery extends ReadQuery
      */
     public function execute()
     {
-        $stmt = $this->connection->prepare($this->queryString());
-        $stmt->execute($this->binds);
-
+        $stmt = $this->bindAndExecuteQuery();
         $result = $stmt->fetchAll(\PDO::FETCH_CLASS, $this->model->entity());
 
         if (!count($result)) {
