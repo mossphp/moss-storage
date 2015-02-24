@@ -101,7 +101,7 @@ Drops all defined entity tables
 
 ```php
 $storage
-	->alter()
+	->drop()
 	->execute();
 ```
 
