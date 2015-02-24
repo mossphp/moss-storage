@@ -23,7 +23,7 @@ use Moss\Storage\NormalizeNamespaceTrait;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class Storage
+class Storage implements StorageInterface
 {
     use NormalizeNamespaceTrait;
 

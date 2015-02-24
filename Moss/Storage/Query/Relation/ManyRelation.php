@@ -90,7 +90,7 @@ class ManyRelation extends AbstractRelation implements RelationInterface
                 $this->setPropertyValue($relEntity, $foreign, $this->getPropertyValue($result, $local));
             }
 
-            $this->query->write($this->definition->entity(), $relEntity)
+            $this->storage->write($this->definition->entity(), $relEntity)
                 ->execute();
         }
 
@@ -124,7 +124,7 @@ class ManyRelation extends AbstractRelation implements RelationInterface
         $this->assertArrayAccess($container);
 
         foreach ($container as $relEntity) {
-            $this->query->delete($this->definition->entity(), $relEntity)
+            $this->storage->delete($this->definition->entity(), $relEntity)
                 ->execute();
         }
 

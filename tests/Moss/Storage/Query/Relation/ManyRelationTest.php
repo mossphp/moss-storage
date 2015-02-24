@@ -33,7 +33,7 @@ class ManyRelationTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->once())->method('read')->willReturn($readQuery);
 
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
@@ -74,7 +74,7 @@ class ManyRelationTest extends \PHPUnit_Framework_TestCase
         $updateQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
         $updateQuery->expects($this->once())->method('execute')->willReturn(true);
 
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->once())->method('read')->willReturn($readQuery);
         $query->expects($this->once())->method('write')->willReturn($updateQuery);
 
@@ -121,7 +121,7 @@ class ManyRelationTest extends \PHPUnit_Framework_TestCase
         $deleteQuery = $this->getMock('\Moss\Storage\Query\DeleteQueryInterface');
         $deleteQuery->expects($this->once())->method('execute')->willReturn(true);
 
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->once())->method('read')->willReturn($readQuery);
         $query->expects($this->once())->method('write')->willReturn($updateQuery);
         $query->expects($this->once())->method('delete')->willReturn($deleteQuery);
@@ -162,7 +162,7 @@ class ManyRelationTest extends \PHPUnit_Framework_TestCase
 
         $deleteQuery = $this->getMock('\Moss\Storage\Query\DeleteQueryInterface');
 
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->once())->method('read')->willReturn($readQuery);
         $query->expects($this->once())->method('delete')->willReturn($deleteQuery);
 
@@ -198,7 +198,7 @@ class ManyRelationTest extends \PHPUnit_Framework_TestCase
         $deleteQuery = $this->getMock('\Moss\Storage\Query\DeleteQueryInterface');
         $deleteQuery->expects($this->once())->method('execute');
 
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->once())->method('delete')->willReturn($deleteQuery);
 
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
@@ -220,7 +220,7 @@ class ManyRelationTest extends \PHPUnit_Framework_TestCase
             'rel' => []
         ];
 
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->never())->method('delete');
 
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');

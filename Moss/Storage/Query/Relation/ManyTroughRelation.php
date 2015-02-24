@@ -102,7 +102,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
         }
 
         foreach ($container as $entity) {
-            $this->query->write($this->definition->entity(), $entity)->execute();
+            $this->storage->write($this->definition->entity(), $entity)->execute();
         }
 
         $mediators = [];
@@ -118,7 +118,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
                 $mediator[$foreign] = $this->getPropertyValue($entity, $local);
             }
 
-            $this->query->write($this->definition->mediator(), $mediator)
+            $this->storage->write($this->definition->mediator(), $mediator)
                 ->execute();
 
             $mediators[] = $mediator;
@@ -164,7 +164,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
                 $mediator[$foreign] = $this->getPropertyValue($entity, $local);
             }
 
-            $this->query
+            $this->storage
                 ->delete($this->definition->mediator(), $mediator)
                 ->execute();
 

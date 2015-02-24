@@ -91,7 +91,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
             return $result;
         }
 
-        $this->query->write($this->definition->entity(), $entity)->execute();
+        $this->storage->write($this->definition->entity(), $entity)->execute();
 
         $mediator = [];
 
@@ -103,7 +103,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
             $mediator[$foreign] = $this->getPropertyValue($entity, $local);
         }
 
-        $this->query->write($this->definition->mediator(), $mediator)->execute();
+        $this->storage->write($this->definition->mediator(), $mediator)->execute();
         $this->setPropertyValue($result, $this->definition->container(), $entity);
 
         $conditions = [];
@@ -138,7 +138,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
             $mediator[$mediatorField] = $this->getPropertyValue($entity, $entityField);
         }
 
-        $this->query->delete($this->definition->mediator(), $mediator)->execute();
+        $this->storage->delete($this->definition->mediator(), $mediator)->execute();
         $this->setPropertyValue($result, $this->definition->container(), $entity);
 
         return $result;

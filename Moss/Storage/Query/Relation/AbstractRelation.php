@@ -15,7 +15,7 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\PropertyAccessorTrait;
-use Moss\Storage\Query\Query;
+use Moss\Storage\Query\StorageInterface;
 
 /**
  * Abstract class for basic relation methods
@@ -29,9 +29,9 @@ abstract class AbstractRelation
     use GetTypeTrait;
 
     /**
-     * @var Query
+     * @var StorageInterface
      */
-    protected $query;
+    protected $storage;
 
     /**
      * @var ModelBag
@@ -60,14 +60,14 @@ abstract class AbstractRelation
     /**
      * Constructor
      *
-     * @param Query                    $query
+     * @param StorageInterface         $storage
      * @param DefinitionInterface      $relation
      * @param ModelBag                 $models
      * @param RelationFactoryInterface $factory
      */
-    public function __construct(Query $query, DefinitionInterface $relation, ModelBag $models, RelationFactoryInterface $factory)
+    public function __construct(StorageInterface $storage, DefinitionInterface $relation, ModelBag $models, RelationFactoryInterface $factory)
     {
-        $this->query = $query;
+        $this->storage = $storage;
         $this->definition = $relation;
         $this->models = $models;
         $this->factory = $factory;
@@ -90,7 +90,7 @@ abstract class AbstractRelation
      */
     public function query()
     {
-        return $this->query;
+        return $this->storage;
     }
 
     /**
@@ -266,7 +266,7 @@ abstract class AbstractRelation
      */
     protected function fetch($entity, array $conditions, $result = false)
     {
-        $query = $this->query->read($entity);
+        $query = $this->storage->read($entity);
 
         foreach ($conditions as $field => $values) {
             $query->where($field, $values);
@@ -336,7 +336,7 @@ abstract class AbstractRelation
                 continue;
             }
 
-            $this->query->delete($entity, $instance)
+            $this->storage->delete($entity, $instance)
                 ->execute();
         }
 
@@ -347,7 +347,7 @@ abstract class AbstractRelation
      * Returns array with entities that should be deleted or false otherwise
      *
      * @param string $entity
-     * @param array $conditions
+     * @param array  $conditions
      *
      * @return array|bool
      */

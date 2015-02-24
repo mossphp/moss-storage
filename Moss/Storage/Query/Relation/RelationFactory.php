@@ -14,8 +14,8 @@ namespace Moss\Storage\Query\Relation;
 use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Query;
 use Moss\Storage\Query\QueryException;
+use Moss\Storage\Query\StorageInterface;
 
 /**
  * Entity relationship factory
@@ -31,9 +31,9 @@ class RelationFactory implements RelationFactoryInterface
     const RELATION_MANY_TROUGH = 'manyTrough';
 
     /**
-     * @var Query
+     * @var StorageInterface
      */
-    protected $query;
+    protected $storage;
 
     /**
      * @var ModelBag
@@ -50,12 +50,12 @@ class RelationFactory implements RelationFactoryInterface
     /**
      * Constructor
      *
-     * @param Query    $query
-     * @param ModelBag $models
+     * @param StorageInterface $storage
+     * @param ModelBag         $models
      */
-    public function __construct(Query $query, ModelBag $models)
+    public function __construct(StorageInterface $storage, ModelBag $models)
     {
-        $this->query = $query;
+        $this->storage = $storage;
         $this->bag = $models;
     }
 
@@ -143,16 +143,16 @@ class RelationFactory implements RelationFactoryInterface
 
         switch ($definition->type()) {
             case self::RELATION_ONE:
-                $instance = new OneRelation($this->query, $definition, $this->bag, $this);
+                $instance = new OneRelation($this->storage, $definition, $this->bag, $this);
                 break;
             case self::RELATION_MANY:
-                $instance = new ManyRelation($this->query, $definition, $this->bag, $this);
+                $instance = new ManyRelation($this->storage, $definition, $this->bag, $this);
                 break;
             case self::RELATION_ONE_TROUGH:
-                $instance = new OneTroughRelation($this->query, $definition, $this->bag, $this);
+                $instance = new OneTroughRelation($this->storage, $definition, $this->bag, $this);
                 break;
             case self::RELATION_MANY_TROUGH:
-                $instance = new ManyTroughRelation($this->query, $definition, $this->bag, $this);
+                $instance = new ManyTroughRelation($this->storage, $definition, $this->bag, $this);
                 break;
             default:
                 throw new RelationException(sprintf('Invalid read relation type "%s" for "%s"', $definition->type(), $definition->entity()));

@@ -20,7 +20,7 @@ class RelationFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuildWithoutModel()
     {
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $bag = $this->getMock('\Moss\Storage\Model\ModelBag');
 
         $factory = new RelationFactory($query, $bag);
@@ -33,7 +33,7 @@ class RelationFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuildWithoutRelationDefinition()
     {
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $bag = $this->getMock('\Moss\Storage\Model\ModelBag');
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
 
@@ -48,7 +48,7 @@ class RelationFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuildWithInvalidRelationType()
     {
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $bag = $this->getMock('\Moss\Storage\Model\ModelBag');
 
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
@@ -68,7 +68,7 @@ class RelationFactoryTest extends \PHPUnit_Framework_TestCase
      */
     public function testBuild($type, $expected)
     {
-        $query = $this->getMockBuilder('\Moss\Storage\Query\Query')->disableOriginalConstructor()->getMock();
+        $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $bag = $this->getMock('\Moss\Storage\Model\ModelBag');
 
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');

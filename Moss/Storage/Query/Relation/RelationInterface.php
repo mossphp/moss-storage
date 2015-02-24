@@ -11,8 +11,6 @@
 
 namespace Moss\Storage\Query\Relation;
 
-use Moss\Storage\Query\QueryInterface;
-
 /**
  * Relation interface
  *
@@ -27,13 +25,6 @@ interface RelationInterface
      * @return string
      */
     public function name();
-
-    /**
-     * Returns relation query instance
-     *
-     * @return QueryInterface
-     */
-    public function query();
 
     /**
      * Adds where condition to query
