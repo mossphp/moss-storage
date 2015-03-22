@@ -3,4 +3,5 @@ imports:
 filter:
     excluded_paths: [docs/*, vendor/*, tests/*]
 tools:
+    php_code_coverage: true
     external_code_coverage: true
