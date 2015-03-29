@@ -75,6 +75,16 @@ abstract class AbstractQuery
     }
 
     /**
+     * Returns query builder instance
+     *
+     * @return QueryBuilder
+     */
+    public function queryBuilder()
+    {
+        return $this->query;
+    }
+
+    /**
      * Adds relation to query
      *
      * @param string $relation

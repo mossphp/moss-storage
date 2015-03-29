@@ -12,6 +12,7 @@
 namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 
 /**
  * Query interface
@@ -27,6 +28,13 @@ interface QueryInterface
      * @return Connection
      */
     public function connection();
+
+    /**
+     * Returns query builder instance
+     *
+     * @return QueryBuilder
+     */
+    public function queryBuilder();
 
     /**
      * Executes query
