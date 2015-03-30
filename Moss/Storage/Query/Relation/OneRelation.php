@@ -84,7 +84,7 @@ class OneRelation extends AbstractRelation implements RelationInterface
             $this->setPropertyValue($entity, $foreign, $this->getPropertyValue($result, $local));
         }
 
-        $this->storage->write($this->definition->entity(), $entity)->execute();
+        $this->storage->write($entity, $this->definition->entity())->execute();
         $this->setPropertyValue($result, $this->definition->container(), $entity);
 
         return $result;

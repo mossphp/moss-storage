@@ -56,7 +56,7 @@ class StorageTest extends QueryMocks
     /**
      * @dataProvider instanceProvider
      */
-    public function testWrite($entity, $instance)
+    public function testWrite($instance, $entity)
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
@@ -64,13 +64,13 @@ class StorageTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Storage($dbal, $bag, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\WriteQueryInterface', $query->write($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\WriteQueryInterface', $query->write($instance, $entity));
     }
 
     /**
      * @dataProvider instanceProvider
      */
-    public function testInsert($entity, $instance)
+    public function testInsert($instance, $entity)
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
@@ -78,13 +78,13 @@ class StorageTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Storage($dbal, $bag, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\InsertQueryInterface', $query->insert($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\InsertQueryInterface', $query->insert($instance, $entity));
     }
 
     /**
      * @dataProvider instanceProvider
      */
-    public function testUpdate($entity, $instance)
+    public function testUpdate($instance, $entity)
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
@@ -92,13 +92,13 @@ class StorageTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Storage($dbal, $bag, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\UpdateQueryInterface', $query->update($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\UpdateQueryInterface', $query->update($instance, $entity));
     }
 
     /**
      * @dataProvider instanceProvider
      */
-    public function testDelete($entity, $instance)
+    public function testDelete($instance, $entity)
     {
         $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table');
@@ -106,15 +106,15 @@ class StorageTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new Storage($dbal, $bag, $factory);
-        $this->assertInstanceOf('\Moss\Storage\Query\DeleteQueryInterface', $query->delete($entity, $instance));
+        $this->assertInstanceOf('\Moss\Storage\Query\DeleteQueryInterface', $query->delete($instance, $entity));
     }
 
     public function instanceProvider()
     {
         return [
-            ['\\stdClass', new \stdClass()],
+            [new \stdClass(), '\\stdClass'],
             [new \stdClass(), null],
-            ['table', new \stdClass()]
+            [new \stdClass(), 'table']
         ];
     }
 }

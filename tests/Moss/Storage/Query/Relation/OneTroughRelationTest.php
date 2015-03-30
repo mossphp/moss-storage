@@ -74,8 +74,8 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
         $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->exactly(2))->method('write')->willReturnMap(
             [
-                ['entity', $entity->rel, $entityUpdateQuery],
-                ['mediator', ['l_id' => 1, 'f_id' => 1], $mediatorUpdateQuery]
+                [$entity->rel, 'entity', $entityUpdateQuery],
+                [['l_id' => 1, 'f_id' => 1], 'mediator', $mediatorUpdateQuery]
             ]
         );
 

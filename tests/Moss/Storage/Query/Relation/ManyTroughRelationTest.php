@@ -77,8 +77,8 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
         $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->exactly(2))->method('write')->willReturnMap(
             [
-                ['entity', $entity->rel[0], $entityUpdateQuery],
-                ['mediator', ['l_id' => 1, 'f_id' => 1], $mediatorUpdateQuery],
+                [$entity->rel[0], 'entity', $entityUpdateQuery],
+                [['l_id' => 1, 'f_id' => 1], 'mediator', $mediatorUpdateQuery],
             ]
         );
         $query->expects($this->once())->method('read')->willReturn($readQuery);
@@ -125,8 +125,8 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
         $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
         $query->expects($this->exactly(2))->method('write')->willReturnMap(
             [
-                ['entity', $entity->rel[0], $entityUpdateQuery],
-                ['mediator', ['l_id' => 1, 'f_id' => 1], $mediatorUpdateQuery],
+                [$entity->rel[0], 'entity', $entityUpdateQuery],
+                [['l_id' => 1, 'f_id' => 1], 'mediator', $mediatorUpdateQuery],
             ]
         );
         $query->expects($this->once())->method('read')->willReturn($readQuery);

@@ -58,7 +58,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     protected function setQuery()
     {
         $this->query = $this->connection->createQueryBuilder();
-        $this->query->select();
+        $this->query->select([]);
         $this->query->from($this->connection->quoteIdentifier($this->model->table()));
     }
 

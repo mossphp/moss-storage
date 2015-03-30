@@ -16,9 +16,7 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     public function testGetByEntityName()
     {
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
-        $model->expects($this->any())
-            ->method('entity')
-            ->will($this->returnValue('Foo'));
+        $model->expects($this->any())->method('entity')->will($this->returnValue('Foo'));
 
         $bag = new ModelBag();
         $bag->set($model);
@@ -28,9 +26,7 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     public function testGetByAlias()
     {
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
-        $model->expects($this->any())
-            ->method('alias')
-            ->will($this->returnValue('foofoo'));
+        $model->expects($this->any())->method('alias')->will($this->returnValue('foofoo'));
 
         $bag = new ModelBag();
         $bag->set($model, 'foofoo');
@@ -46,9 +42,7 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     public function testHasByEntityName()
     {
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
-        $model->expects($this->any())
-            ->method('entity')
-            ->will($this->returnValue('Foo'));
+        $model->expects($this->any())->method('entity')->will($this->returnValue('Foo'));
 
         $bag = new ModelBag();
         $bag->set($model);
@@ -58,9 +52,7 @@ class ModelBagTest extends \PHPUnit_Framework_TestCase
     public function testHasByAlias()
     {
         $model = $this->getMock('\Moss\Storage\Model\ModelInterface');
-        $model->expects($this->any())
-            ->method('alias')
-            ->will($this->returnValue('foofoo'));
+        $model->expects($this->any())->method('alias')->will($this->returnValue('foofoo'));
 
         $bag = new ModelBag();
         $bag->set($model, 'foofoo');

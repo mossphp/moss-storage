@@ -90,8 +90,7 @@ class ManyRelation extends AbstractRelation implements RelationInterface
                 $this->setPropertyValue($relEntity, $foreign, $this->getPropertyValue($result, $local));
             }
 
-            $this->storage->write($this->definition->entity(), $relEntity)
-                ->execute();
+            $this->storage->write($relEntity, $this->definition->entity())->execute();
         }
 
         $this->setPropertyValue($result, $this->definition->container(), $container);

@@ -188,8 +188,7 @@ abstract class AbstractQuery
      */
     protected function bindAndExecuteQuery()
     {
-        $stmt = $this->query->execute();
-        return $stmt;
+        return $this->query->execute();
     }
 
     /**
@@ -205,9 +204,7 @@ abstract class AbstractQuery
     protected function bind($operation, $field, $type, $value)
     {
         $key = ':' . implode('_', [$operation, count($this->query->getParameters()), $field]);
-        $this->query->createNamedParameter($value, $type, $key);
-
-        return $key;
+        return $this->query->createNamedParameter($value, $type, $key);
     }
 
     /**
@@ -223,12 +220,12 @@ abstract class AbstractQuery
             return;
         }
 
-        $params = $this->query->getParameters();
-        $types = $this->query->getParameterTypes();
+        $params = (array) $this->query->getParameters();
+        $types = (array) $this->query->getParameterTypes();
+
         foreach (array_keys($params) as $key) {
             if (strpos($key, $prefix) === 1) {
-                unset($params[$key]);
-                unset($types[$key]);
+                unset($params[$key], $types[$key]);
             }
         }
 

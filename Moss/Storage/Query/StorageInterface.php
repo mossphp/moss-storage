@@ -68,7 +68,7 @@ interface StorageInterface
      *
      * @return InsertQueryInterface
      */
-    public function insert($entity, $instance);
+    public function insert($entity, $instance = null);
 
     /**
      * Sets update operation
@@ -78,7 +78,7 @@ interface StorageInterface
      *
      * @return UpdateQueryInterface
      */
-    public function update($entity, $instance);
+    public function update($entity, $instance = null);
 
     /**
      * Sets delete operation
@@ -88,5 +88,5 @@ interface StorageInterface
      *
      * @return DeleteQueryInterface
      */
-    public function delete($entity, $instance);
+    public function delete($entity, $instance = null);
 }

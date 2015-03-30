@@ -79,18 +79,15 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $builder->expects($this->exactly(2))->method('resetQueryPart')->with('set');
+        $builder->expects($this->exactly(4))->method('set')->withConsecutive(
+            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -105,24 +102,14 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('set')
-            ->with('`bar`', ':value_3_bar');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $builder->expects($this->once())->method('resetQueryPart')->with('set');
+        $builder->expects($this->exactly(3))->method('set')->withConsecutive(
+            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -137,16 +124,17 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => null, 'bar' => 'bar'];
 
         $reference = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
-        $reference->expects($this->any())
-            ->method('container')
-            ->willReturn('yada');
+        $reference->expects($this->any())->method('container')->willReturn('yada');
 
-        $dbal = $this->mockDBAL();
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => null, ':value_1_bar' => 'bar']);
+
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
         $factory = $this->mockRelFactory();
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $this->assertEquals([':value_0_foo' => ['string', null], ':value_1_bar' => ['string', 'bar']], $query->binds());
+        $this->assertEquals([':value_0_foo' => null, ':value_1_bar' => 'bar'], $query->binds());
     }
 
     public function testValueFromRelationalEntity()
@@ -154,16 +142,17 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => null, 'bar' => 'bar', 'yada' => ['yada' => 'yada']];
 
         $reference = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
-        $reference->expects($this->any())
-            ->method('container')
-            ->willReturn('yada');
+        $reference->expects($this->any())->method('container')->willReturn('yada');
 
-        $dbal = $this->mockDBAL();
+        $builder = $this->mockQueryBuilder();
+        $builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => 'yada', ':value_1_bar' => 'bar']);
+
+        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
         $factory = $this->mockRelFactory();
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $this->assertEquals([':value_0_foo' => ['string', 'yada'], ':value_1_bar' => ['string', 'bar']], $query->binds());
+        $this->assertEquals([':value_0_foo' => 'yada', ':value_1_bar' => 'bar'], $query->binds());
     }
 
     public function testWhereSimple()
@@ -171,24 +160,11 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('andWhere')
-            ->with('`bar` = :condition_3_bar');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+            [$this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/')],
+            [$this->matchesRegularExpression('/^`bar` = :condition_\d_bar$/')]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -203,24 +179,11 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => null];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('andWhere')
-            ->with('`bar` IS NULL');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+            ['`foo` = :condition_0_foo'],
+            ['`bar` IS NULL']
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -235,24 +198,11 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('andWhere')
-            ->with('(`foo` = :condition_3_foo and `bar` = :condition_4_bar)');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+            ['`foo` = :condition_0_foo'],
+            [$this->matchesRegularExpression('/^\(`foo` = :condition_\d_foo and `bar` = :condition_\d_bar\)$/')]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -267,24 +217,11 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('andWhere')
-            ->with('(`bar` = :condition_3_bar or `bar` = :condition_4_bar)');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+            ['`foo` = :condition_0_foo'],
+            [$this->matchesRegularExpression('/^\(`bar` = :condition_\d_bar or `bar` = :condition_\d_bar\)$/')]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -299,24 +236,11 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('andWhere')
-            ->with('((`foo` = :condition_3_foo or `foo` = :condition_4_foo) and (`bar` = :condition_5_bar or `bar` = :condition_6_bar))');
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+            ['`foo` = :condition_0_foo'],
+            [$this->matchesRegularExpression('/^\(\(`foo` = :condition_\d_foo or `foo` = :condition_\d_foo\) and \(`bar` = :condition_\d_bar or `bar` = :condition_\d_bar\)\)$/')]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -334,24 +258,11 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
-        $builder->expects($this->at(5))
-            ->method('andWhere')
-            ->with($expected);
+        $builder->expects($this->once())->method('update')->with('`table`');
+        $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+            ['`foo` = :condition_0_foo'],
+            [$this->matchesRegularExpression($expected)]
+        );
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -364,14 +275,14 @@ class UpdateQueryTest extends QueryMocks
     public function comparisonOperatorsProvider()
     {
         return [
-            ['=', '`bar` = :condition_3_bar'],
-            ['!=', '`bar` != :condition_3_bar'],
-            ['>', '`bar` > :condition_3_bar'],
-            ['>=', '`bar` >= :condition_3_bar'],
-            ['<', '`bar` < :condition_3_bar'],
-            ['<=', '`bar` <= :condition_3_bar'],
-            ['like', '`bar` like :condition_3_bar'],
-            ['regexp', '`bar` regexp :condition_3_bar'],
+            ['=', '/^`bar` = :condition_\d_bar$/'],
+            ['!=', '/^`bar` != :condition_\d_bar$/'],
+            ['>', '/^`bar` > :condition_\d_bar$/'],
+            ['>=', '/^`bar` >= :condition_\d_bar$/'],
+            ['<', '/^`bar` < :condition_\d_bar$/'],
+            ['<=', '/^`bar` <= :condition_\d_bar$/'],
+            ['like', '/^`bar` like :condition_\d_bar$/'],
+            ['regexp', '/^`bar` regexp :condition_\d_bar$/'],
         ];
     }
 
@@ -399,35 +310,20 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))
-            ->method('update')
-            ->with('`table`');
-        $builder->expects($this->at(1))
-            ->method('resetQueryPart')
-            ->with('set');
-        $builder->expects($this->at(2))
-            ->method('set')
-            ->with('`foo`', ':value_0_foo');
-        $builder->expects($this->at(3))
-            ->method('set')
-            ->with('`bar`', ':value_1_bar');
-        $builder->expects($this->at(4))
-            ->method('andWhere')
-            ->with('`foo` = :condition_2_foo');
+        $builder->expects($this->once())->method('update')->with('`table`');
 
         switch ($operator) {
             case 'or':
-                $builder->expects($this->at(5))
-                    ->method('orWhere')
-                    ->with('`bar` = :condition_3_bar');
+                $builder->expects($this->once())->method('andWhere')->with('`foo` = :condition_0_foo');
+                $builder->expects($this->once())->method('orWhere')->with($this->matchesRegularExpression('/^`bar` = :condition_\d_bar$/'));
                 break;
             case 'and':
             default:
-                $builder->expects($this->at(5))
-                    ->method('andWhere')
-                    ->with('`bar` = :condition_3_bar');
+                $builder->expects($this->exactly(2))->method('andWhere')->withConsecutive(
+                    [$this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/')],
+                    [$this->matchesRegularExpression('/^`bar` = :condition_\d_bar$/')]
+                );
         }
-
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -468,12 +364,8 @@ class UpdateQueryTest extends QueryMocks
         $offset = 20;
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())
-            ->method('setFirstResult')
-            ->with($offset);
-        $builder->expects($this->once())
-            ->method('setMaxResults')
-            ->with($limit);
+        $builder->expects($this->once())->method('setFirstResult')->with($offset);
+        $builder->expects($this->once())->method('setMaxResults')->with($limit);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -489,11 +381,8 @@ class UpdateQueryTest extends QueryMocks
         $limit = 10;
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->never())
-            ->method('setFirstResult');
-        $builder->expects($this->once())
-            ->method('setMaxResults')
-            ->with($limit);
+        $builder->expects($this->never())->method('setFirstResult');
+        $builder->expects($this->once())->method('setMaxResults')->with($limit);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -513,17 +402,9 @@ class UpdateQueryTest extends QueryMocks
         $relation = $this->mockRelation();
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->at(0))
-            ->method('reset')
-            ->with()
-            ->willReturnSelf();
-        $factory->expects($this->at(1))
-            ->method('relation')
-            ->with($model, 'relation')
-            ->willReturnSelf();
-        $factory->expects($this->at(2))
-            ->method('build')
-            ->willReturn($relation);
+        $factory->expects($this->at(0))->method('reset')->with()->willReturnSelf();
+        $factory->expects($this->at(1))->method('relation')->with($model, 'relation')->willReturnSelf();
+        $factory->expects($this->at(2))->method('build')->willReturn($relation);
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
@@ -537,18 +418,13 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
-        $relation->expects($this->any())
-            ->method('name')
-            ->willReturn('relation');
+        $relation->expects($this->any())->method('name')->willReturn('relation');
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->once())
-            ->method('build')
-            ->willReturn($relation);
+        $factory->expects($this->once())->method('build')->willReturn($relation);
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $result = $query->with('relation')
-            ->relation('relation');
+        $result = $query->with('relation')->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
     }
@@ -561,22 +437,15 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
-        $relation->expects($this->any())
-            ->method('name')
-            ->willReturn('relation');
+        $relation->expects($this->any())->method('name')->willReturn('relation');
 
-        $relation->expects($this->any())
-            ->method('relation')
-            ->willReturnSelf(); // hack so we can have nested relation
+        $relation->expects($this->any())->method('relation')->willReturnSelf(); // hack so we can have nested relation
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->any())
-            ->method('build')
-            ->willReturn($relation);
+        $factory->expects($this->any())->method('build')->willReturn($relation);
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $result = $query->with('relation.relation')
-            ->relation('relation.relation');
+        $result = $query->with('relation.relation')->relation('relation.relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
     }
@@ -607,27 +476,18 @@ class UpdateQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())
-            ->method('execute')
-            ->with();
+        $stmt->expects($this->any())->method('execute')->with();
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())
-            ->method('prepare')
-            ->will($this->returnValue($stmt));
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
-        $relation->expects($this->once())
-            ->method('write')
-            ->with($entity)
-            ->willReturn($entity);
+        $relation->expects($this->once())->method('write')->with($entity)->willReturn($entity);
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->any())
-            ->method('build')
-            ->willReturn($relation);
+        $factory->expects($this->any())->method('build')->willReturn($relation);
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->with('relation');
@@ -643,12 +503,8 @@ class UpdateQueryTest extends QueryMocks
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
 
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())
-            ->method('prepare')
-            ->will($this->returnValue($stmt));
-        $dbal->expects($this->any())
-            ->method('lastInsertId')
-            ->willReturn('id');
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())->method('lastInsertId')->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $factory = $this->mockRelFactory();
@@ -665,12 +521,8 @@ class UpdateQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
         $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())
-            ->method('prepare')
-            ->will($this->returnValue($stmt));
-        $dbal->expects($this->any())
-            ->method('lastInsertId')
-            ->willReturn('id');
+        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+        $dbal->expects($this->any())->method('lastInsertId')->willReturn('id');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $factory = $this->mockRelFactory();
@@ -685,8 +537,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())
-            ->method('getSQL');
+        $builder->expects($this->once())->method('getSQL');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -701,6 +552,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
+        $builder->expects($this->any())->method('getParameters')->willReturn([':condition_2_foo' => 'foo', ':value_1_foo' => 'foo']);
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
@@ -708,7 +560,7 @@ class UpdateQueryTest extends QueryMocks
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->values(['foo']);
-        $this->assertEquals([':condition_2_foo' => ['string', 'foo'], ':value_1_foo' => ['string', 'foo']], $query->binds());
+        $this->assertEquals([':condition_2_foo' => 'foo', ':value_1_foo' => 'foo'], $query->binds());
     }
 
     public function testReset()
@@ -716,8 +568,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())
-            ->method('resetQueryParts');
+        $builder->expects($this->once())->method('resetQueryParts');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);

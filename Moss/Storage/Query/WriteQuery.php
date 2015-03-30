@@ -160,6 +160,16 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
     }
 
     /**
+     * Returns array with bound values and their placeholders as keys
+     *
+     * @return array
+     */
+    public function binds()
+    {
+        return [];
+    }
+
+    /**
      * Resets adapter
      *
      * @return $this

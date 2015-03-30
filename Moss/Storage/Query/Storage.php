@@ -16,6 +16,7 @@ use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\NormalizeNamespaceTrait;
+use Moss\Storage\StorageException;
 
 /**
  * Storage - query source, used to create and execute CRUD operations on entities
@@ -100,14 +101,14 @@ class Storage implements StorageInterface
     /**
      * Sets write operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return WriteQueryInterface
      */
-    public function write($entity, $instance = null)
+    public function write($instance, $entity = null)
     {
-        list($entity, $instance) = $this->reassignEntity($entity, $instance);
+        list($instance, $entity) = $this->reassignEntity($instance, $entity);
 
         return new WriteQuery(
             $this->connection,
@@ -118,36 +119,16 @@ class Storage implements StorageInterface
     }
 
     /**
-     * Sets insert operation
-     *
-     * @param string|object     $entity
-     * @param null|array|object $instance
-     *
-     * @return InsertQueryInterface
-     */
-    public function insert($entity, $instance)
-    {
-        list($entity, $instance) = $this->reassignEntity($entity, $instance);
-
-        return new InsertQuery(
-            $this->connection,
-            $instance,
-            $this->models->get($entity),
-            $this->factory
-        );
-    }
-
-    /**
      * Sets update operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return UpdateQueryInterface
      */
-    public function update($entity, $instance)
+    public function update($instance, $entity = null)
     {
-        list($entity, $instance) = $this->reassignEntity($entity, $instance);
+        list($instance, $entity) = $this->reassignEntity($instance, $entity);
 
         return new UpdateQuery(
             $this->connection,
@@ -158,16 +139,36 @@ class Storage implements StorageInterface
     }
 
     /**
+     * Sets insert operation
+     *
+     * @param array|object       $instance
+     * @param null|string|object $entity
+     *
+     * @return InsertQueryInterface
+     */
+    public function insert($instance, $entity = null)
+    {
+        list($instance, $entity) = $this->reassignEntity($instance, $entity);
+
+        return new InsertQuery(
+            $this->connection,
+            $instance,
+            $this->models->get($entity),
+            $this->factory
+        );
+    }
+
+    /**
      * Sets delete operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return DeleteQueryInterface
      */
-    public function delete($entity, $instance)
+    public function delete($instance, $entity = null)
     {
-        list($entity, $instance) = $this->reassignEntity($entity, $instance);
+        list($instance, $entity) = $this->reassignEntity($instance, $entity);
 
         return new DeleteQuery(
             $this->connection,
@@ -180,17 +181,22 @@ class Storage implements StorageInterface
     /**
      * Reassigns entity/instance variables if entity is object
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return array
+     * @throws StorageException
      */
-    protected function reassignEntity($entity, $instance = null)
+    protected function reassignEntity($instance, $entity = null)
     {
-        if (is_object($entity)) {
-            return [$this->normalizeNamespace($entity), $entity];
+        if ($entity === null && !is_object($instance)) {
+            throw new StorageException('When entity class is omitted, instance must be an object');
         }
 
-        return [$entity, $instance];
+        if (is_object($instance)) {
+            return [$instance, $this->normalizeNamespace($instance)];
+        }
+
+        return [$instance, $entity];
     }
 }

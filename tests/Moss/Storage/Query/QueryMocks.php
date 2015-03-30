@@ -10,25 +10,17 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     {
         $queryBuilderMock = $queryBuilderMock ?: $this->mockQueryBuilder();
 
-        $dbalMock = $this->getMockBuilder('\Doctrine\DBAL\Connection')
-            ->disableOriginalConstructor()
-            ->getMock();
-        $dbalMock->expects($this->any())
-            ->method('quoteIdentifier')
-            ->will(
+        $dbalMock = $this->getMockBuilder('\Doctrine\DBAL\Connection')->disableOriginalConstructor()->getMock();
+        $dbalMock->expects($this->any())->method('quoteIdentifier')->will(
                 $this->returnCallback(
                     function ($val) {
                         return sprintf('`%s`', $val);
                     }
                 )
             );
-        $dbalMock->expects($this->any())
-            ->method('createQueryBuilder')
-            ->will($this->returnValue($queryBuilderMock));
+        $dbalMock->expects($this->any())->method('createQueryBuilder')->will($this->returnValue($queryBuilderMock));
 
-        $dbalMock->expects($this->any())
-            ->method('getDatabasePlatform')
-            ->will($this->returnValue($this->getMockForAbstractClass('\Doctrine\DBAL\Platforms\AbstractPlatform')));
+        $dbalMock->expects($this->any())->method('getDatabasePlatform')->will($this->returnValue($this->getMockForAbstractClass('\Doctrine\DBAL\Platforms\AbstractPlatform')));
 
         return $dbalMock;
     }
@@ -38,9 +30,10 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
      */
     public function mockQueryBuilder()
     {
-        return $this->getMockBuilder('\Doctrine\DBAL\Query\QueryBuilder')
-            ->disableOriginalConstructor()
-            ->getMock();
+        $builderMock = $this->getMockBuilder('\Doctrine\DBAL\Query\QueryBuilder')->disableOriginalConstructor()->getMock();
+        $builderMock->expects($this->any())->method('createNamedParameter')->willReturnArgument(2);
+
+        return $builderMock;
     }
 
     /**
@@ -59,21 +52,11 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     public function mockRelFactory()
     {
         $factoryMock = $this->getMock('\Moss\Storage\Query\Relation\RelationFactoryInterface');
-        $factoryMock->expects($this->any())
-            ->method('relation')
-            ->willReturnSelf();
-        $factoryMock->expects($this->any())
-            ->method('where')
-            ->willReturnSelf();
-        $factoryMock->expects($this->any())
-            ->method('order')
-            ->willReturnSelf();
-        $factoryMock->expects($this->any())
-            ->method('limit')
-            ->willReturnSelf();
-        $factoryMock->expects($this->any())
-            ->method('splitRelationName')
-            ->will($this->returnCallback(function ($arg) { return array_merge(explode('.', $arg), ['', null]); }));
+        $factoryMock->expects($this->any())->method('relation')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('where')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('order')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('limit')->willReturnSelf();
+        $factoryMock->expects($this->any())->method('splitRelationName')->will($this->returnCallback(function ($arg) { return array_merge(explode('.', $arg), ['', null]); }));
 
         return $factoryMock;
     }
@@ -91,9 +74,7 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
         }
 
         $mock = $this->getMock('\Moss\Storage\Model\ModelBag');
-        $mock->expects($this->any())
-            ->method('get')
-            ->willReturnMap($map);
+        $mock->expects($this->any())->method('get')->willReturnMap($map);
 
         return $mock;
     }
@@ -124,48 +105,30 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
 
         $modelMock = $this->getMock('\Moss\Storage\Model\ModelInterface');
 
-        $modelMock->expects($this->any())
-            ->method('table')
-            ->will($this->returnValue($table));
-        $modelMock->expects($this->any())
-            ->method('entity')
-            ->will($this->returnValue($entity));
-        $modelMock->expects($this->any())
-            ->method('referredIn')
-            ->will($this->returnValue($referredIn));
+        $modelMock->expects($this->any())->method('table')->will($this->returnValue($table));
+        $modelMock->expects($this->any())->method('entity')->will($this->returnValue($entity));
+        $modelMock->expects($this->any())->method('referredIn')->will($this->returnValue($referredIn));
 
-        $modelMock->expects($this->any())
-            ->method('isPrimary')
-            ->will(
+        $modelMock->expects($this->any())->method('isPrimary')->will(
                 $this->returnCallback(
                     function ($field) use ($primaryFields) {
                         return in_array($field, $primaryFields);
                     }
                 )
             );
-        $modelMock->expects($this->any())
-            ->method('primaryFields')
-            ->will($this->returnValue($primaryFields));
+        $modelMock->expects($this->any())->method('primaryFields')->will($this->returnValue($primaryFields));
 
-        $modelMock->expects($this->any())
-            ->method('isIndex')
-            ->will(
+        $modelMock->expects($this->any())->method('isIndex')->will(
                 $this->returnCallback(
                     function ($field) use ($indexFields) {
                         return in_array($field, $indexFields);
                     }
                 )
             );
-        $modelMock->expects($this->any())
-            ->method('indexFields')
-            ->will($this->returnValue($indexFields));
+        $modelMock->expects($this->any())->method('indexFields')->will($this->returnValue($indexFields));
 
-        $modelMock->expects($this->any())
-            ->method('field')
-            ->will($this->returnValueMap($fieldsMap));
-        $modelMock->expects($this->any())
-            ->method('fields')
-            ->will($this->returnValue($fields));
+        $modelMock->expects($this->any())->method('field')->will($this->returnValueMap($fieldsMap));
+        $modelMock->expects($this->any())->method('fields')->will($this->returnValue($fields));
 
         return $modelMock;
     }
@@ -176,22 +139,12 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     public function mockField($name, $type, $attributes = [], $mapping = null)
     {
         $fieldMock = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
-        $fieldMock->expects($this->any())
-            ->method('name')
-            ->will($this->returnValue($name));
-        $fieldMock->expects($this->any())
-            ->method('type')
-            ->will($this->returnValue($type));
-        $fieldMock->expects($this->any())
-            ->method('mappedName')
-            ->will($this->returnValue($mapping ?: $name));
-        $fieldMock->expects($this->any())
-            ->method('mapping')
-            ->will($this->returnValue($mapping));
+        $fieldMock->expects($this->any())->method('name')->will($this->returnValue($name));
+        $fieldMock->expects($this->any())->method('type')->will($this->returnValue($type));
+        $fieldMock->expects($this->any())->method('mappedName')->will($this->returnValue($mapping ?: $name));
+        $fieldMock->expects($this->any())->method('mapping')->will($this->returnValue($mapping));
 
-        $fieldMock->expects($this->any())
-            ->method('attribute')
-            ->will(
+        $fieldMock->expects($this->any())->method('attribute')->will(
                 $this->returnCallback(
                     function ($key) use ($attributes) {
                         return array_key_exists($key, $attributes) ? $attributes[$key] : false;
@@ -199,9 +152,7 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
                 )
             );
 
-        $fieldMock->expects($this->any())
-            ->method('attributes')
-            ->will($this->returnValue($attributes));
+        $fieldMock->expects($this->any())->method('attributes')->will($this->returnValue($attributes));
 
         return $fieldMock;
     }
@@ -212,9 +163,7 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     public function mockConverter()
     {
         $ConverterMock = $this->getMock('\Moss\Storage\Converter\ConverterInterface');
-        $ConverterMock->expects($this->any())
-            ->method($this->anything())
-            ->will($this->returnArgument(0));
+        $ConverterMock->expects($this->any())->method($this->anything())->will($this->returnArgument(0));
 
         return $ConverterMock;
     }
