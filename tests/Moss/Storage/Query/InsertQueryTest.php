@@ -103,7 +103,7 @@ class InsertQueryTest extends QueryMocks
 
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('insert')->with('`table`');
-        $builder->expects($this->exactly(1))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],

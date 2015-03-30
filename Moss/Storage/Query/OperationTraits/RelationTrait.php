@@ -12,6 +12,7 @@
 namespace Moss\Storage\Query\OperationTraits;
 
 
+use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\QueryException;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\Query\Relation\RelationInterface;
@@ -24,7 +25,6 @@ use Moss\Storage\Query\Relation\RelationInterface;
  */
 trait RelationTrait
 {
-    use AwareTrait;
 
     /**
      * @var RelationFactoryInterface
@@ -106,4 +106,11 @@ trait RelationTrait
 
         return $this->relations[$name];
     }
+
+    /**
+     * Returns model
+     *
+     * @return ModelInterface
+     */
+    abstract public function model();
 }

@@ -133,7 +133,7 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
         $query->expects($this->exactly(2))->method('delete')->willReturn($deleteQuery);
 
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
-        $definition->expects($this->once())->method('entity')->willReturn('entity');
+        $definition->expects($this->any())->method('entity')->willReturn('entity');
         $definition->expects($this->exactly(2))->method('mediator')->willReturn('mediator');
         $definition->expects($this->exactly(2))->method('container')->willReturn('rel');
         $definition->expects($this->exactly(2))->method('localKeys')->willReturn(['id' => 'l_id']);

@@ -102,7 +102,7 @@ class OneRelationTest extends \PHPUnit_Framework_TestCase
         $definition = $this->getMock('\Moss\Storage\Model\Definition\RelationInterface');
         $definition->expects($this->once())->method('container')->willReturn('rel');
         $definition->expects($this->once())->method('keys')->willReturn(['id' => 'rel_id']);
-        $definition->expects($this->once())->method('entity')->willReturn('\stdClass');
+        $definition->expects($this->any())->method('entity')->willReturn('\stdClass');
 
         $field = $this->getMock('\Moss\Storage\Model\Definition\FieldInterface');
         $field->expects($this->once())->method('name')->willReturn('id');

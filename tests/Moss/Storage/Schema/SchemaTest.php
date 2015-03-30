@@ -29,7 +29,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $manager->expects($this->once())->method('tablesExist')->with('table');
+        $manager->expects($this->once())->method('tablesExist')->with(['table']);
 
         $table->expects($this->at(0))->method('addColumn')->with('`foo`', 'string', []);
         $table->expects($this->at(1))->method('addColumn')->with('`bar`', 'string', []);

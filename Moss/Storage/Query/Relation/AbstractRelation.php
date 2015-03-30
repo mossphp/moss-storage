@@ -15,6 +15,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
+use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\StorageInterface;
@@ -46,10 +47,6 @@ abstract class AbstractRelation
      */
     protected $definition;
 
-    /**
-     * @var RelationInterface[]
-     */
-    protected $relations = [];
     protected $conditions = [];
     protected $orders = [];
     protected $limit;
@@ -79,6 +76,16 @@ abstract class AbstractRelation
     public function name()
     {
         return $this->definition->name();
+    }
+
+    /**
+     * Returns model
+     *
+     * @return ModelInterface
+     */
+    public function model()
+    {
+        return $this->models->get($this->definition->entity());
     }
 
     /**
@@ -308,8 +315,7 @@ abstract class AbstractRelation
      */
     protected function identifyEntity($entity, $instance)
     {
-        $fields = $this->models->get($entity)
-            ->primaryFields();
+        $fields = $this->model()->primaryFields();
 
         $id = [];
         foreach ($fields as $field) {
