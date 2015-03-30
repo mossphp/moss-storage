@@ -50,12 +50,12 @@ abstract class AbstractQuery
     protected $query;
 
     /**
-     * @var array|object
+     * @var object
      */
     protected $instance;
 
     /**
-     * @var array|RelationInterface[]
+     * @var RelationInterface[]
      */
     protected $relations = [];
 
@@ -154,7 +154,7 @@ abstract class AbstractQuery
      * Assigns passed identifier to primary key
      * Possible only when entity has one primary key
      *
-     * @param array|object $entity
+     * @param object $entity
      * @param int|string   $identifier
      *
      * @return void

@@ -58,7 +58,7 @@ interface ModelInterface
     /**
      * Returns array containing field definition
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function fields();
 
@@ -75,7 +75,7 @@ interface ModelInterface
     /**
      * Returns array containing names of primary indexes
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function primaryFields();
 
@@ -84,14 +84,14 @@ interface ModelInterface
      *
      * @param string $field
      *
-     * @return array|RelationInterface[]
+     * @return RelationInterface[]
      */
     public function referredIn($field);
 
     /**
      * Returns array containing names of indexes
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function indexFields();
 
@@ -131,7 +131,7 @@ interface ModelInterface
     /**
      * Returns all relation definition
      *
-     * @return array|RelationInterface[]
+     * @return RelationInterface[]
      */
     public function relations();
 

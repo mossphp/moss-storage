@@ -145,7 +145,7 @@ class Schema implements SchemaInterface
      *
      * @param string|array $entity
      *
-     * @return array|ModelInterface[]
+     * @return ModelInterface[]
      */
     protected function retrieveModels($entity = [])
     {
@@ -164,7 +164,7 @@ class Schema implements SchemaInterface
     /**
      * Builds create table queries
      *
-     * @param array|ModelInterface[] $models
+     * @param ModelInterface[] $models
      *
      * @throws SchemaException
      */
@@ -189,7 +189,7 @@ class Schema implements SchemaInterface
     /**
      * Builds table alteration queries
      *
-     * @param array|ModelInterface[] $models
+     * @param ModelInterface[] $models
      */
     protected function buildAlter(array $models)
     {
@@ -284,7 +284,7 @@ class Schema implements SchemaInterface
     /**
      * Builds drop table query
      *
-     * @param array|ModelInterface[] $models
+     * @param ModelInterface[] $models
      */
     protected function buildDrop(array $models)
     {

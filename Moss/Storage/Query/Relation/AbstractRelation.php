@@ -11,6 +11,7 @@
 
 namespace Moss\Storage\Query\Relation;
 
+use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
@@ -49,7 +50,7 @@ abstract class AbstractRelation
     protected $definition;
 
     /**
-     * @var array|RelationInterface[]
+     * @var RelationInterface[]
      */
     protected $relations = [];
     protected $conditions = [];
@@ -86,7 +87,7 @@ abstract class AbstractRelation
     /**
      * Returns relation query instance
      *
-     * @return Query
+     * @return QueryBuilder
      */
     public function query()
     {

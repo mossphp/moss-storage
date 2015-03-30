@@ -220,7 +220,7 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      * @param $type
      * @param $values
      *
-     * @return array|string
+     * @return string
      */
     protected function bindValues($name, $type, $values)
     {

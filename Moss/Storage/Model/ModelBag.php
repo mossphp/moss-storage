@@ -24,17 +24,17 @@ class ModelBag
     use NormalizeNamespaceTrait;
 
     /**
-     * @var array|ModelInterface
+     * @var ModelInterface
      */
     protected $collection = [];
 
     /**
-     * @var array|ModelInterface
+     * @var ModelInterface
      */
     protected $byAlias = [];
 
     /**
-     * @var array|ModelInterface
+     * @var ModelInterface
      */
     protected $byEntity = [];
 
@@ -118,7 +118,7 @@ class ModelBag
      *
      * @param array $array overwrites values
      *
-     * @return array|ModelInterface[]
+     * @return ModelInterface[]
      */
     public function all($array = [])
     {

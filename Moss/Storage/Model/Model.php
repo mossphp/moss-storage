@@ -33,17 +33,17 @@ class Model implements ModelInterface
     protected $alias;
 
     /**
-     * @var array|FieldInterface[]
+     * @var FieldInterface[]
      */
     protected $fields = [];
 
     /**
-     * @var array|IndexInterface[]
+     * @var IndexInterface[]
      */
     protected $indexes = [];
 
     /**
-     * @var array|RelationInterface[]
+     * @var RelationInterface[]
      */
     protected $relations = [];
 
@@ -52,9 +52,9 @@ class Model implements ModelInterface
      *
      * @param string                    $entityClass
      * @param string                    $table
-     * @param array|FieldInterface[]    $fields
-     * @param array|IndexInterface[]    $indexes
-     * @param array|RelationInterface[] $relations
+     * @param FieldInterface[]    $fields
+     * @param IndexInterface[]    $indexes
+     * @param RelationInterface[] $relations
      *
      * @throws ModelException
      */
@@ -188,7 +188,7 @@ class Model implements ModelInterface
     /**
      * Returns array containing field definition
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function fields()
     {
@@ -227,7 +227,7 @@ class Model implements ModelInterface
     /**
      * Returns array containing names of primary indexes
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function primaryFields()
     {
@@ -248,7 +248,7 @@ class Model implements ModelInterface
     /**
      * Returns array of fields from indexes
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function indexFields()
     {
@@ -310,7 +310,7 @@ class Model implements ModelInterface
      *
      * @param string $field
      *
-     * @return array|RelationInterface[]
+     * @return RelationInterface[]
      */
     public function referredIn($field)
     {
@@ -351,7 +351,7 @@ class Model implements ModelInterface
     /**
      * Returns all relation definition
      *
-     * @return array|RelationInterface[]
+     * @return RelationInterface[]
      */
     public function relations()
     {
