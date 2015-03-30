@@ -81,7 +81,7 @@ class UpdateQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->once())->method('update')->with('`table`');
         $builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
-        $builder->expects($this->exactly(2))->method('resetQueryPart')->with('set');
+        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
         $builder->expects($this->exactly(4))->method('set')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
@@ -104,7 +104,7 @@ class UpdateQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->once())->method('update')->with('`table`');
         $builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
-        $builder->expects($this->once())->method('resetQueryPart')->with('set');
+        $builder->expects($this->exactly(1))->method('resetQueryParts')->with(['set', 'value']);
         $builder->expects($this->exactly(3))->method('set')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
@@ -568,7 +568,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())->method('resetQueryParts');
+        $builder->expects($this->any())->method('resetQueryParts');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);

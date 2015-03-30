@@ -34,7 +34,7 @@ trait ValuesTrait
      */
     public function values($fields = [])
     {
-        $this->query()->resetQueryPart('set');
+        $this->query()->resetQueryParts(['set', 'value']);
         $this->resetBinds('value');
 
         if (empty($fields)) {

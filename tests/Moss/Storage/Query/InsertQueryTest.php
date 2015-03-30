@@ -81,7 +81,7 @@ class InsertQueryTest extends QueryMocks
 
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->once())->method('insert')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryPart')->with('values');
+        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],
@@ -103,7 +103,7 @@ class InsertQueryTest extends QueryMocks
 
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->at(0))->method('insert')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryPart')->with('values');
+        $builder->expects($this->exactly(1))->method('resetQueryParts')->with(['set', 'value']);
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],
@@ -330,7 +330,7 @@ class InsertQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())->method('resetQueryParts');
+        $builder->expects($this->any())->method('resetQueryParts');
 
         $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
