@@ -11,7 +11,6 @@
 
 namespace Moss\Storage\Model\Definition;
 
-
 /**
  * String field
  *

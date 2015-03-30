@@ -11,7 +11,6 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
-use Moss\Storage\Model\Definition\DefinitionException;
 use Moss\Storage\NormalizeNamespaceTrait;
 
 /**

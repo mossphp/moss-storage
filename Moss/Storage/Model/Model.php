@@ -129,7 +129,7 @@ class Model implements ModelInterface
                 throw new ModelException(sprintf('Relation must be an instance of RelationInterface, got "%s"', $this->getType($relation)));
             }
 
-            foreach ($relation->keys() as $field => $trash) {
+            foreach (array_keys($relation->keys()) as $field) {
                 $this->assertField($field);
             }
 

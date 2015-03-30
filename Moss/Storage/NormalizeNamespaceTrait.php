@@ -11,7 +11,11 @@
 
 namespace Moss\Storage;
 
-
+/**
+ * Trait NormalizeNamespaceTrait
+ *
+ * @package Moss\Storage
+ */
 trait NormalizeNamespaceTrait
 {
     /**

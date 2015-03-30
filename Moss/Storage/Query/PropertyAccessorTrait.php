@@ -11,7 +11,11 @@
 
 namespace Moss\Storage\Query;
 
-
+/**
+ * Trait PropertyAccessorTrait
+ *
+ * @package Moss\Storage\Query
+ */
 trait PropertyAccessorTrait
 {
     /**

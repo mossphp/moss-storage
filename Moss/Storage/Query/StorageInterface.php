@@ -12,10 +12,6 @@
 namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
-use Moss\Storage\Model\ModelBag;
-use Moss\Storage\Query\Relation\RelationFactory;
-use Moss\Storage\Query\Relation\RelationFactoryInterface;
-use Moss\Storage\NormalizeNamespaceTrait;
 
 /**
  * Storage interface, used for creating queries for CRUD operations

@@ -88,7 +88,7 @@ class RelationFactory implements RelationFactoryInterface
      */
     public function where($field, $value, $comparison = '=', $logical = 'and')
     {
-        $this->conditions[] = func_get_args();
+        $this->conditions[] = [$field, $value, $comparison, $logical];
 
         return $this;
     }
@@ -103,7 +103,7 @@ class RelationFactory implements RelationFactoryInterface
      */
     public function order($field, $order = 'desc')
     {
-        $this->orders[] = func_get_args();
+        $this->orders[] = [$field, $order];
 
         return $this;
     }
@@ -249,7 +249,7 @@ class RelationFactory implements RelationFactoryInterface
             return $model->relation($relation);
         }
 
-        throw new QueryException(sprintf('Unable to resolve relation "%s" not found in model "%s"', $relation, $model->entity()));
+        throw new RelationException(sprintf('Unable to resolve relation "%s" not found in model "%s"', $relation, $model->entity()));
     }
 
     /**

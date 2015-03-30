@@ -106,7 +106,7 @@ abstract class AbstractRelation
      */
     public function where($field, $value, $comparison = '==', $logical = 'and')
     {
-        $this->conditions[] = func_get_args();
+        $this->conditions[] = [$field, $value, $comparison, $logical];
 
         return $this;
     }
