@@ -42,11 +42,6 @@ abstract class AbstractRelation
     protected $models;
 
     /**
-     * @var RelationFactoryInterface
-     */
-    protected $factory;
-
-    /**
      * @var DefinitionInterface
      */
     protected $definition;
