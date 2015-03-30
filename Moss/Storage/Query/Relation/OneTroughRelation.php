@@ -138,7 +138,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
             $mediator[$mediatorField] = $this->getPropertyValue($entity, $entityField);
         }
 
-        $this->storage->delete($this->definition->mediator(), $mediator)->execute();
+        $this->storage->delete($mediator, $this->definition->mediator())->execute();
         $this->setPropertyValue($result, $this->definition->container(), $entity);
 
         return $result;

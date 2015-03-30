@@ -196,15 +196,15 @@ abstract class AbstractRelation
      * Fetches collection of entities matching set conditions
      * Optionally sorts it and limits it
      *
-     * @param string $entity
+     * @param string $entityName
      * @param array  $conditions
      * @param bool   $result
      *
      * @return array
      */
-    protected function fetch($entity, array $conditions, $result = false)
+    protected function fetch($entityName, array $conditions, $result = false)
     {
-        $query = $this->storage->read($entity);
+        $query = $this->storage->read($entityName);
 
         foreach ($conditions as $field => $values) {
             $query->where($field, $values);
@@ -254,28 +254,27 @@ abstract class AbstractRelation
     /**
      * Removes obsolete entities that match conditions but don't exist in collection
      *
-     * @param string $entity
+     * @param string $entityName
      * @param array  $collection
      * @param array  $conditions
      */
-    protected function cleanup($entity, array $collection, array $conditions)
+    protected function cleanup($entityName, array $collection, array $conditions)
     {
-        if (!$existing = $this->isCleanupNecessary($entity, $conditions)) {
+        if (!$existing = $this->isCleanupNecessary($entityName, $conditions)) {
             return;
         }
 
         $identifiers = [];
         foreach ($collection as $instance) {
-            $identifiers[] = $this->identifyEntity($entity, $instance);
+            $identifiers[] = $this->identifyEntity($instance, $entityName);
         }
 
         foreach ($existing as $instance) {
-            if (in_array($this->identifyEntity($entity, $instance), $identifiers)) {
+            if (in_array($this->identifyEntity($instance, $entityName), $identifiers)) {
                 continue;
             }
 
-            $this->storage->delete($entity, $instance)
-                ->execute();
+            $this->storage->delete($instance, $entityName)->execute();
         }
 
         return;
@@ -284,18 +283,18 @@ abstract class AbstractRelation
     /**
      * Returns array with entities that should be deleted or false otherwise
      *
-     * @param string $entity
+     * @param string $entityName
      * @param array  $conditions
      *
      * @return array|bool
      */
-    private function isCleanupNecessary($entity, $conditions)
+    private function isCleanupNecessary($entityName, $conditions)
     {
         if (empty($conditions)) {
             return false;
         }
 
-        $existing = $this->fetch($entity, $conditions);
+        $existing = $this->fetch($entityName, $conditions);
 
         if (empty($existing)) {
             return false;
@@ -308,14 +307,14 @@ abstract class AbstractRelation
      * Returns entity identifier
      * If more than one primary keys, entity will not be identified
      *
-     * @param string $entity
      * @param object $instance
+     * @param string $entityName
      *
      * @return string
      */
-    protected function identifyEntity($entity, $instance)
+    protected function identifyEntity($instance, $entityName)
     {
-        $fields = $this->model()->primaryFields();
+        $fields = $this->models->get($entityName)->primaryFields();
 
         $id = [];
         foreach ($fields as $field) {

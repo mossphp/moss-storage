@@ -107,7 +107,7 @@ class OneRelation extends AbstractRelation implements RelationInterface
 
         $this->assertInstance($entity);
 
-        $this->storage->delete($this->definition->entity(), $entity)->execute();
+        $this->storage->delete($entity, $this->definition->entity())->execute();
 
         return $result;
     }

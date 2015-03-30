@@ -68,32 +68,34 @@ class Storage implements StorageInterface
 
     /**
      * Sets read operation
+
      *
-     * @param string $entity
+*@param string $entityName
      *
-     * @return ReadQueryInterface
+*@return ReadQueryInterface
      */
-    public function read($entity)
+    public function read($entityName)
     {
         return new ReadQuery(
             $this->connection,
-            $this->models->get($entity),
+            $this->models->get($entityName),
             $this->factory
         );
     }
 
     /**
      * Sets read one operation
+
      *
-     * @param string $entity
+*@param string $entityName
      *
-     * @return ReadQueryInterface
+*@return ReadQueryInterface
      */
-    public function readOne($entity)
+    public function readOne($entityName)
     {
         return new ReadOneQuery(
             $this->connection,
-            $this->models->get($entity),
+            $this->models->get($entityName),
             $this->factory
         );
     }

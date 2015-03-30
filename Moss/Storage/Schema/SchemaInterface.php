@@ -31,39 +31,29 @@ interface SchemaInterface
     /**
      * Sets create operation
      *
-     * @param array $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function create($entity = []);
+    public function create(array $entityName = []);
 
     /**
      * Sets alter operation
      *
-     * @param array $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function alter($entity = []);
+    public function alter(array $entityName = []);
 
     /**
      * Sets drop operation
      *
-     * @param array $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function drop($entity = []);
-
-    /**
-     * Sets query operation
-     *
-     * @param string $operation
-     * @param array  $entity
-     *
-     * @return $this
-     */
-    public function operation($operation, $entity = []);
+    public function drop(array $entityName = []);
 
     /**
      * Executes query

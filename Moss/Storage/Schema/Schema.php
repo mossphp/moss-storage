@@ -43,8 +43,6 @@ class Schema implements SchemaInterface
      */
     protected $schema;
 
-    protected $operation;
-
     protected $queries = [];
 
     /**
@@ -57,6 +55,16 @@ class Schema implements SchemaInterface
     {
         $this->connection = $connection;
         $this->models = $models;
+
+        $this->createCurrentSchema();
+    }
+
+    /**
+     * Creates instance with current schema
+     */
+    protected function createCurrentSchema()
+    {
+        $this->schema = $this->connection->getSchemaManager()->createSchema();
     }
 
     /**
@@ -72,69 +80,41 @@ class Schema implements SchemaInterface
     /**
      * Sets create operation
      *
-     * @param array|string $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function create($entity = [])
+    public function create(array $entityName = [])
     {
-        return $this->operation(self::OPERATION_CREATE, $entity);
+        $this->buildCreate($this->retrieveModels($entityName));
+
+        return $this;
     }
 
     /**
      * Sets alter operation
      *
-     * @param array|string $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function alter($entity = [])
+    public function alter(array $entityName = [])
     {
-        return $this->operation(self::OPERATION_ALTER, $entity);
+        $this->buildAlter($this->retrieveModels($entityName));
+
+        return $this;
     }
 
     /**
      * Sets drop operation
      *
-     * @param array|string $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function drop($entity = [])
+    public function drop(array $entityName = [])
     {
-        return $this->operation(self::OPERATION_DROP, $entity);
-    }
-
-    /**
-     * Sets query operation
-     *
-     * @param string       $operation
-     * @param string|array $entity
-     *
-     * @return $this
-     * @throws SchemaException
-     */
-    public function operation($operation, $entity = [])
-    {
-        $this->operation = $operation;
-
-        $this->schema = $this->connection->getSchemaManager()->createSchema();
-
-        $models = $this->retrieveModels($entity);
-
-        switch ($this->operation) {
-            case self::OPERATION_CREATE:
-                $this->buildCreate($models);
-                break;
-            case self::OPERATION_ALTER:
-                $this->buildAlter($models);
-                break;
-            case self::OPERATION_DROP:
-                $this->buildDrop($models);
-                break;
-            default:
-                throw new SchemaException(sprintf('Unknown operation "%s" in schema query', $this->operation));
-        }
+        $this->buildDrop($this->retrieveModels($entityName));
 
         return $this;
     }
@@ -142,11 +122,11 @@ class Schema implements SchemaInterface
     /**
      * Returns array with models for operation
      *
-     * @param string|array $entity
+     * @param array $entity
      *
      * @return ModelInterface[]
      */
-    protected function retrieveModels($entity = [])
+    protected function retrieveModels(array $entity = [])
     {
         $models = [];
         foreach ((array) $entity as $node) {
@@ -312,19 +292,11 @@ class Schema implements SchemaInterface
     public function execute()
     {
         $result = [];
-        switch ($this->operation) {
-            case 'create':
-            case 'alter':
-            case 'drop':
-                foreach ($this->queryString() as $query) {
-                    $stmt = $this->connection->prepare($query);
-                    $stmt->execute();
+        foreach ($this->queryString() as $query) {
+            $stmt = $this->connection->prepare($query);
+            $stmt->execute();
 
-                    $result[] = $query;
-                }
-                break;
-            default:
-                $result = [];
+            $result[] = $query;
         }
 
         $this->reset();
@@ -349,9 +321,8 @@ class Schema implements SchemaInterface
      */
     public function reset()
     {
-        $this->operation = null;
-        $this->schema = null;
         $this->queries = [];
+        $this->createCurrentSchema();
 
         return $this;
     }

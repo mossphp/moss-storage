@@ -164,9 +164,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
                 $mediator[$foreign] = $this->getPropertyValue($entity, $local);
             }
 
-            $this->storage
-                ->delete($this->definition->mediator(), $mediator)
-                ->execute();
+            $this->storage->delete($mediator, $this->definition->mediator())->execute();
 
         }
         $this->setPropertyValue($result, $this->definition->container(), $container);

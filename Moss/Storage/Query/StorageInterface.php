@@ -30,21 +30,23 @@ interface StorageInterface
 
     /**
      * Sets read operation
+
      *
-     * @param string $entity
+*@param string $entityName
      *
-     * @return ReadQueryInterface
+*@return ReadQueryInterface
      */
-    public function read($entity);
+    public function read($entityName);
 
     /**
      * Sets read one operation
+
      *
-     * @param string $entity
+*@param string $entityName
      *
-     * @return ReadQueryInterface
+*@return ReadQueryInterface
      */
-    public function readOne($entity);
+    public function readOne($entityName);
 
     /**
      * Sets write operation

@@ -38,6 +38,8 @@ class WriteQuery implements WriteQueryInterface
     use AssertEntityTrait;
     use GetTypeTrait;
 
+    protected $instance;
+
     protected $values = [];
 
     /**
