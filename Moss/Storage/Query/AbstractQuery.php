@@ -60,11 +60,6 @@ abstract class AbstractQuery
     protected $relations = [];
 
     /**
-     * @var array
-     */
-    protected $binds = [];
-
-    /**
      * Returns connection
      *
      * @return Connection
@@ -87,16 +82,18 @@ abstract class AbstractQuery
     /**
      * Adds relation to query
      *
-     * @param string $relation
+     * @param string|array $relation
      *
      * @return $this
      * @throws QueryException
      */
     public function with($relation)
     {
-        $this->factory->reset();
-        $instance = $this->factory->relation($this->model, $relation)->build();
-        $this->setRelation($instance);
+        foreach((array) $relation as $node) {
+            $this->factory->reset();
+            $instance = $this->factory->relation($this->model, $node)->build();
+            $this->setRelation($instance);
+        }
 
         return $this;
     }
@@ -191,15 +188,7 @@ abstract class AbstractQuery
      */
     protected function bindAndExecuteQuery()
     {
-        $stmt = $this->connection->prepare($this->queryString());
-
-        foreach ($this->binds as $key => $bind) {
-            list($type, $value) = $bind;
-            $stmt->bindValue($key, $value, $type);
-        }
-
-        $stmt->execute();
-
+        $stmt = $this->query->execute();
         return $stmt;
     }
 
@@ -215,8 +204,8 @@ abstract class AbstractQuery
      */
     protected function bind($operation, $field, $type, $value)
     {
-        $key = ':' . implode('_', [$operation, count($this->binds), $field]);
-        $this->binds[$key] = [$type, $value];
+        $key = ':' . implode('_', [$operation, count($this->query->getParameters()), $field]);
+        $this->query->createNamedParameter($value, $type, $key);
 
         return $key;
     }
@@ -230,15 +219,20 @@ abstract class AbstractQuery
     protected function resetBinds($prefix = null)
     {
         if ($prefix === null) {
-            $this->binds = [];
+            $this->query->setParameters([]);
             return;
         }
 
-        foreach ($this->binds as $key => $value) {
+        $params = $this->query->getParameters();
+        $types = $this->query->getParameterTypes();
+        foreach (array_keys($params) as $key) {
             if (strpos($key, $prefix) === 1) {
-                unset($this->binds[$key]);
+                unset($params[$key]);
+                unset($types[$key]);
             }
         }
+
+        $this->query->setParameters($params, $types);
     }
 
     /**
@@ -248,7 +242,7 @@ abstract class AbstractQuery
      */
     public function binds()
     {
-        return $this->binds;
+        return $this->query->getParameters();
     }
 
     /**

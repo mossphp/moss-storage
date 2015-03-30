@@ -13,6 +13,7 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Types\Type;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
@@ -258,15 +259,40 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
     public function execute()
     {
         $stmt = $this->bindAndExecuteQuery();
+        $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
+
+        foreach ($this->relations as $relation) {
+            $result = $relation->read($result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Fetches result as associative array, mostly for pivot tables
+     *
+     * @param Statement $stmt
+     *
+     * @return array
+     */
+    protected function fetchAsAssoc(Statement $stmt) {
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Fetches result as entity object
+     *
+     * @param Statement $stmt
+     *
+     * @return array
+     */
+    protected function fetchAsObject(Statement $stmt)
+    {
         $result = $stmt->fetchAll(\PDO::FETCH_CLASS, $this->model->entity());
 
         $ref = new \ReflectionClass($this->model->entity());
         foreach ($result as $entity) {
             $this->restoreObject($entity, $this->casts, $ref);
-        }
-
-        foreach ($this->relations as $relation) {
-            $result = $relation->read($result);
         }
 
         return $result;
