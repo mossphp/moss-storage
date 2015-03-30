@@ -13,8 +13,15 @@ namespace Moss\Storage\Query;
 
 
 use Doctrine\DBAL\Connection;
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
+use Moss\Storage\Query\OperationTraits\ConditionTrait;
+use Moss\Storage\Query\OperationTraits\LimitTrait;
+use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
+use Moss\Storage\Query\OperationTraits\QueryTrait;
+use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -23,8 +30,16 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterface
+class UpdateQuery implements UpdateQueryInterface
 {
+    use QueryTrait;
+    use ConditionTrait;
+    use LimitTrait;
+    use RelationTrait;
+    use PropertyAccessorTrait;
+    use AssertEntityTrait;
+    use GetTypeTrait;
+
     /**
      * Constructor
      *
@@ -65,7 +80,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
     {
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->getPropertyValue($this->instance, $field->name());
-            $this->where($field->name(), $value, self::COMPARISON_EQUAL, self::LOGICAL_AND);
+            $this->where($field->name(), $value, '=', 'and');
         }
     }
 
@@ -156,7 +171,7 @@ class UpdateQuery extends AbstractConditionalQuery implements UpdateQueryInterfa
      */
     public function execute()
     {
-        $this->bindAndExecuteQuery();
+        $this->query->execute();
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);

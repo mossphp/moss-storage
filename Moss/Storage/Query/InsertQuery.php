@@ -12,8 +12,14 @@
 namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
+use Moss\Storage\Query\OperationTraits\IdentifyEntityTrait;
+use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
+use Moss\Storage\Query\OperationTraits\QueryTrait;
+use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -22,8 +28,15 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class InsertQuery extends AbstractQuery implements InsertQueryInterface
+class InsertQuery implements InsertQueryInterface
 {
+    use QueryTrait;
+    use RelationTrait;
+    use PropertyAccessorTrait;
+    use IdentifyEntityTrait;
+    use AssertEntityTrait;
+    use GetTypeTrait;
+
     /**
      * Constructor
      *
@@ -118,7 +131,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
             }
         }
 
-        if ($value === null && $field->attribute('autoincrement')) { // TODO - use const for autoincrement
+        if ($value === null && $field->attribute('autoincrement')) {
             return;
         }
 
@@ -136,7 +149,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
      */
     public function execute()
     {
-        $this->bindAndExecuteQuery();
+        $this->query()->execute();
 
         $result = $this->connection->lastInsertId();
 

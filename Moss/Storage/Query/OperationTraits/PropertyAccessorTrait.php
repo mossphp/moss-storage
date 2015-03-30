@@ -9,10 +9,13 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Query;
+namespace Moss\Storage\Query\OperationTraits;
+
+use Doctrine\DBAL\Query\QueryException;
 
 /**
  * Trait PropertyAccessorTrait
+ * Gives nice methods that allow to access entity properties
  *
  * @package Moss\Storage\Query
  */
@@ -87,9 +90,9 @@ trait PropertyAccessorTrait
      * Adds value to array property
      * If property is not an array - will be converted into one preserving existing value as first element
      *
-     * @param null|array|object $entity
-     * @param string            $field
-     * @param mixed             $value
+     * @param mixed  $entity
+     * @param string $field
+     * @param mixed  $value
      *
      * @throws QueryException
      */

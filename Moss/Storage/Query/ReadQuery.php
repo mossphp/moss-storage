@@ -15,8 +15,14 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Types\Type;
+use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\OperationTraits\ConditionTrait;
+use Moss\Storage\Query\OperationTraits\LimitTrait;
+use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
+use Moss\Storage\Query\OperationTraits\QueryTrait;
+use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -25,10 +31,14 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
+class ReadQuery implements ReadQueryInterface
 {
-    const ORDER_ASC = 'asc';
-    const ORDER_DESC = 'desc';
+    use QueryTrait;
+    use ConditionTrait;
+    use LimitTrait;
+    use RelationTrait;
+    use PropertyAccessorTrait;
+    use GetTypeTrait;
 
     /**
      * @var array
@@ -60,16 +70,6 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
         $this->query = $this->connection->createQueryBuilder();
         $this->query->select([]);
         $this->query->from($this->connection->quoteIdentifier($this->model->table()));
-    }
-
-    /**
-     * Returns connection
-     *
-     * @return Connection
-     */
-    public function connection()
-    {
-        return $this->connection;
     }
 
     /**
@@ -143,11 +143,10 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      *
      * @return $this
      */
-    public function order($field, $order = self::ORDER_DESC)
+    public function order($field, $order = 'desc')
     {
         $field = $this->model->field($field);
-
-        $this->assertOrder($order);
+        $order = $this->normalizeOrder($order);
 
         $this->query->addOrderBy($this->connection->quoteIdentifier($field->mappedName()), $order);
 
@@ -159,12 +158,19 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      *
      * @param string|array $order
      *
+     * @return string
      * @throws QueryException
      */
-    protected function assertOrder($order)
+    protected function normalizeOrder($order)
     {
-        if (!in_array($order, [self::ORDER_ASC, self::ORDER_DESC])) {
-            throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', $this->getType($order), $this->model->entity()));
+        switch (strtolower($order)) {
+            case 'asc':
+                return 'asc';
+            case 'desc':
+                return 'desc';
+            default:
+                throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', $this->getType($order), $this->model->entity()));
+
         }
     }
 
@@ -245,7 +251,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      */
     public function count()
     {
-        $stmt = $this->bindAndExecuteQuery();
+        $stmt = $this->query->execute();
 
         return (int) $stmt->rowCount();
     }
@@ -258,7 +264,7 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      */
     public function execute()
     {
-        $stmt = $this->bindAndExecuteQuery();
+        $stmt = $this->query->execute();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
 
         foreach ($this->relations as $relation) {
@@ -275,7 +281,8 @@ class ReadQuery extends AbstractConditionalQuery implements ReadQueryInterface
      *
      * @return array
      */
-    protected function fetchAsAssoc(Statement $stmt) {
+    protected function fetchAsAssoc(Statement $stmt)
+    {
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 

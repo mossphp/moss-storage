@@ -15,7 +15,7 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
-use Moss\Storage\Query\PropertyAccessorTrait;
+use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\StorageInterface;
 
 /**
@@ -121,7 +121,7 @@ abstract class AbstractRelation
      */
     public function order($field, $order = 'desc')
     {
-        $this->conditions[] = func_get_args();
+        $this->conditions[] = [$field, $order];
 
         return $this;
     }

@@ -34,7 +34,7 @@ interface QueryInterface
      *
      * @return QueryBuilder
      */
-    public function queryBuilder();
+    public function query();
 
     /**
      * Executes query

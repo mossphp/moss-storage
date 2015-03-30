@@ -9,28 +9,20 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Query;
+namespace Moss\Storage\Query\OperationTraits;
 
+
+use Moss\Storage\Query\QueryException;
 
 /**
- * Abstract base class with condition building methods
+ * Trait ConditionTrait
+ * Adds method to add conditions to query
  *
- * @author  Michal Wachowski <wachowski.michal@gmail.com>
- * @package Moss\Storage
+ * @package Moss\Storage\Query\OperationTraits
  */
-abstract class AbstractConditionalQuery extends AbstractQuery
+trait ConditionTrait
 {
-    const COMPARISON_EQUAL = '=';
-    const COMPARISON_NOT_EQUAL = '!=';
-    const COMPARISON_LESS = '<';
-    const COMPARISON_LESS_OR_EQUAL = '<=';
-    const COMPARISON_GREATER = '>';
-    const COMPARISON_GREATER_OR_EQUAL = '>=';
-    const COMPARISON_LIKE = 'like';
-    const COMPARISON_REGEXP = 'regexp';
-
-    const LOGICAL_AND = 'and';
-    const LOGICAL_OR = 'or';
+    use AwareTrait;
 
     /**
      * Adds where condition to query
@@ -43,17 +35,17 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      * @return $this
      * @throws QueryException
      */
-    public function where($field, $value, $comparison = self::COMPARISON_EQUAL, $logical = self::LOGICAL_AND)
+    public function where($field, $value, $comparison = '=', $logical = 'and')
     {
         $condition = $this->condition($field, $value, $comparison, $logical);
 
-        if ($logical === self::LOGICAL_OR) {
-            $this->query->orWhere($condition);
+        if ($this->normalizeLogical($logical) === 'or') {
+            $this->query()->orWhere($condition);
 
             return $this;
         }
 
-        $this->query->andWhere($condition);
+        $this->query()->andWhere($condition);
 
         return $this;
     }
@@ -71,11 +63,8 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      */
     public function condition($field, $value, $comparison, $logical)
     {
-        $comparison = strtolower($comparison);
-        $logical = strtolower($logical);
-
-        $this->assertComparison($comparison);
-        $this->assertLogical($logical);
+        $comparison = $this->normalizeComparison($comparison);
+        $logical = $this->normalizeLogical($logical);
 
         if (!is_array($field)) {
             return $this->buildSingularFieldCondition($field, $value, $comparison);
@@ -95,12 +84,11 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      */
     protected function buildSingularFieldCondition($field, $value, $comparison)
     {
-        $f = $this->model->field($field);
+        $field = $this->model()->field($field);
 
-        $fieldName = $f->mappedName();
         return $this->buildConditionString(
-            $this->connection->quoteIdentifier($fieldName),
-            $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),
+            $this->connection()->quoteIdentifier($field->mappedName()),
+            $value === null ? null : $this->bindValues($field->mappedName(), $field->type(), $value),
             $comparison
         );
     }
@@ -108,23 +96,23 @@ abstract class AbstractConditionalQuery extends AbstractQuery
     /**
      * Builds conditions for multiple fields
      *
-     * @param array  $field
+     * @param array  $fields
      * @param mixed  $value
      * @param string $comparison
      * @param string $logical
      *
      * @return array
      */
-    protected function buildMultipleFieldsCondition($field, $value, $comparison, $logical)
+    protected function buildMultipleFieldsCondition($fields, $value, $comparison, $logical)
     {
         $conditions = [];
-        foreach ((array) $field as $i => $f) {
-            $f = $this->model->field($f);
+        foreach ((array) $fields as $field) {
+            $field = $this->model()->field($field);
 
-            $fieldName = $f->mappedName();
+            $fieldName = $field->mappedName();
             $conditions[] = $this->buildConditionString(
-                $this->connection->quoteIdentifier($fieldName),
-                $value === null ? null : $this->bindValues($fieldName, $f->type(), $value),
+                $this->connection()->quoteIdentifier($fieldName),
+                $value === null ? null : $this->bindValues($fieldName, $field->type(), $value),
                 $comparison
             );
 
@@ -153,16 +141,16 @@ abstract class AbstractConditionalQuery extends AbstractQuery
                 unset($val);
             }
 
-            $operator = $operator === self::COMPARISON_NOT_EQUAL ? 'and' : 'or';
+            $logical = $operator === '!=' ? ' and ' : ' or ';
 
-            return '(' . implode(sprintf(' %s ', $operator), $bind) . ')';
+            return '(' . implode($logical, $bind) . ')';
         }
 
         if ($bind === null) {
             return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
         }
 
-        if ($operator === self::COMPARISON_REGEXP) {
+        if ($operator === 'regexp') {
             return sprintf('%s regexp %s', $field, $bind);
         }
 
@@ -174,23 +162,47 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      *
      * @param string $operator
      *
+     * @return string
      * @throws QueryException
      */
-    protected function assertComparison($operator)
+    protected function normalizeComparison($operator)
     {
-        $comparisonOperators = [
-            self::COMPARISON_EQUAL,
-            self::COMPARISON_NOT_EQUAL,
-            self::COMPARISON_LESS,
-            self::COMPARISON_LESS_OR_EQUAL,
-            self::COMPARISON_GREATER,
-            self::COMPARISON_GREATER_OR_EQUAL,
-            self::COMPARISON_LIKE,
-            self::COMPARISON_REGEXP
-        ];
-
-        if (!in_array($operator, $comparisonOperators)) {
-            throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model->entity()));
+        switch (strtolower($operator)) {
+            case '<':
+            case 'lt':
+                return '<';
+            case '<=':
+            case 'lte':
+                return '<=';
+            case '>':
+            case 'gt':
+                return '>';
+            case '>=':
+            case 'gte':
+                return '>=';
+            case '~':
+            case '~=':
+            case '=~':
+            case 'regex':
+            case 'regexp':
+                return "regexp";
+            // LIKE
+            case 'like':
+                return "like";
+            case '||':
+            case 'fulltext':
+            case 'fulltext_boolean':
+                return 'fulltext';
+            case '<>':
+            case '!=':
+            case 'ne':
+            case 'not':
+                return '!=';
+            case '=':
+            case 'eq':
+                return '=';
+            default:
+                throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model()->entity()));
         }
     }
 
@@ -199,17 +211,20 @@ abstract class AbstractConditionalQuery extends AbstractQuery
      *
      * @param string $operator
      *
+     * @return string
      * @throws QueryException
      */
-    protected function assertLogical($operator)
+    protected function normalizeLogical($operator)
     {
-        $comparisonOperators = [
-            self::LOGICAL_AND,
-            self::LOGICAL_OR
-        ];
-
-        if (!in_array($operator, $comparisonOperators)) {
-            throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model->entity()));
+        switch (strtolower($operator)) {
+            case '&&':
+            case 'and':
+                return 'and';
+            case '||':
+            case 'or':
+                return 'or';
+            default:
+                throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model()->entity()));
         }
     }
 
@@ -233,24 +248,5 @@ abstract class AbstractConditionalQuery extends AbstractQuery
         }
 
         return $values;
-    }
-
-    /**
-     * Sets limits to query
-     *
-     * @param int      $limit
-     * @param null|int $offset
-     *
-     * @return $this
-     */
-    public function limit($limit, $offset = null)
-    {
-        if ($offset !== null) {
-            $this->query->setFirstResult((int) $offset);
-        }
-
-        $this->query->setMaxResults((int) $limit);
-
-        return $this;
     }
 }
