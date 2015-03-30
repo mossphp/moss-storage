@@ -22,6 +22,7 @@ use Moss\Storage\Query\OperationTraits\LimitTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\QueryTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
+use Moss\Storage\Query\OperationTraits\ValuesTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -33,12 +34,15 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
 class UpdateQuery implements UpdateQueryInterface
 {
     use QueryTrait;
+    use ValuesTrait;
     use ConditionTrait;
     use LimitTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use AssertEntityTrait;
     use GetTypeTrait;
+
+    protected $instance;
 
     /**
      * Constructor
@@ -92,47 +96,6 @@ class UpdateQuery implements UpdateQueryInterface
     public function connection()
     {
         return $this->connection;
-    }
-
-    /**
-     * Sets field names which values will be written
-     *
-     * @param array $fields
-     *
-     * @return $this
-     */
-    public function values($fields = [])
-    {
-        $this->query->resetQueryPart('set');
-        $this->resetBinds('value');
-
-        if (empty($fields)) {
-            foreach ($this->model->fields() as $field) {
-                $this->assignValue($field);
-            }
-
-            return $this;
-        }
-
-        foreach ($fields as $field) {
-            $this->assignValue($this->model->field($field));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Adds field which value will be written
-     *
-     * @param string $field
-     *
-     * @return $this
-     */
-    public function value($field)
-    {
-        $this->assignValue($this->model->field($field));
-
-        return $this;
     }
 
     /**

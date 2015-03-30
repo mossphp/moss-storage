@@ -47,7 +47,7 @@ class ReadOneQuery extends ReadQuery
     public function execute()
     {
         $stmt = $this->query->execute();
-        $result = $stmt->fetchAll(\PDO::FETCH_CLASS, $this->model->entity());
+        $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
 
         if (!count($result)) {
             throw new QueryException(sprintf('Result out of range or does not exists for "%s"', $this->model->entity()));

@@ -20,6 +20,7 @@ use Moss\Storage\Query\OperationTraits\IdentifyEntityTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\QueryTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
+use Moss\Storage\Query\OperationTraits\ValuesTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -31,11 +32,14 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
 class InsertQuery implements InsertQueryInterface
 {
     use QueryTrait;
+    use ValuesTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use IdentifyEntityTrait;
     use AssertEntityTrait;
     use GetTypeTrait;
+
+    protected $instance;
 
     /**
      * Constructor
@@ -65,47 +69,6 @@ class InsertQuery implements InsertQueryInterface
     {
         $this->query = $this->connection->createQueryBuilder();
         $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
-    }
-
-    /**
-     * Sets field names which values will be written
-     *
-     * @param array $fields
-     *
-     * @return $this
-     */
-    public function values($fields = [])
-    {
-        $this->query->resetQueryPart('values');
-        $this->resetBinds('value');
-
-        if (empty($fields)) {
-            foreach ($this->model->fields() as $field) {
-                $this->assignValue($field);
-            }
-
-            return $this;
-        }
-
-        foreach ($fields as $field) {
-            $this->assignValue($this->model->field($field));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Adds field which value will be written
-     *
-     * @param string $field
-     *
-     * @return $this
-     */
-    public function value($field)
-    {
-        $this->assignValue($this->model->field($field));
-
-        return $this;
     }
 
     /**

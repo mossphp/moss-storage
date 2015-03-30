@@ -41,6 +41,8 @@ class DeleteQuery implements DeleteQueryInterface
     use AssertEntityTrait;
     use GetTypeTrait;
 
+    protected $instance;
+
     /**
      * Constructor
      *

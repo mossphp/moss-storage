@@ -16,6 +16,7 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
+use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\StorageInterface;
 
 /**
@@ -26,6 +27,7 @@ use Moss\Storage\Query\StorageInterface;
  */
 abstract class AbstractRelation
 {
+    use RelationTrait;
     use PropertyAccessorTrait;
     use GetTypeTrait;
 
@@ -140,73 +142,6 @@ abstract class AbstractRelation
         $this->offset = $offset;
 
         return $this;
-    }
-
-    /**
-     * Adds sub relation
-     *
-     * @param string $relation
-     *
-     * @return $this
-     */
-    public function with($relation)
-    {
-        $this->factory->reset();
-        $instance = $this->factory->relation($this->models->get($this->definition->entity()), $relation)->build();
-        $this->setRelation($instance);
-
-        return $this;
-    }
-
-    /**
-     * Returns relation instance
-     *
-     * @param string $relation
-     *
-     * @return RelationInterface
-     */
-    public function relation($relation)
-    {
-        list($relation, $furtherRelations) = $this->factory->splitRelationName($relation);
-
-        $instance = $this->getRelation($relation);
-
-        if ($furtherRelations) {
-            return $instance->relation($furtherRelations);
-        }
-
-        return $instance;
-    }
-
-    /**
-     * Adds relation or if relation with same name exists - replaces it with new one
-     *
-     * @param RelationInterface $relation
-     *
-     * @return $this
-     */
-    public function setRelation(RelationInterface $relation)
-    {
-        $this->relations[$relation->name()] = $relation;
-
-        return $this;
-    }
-
-    /**
-     * Returns relation with set name
-     *
-     * @param string $name
-     *
-     * @return RelationInterface
-     * @throws RelationException
-     */
-    public function getRelation($name)
-    {
-        if (!isset($this->relations[$name])) {
-            throw new RelationException(sprintf('Unable to retrieve relation "%s", relation does not exists "%s"', $name, $this->definition->entity()));
-        }
-
-        return $this->relations[$name];
     }
 
     /**

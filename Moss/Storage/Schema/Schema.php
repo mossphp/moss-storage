@@ -118,8 +118,7 @@ class Schema implements SchemaInterface
     {
         $this->operation = $operation;
 
-        $this->schema = $this->connection->getSchemaManager()
-            ->createSchema();
+        $this->schema = $this->connection->getSchemaManager()->createSchema();
 
         $models = $this->retrieveModels($entity);
 
@@ -173,7 +172,7 @@ class Schema implements SchemaInterface
         $schemaManager = $this->connection->getSchemaManager();
 
         foreach ($models as $model) {
-            if ($schemaManager->tablesExist($model->table())) {
+            if ($schemaManager->tablesExist([$model->table()])) {
                 throw new SchemaException(sprintf('Unable to create table, table "%s" already exists', $model->table()));
             }
 

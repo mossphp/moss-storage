@@ -49,40 +49,40 @@ interface StorageInterface
     /**
      * Sets write operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return WriteQueryInterface
      */
-    public function write($entity, $instance = null);
+    public function write($instance, $entity = null);
 
     /**
      * Sets insert operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return InsertQueryInterface
      */
-    public function insert($entity, $instance = null);
+    public function insert($instance, $entity = null);
 
     /**
      * Sets update operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return UpdateQueryInterface
      */
-    public function update($entity, $instance = null);
+    public function update($instance, $entity = null);
 
     /**
      * Sets delete operation
      *
-     * @param string|object     $entity
-     * @param null|array|object $instance
+     * @param array|object       $instance
+     * @param null|string|object $entity
      *
      * @return DeleteQueryInterface
      */
-    public function delete($entity, $instance = null);
+    public function delete($instance, $entity = null);
 }

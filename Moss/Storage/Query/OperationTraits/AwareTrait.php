@@ -58,6 +58,14 @@ trait AwareTrait
     abstract protected function bind($operation, $field, $type, $value);
 
     /**
+     * Removes bound values by their prefix
+     * If prefix is null - clears all bound values
+     *
+     * @param null|string $prefix
+     */
+    abstract protected function resetBinds($prefix = null);
+
+    /**
      * Returns var type
      *
      * @param mixed $var

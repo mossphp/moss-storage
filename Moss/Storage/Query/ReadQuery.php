@@ -283,6 +283,7 @@ class ReadQuery implements ReadQueryInterface
      */
     protected function fetchAsAssoc(Statement $stmt)
     {
+        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
@@ -295,7 +296,8 @@ class ReadQuery implements ReadQueryInterface
      */
     protected function fetchAsObject(Statement $stmt)
     {
-        $result = $stmt->fetchAll(\PDO::FETCH_CLASS, $this->model->entity());
+        $stmt->setFetchMode(\PDO::FETCH_CLASS, $this->model->entity());
+        $result = $stmt->fetchAll();
 
         $ref = new \ReflectionClass($this->model->entity());
         foreach ($result as $entity) {
