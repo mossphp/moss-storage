@@ -74,9 +74,9 @@ interface SchemaInterface
     public function execute();
 
     /**
-     * Returns current query string
+     * Returns array of queries that will be executed
      *
-     * @return string
+     * @return array
      */
     public function queryString();
 

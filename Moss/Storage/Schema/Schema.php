@@ -334,7 +334,7 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Returns current query string
+     * Returns array of queries that will be executed
      *
      * @return array
      */

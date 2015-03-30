@@ -79,9 +79,7 @@ class DeleteQuery extends AbstractConditionalQuery implements DeleteQueryInterfa
             $relation->delete($this->instance);
         }
 
-        $this->connection
-            ->prepare($this->queryString())
-            ->execute($this->binds);
+        $this->bindAndExecuteQuery();
 
         $this->identifyEntity($this->instance, null);
 
