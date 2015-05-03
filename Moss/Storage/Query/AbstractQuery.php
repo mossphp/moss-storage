@@ -9,19 +9,20 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Query\OperationTraits;
+namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
 
+
 /**
- * Trait QueryTrait
+ * Abstract Query
  * Implements basic query methods
  *
  * @package Moss\Storage\Query\OperationTraits
  */
-trait QueryTrait
+abstract class AbstractQuery
 {
     /**
      * @var Connection
@@ -91,6 +92,7 @@ trait QueryTrait
     protected function bind($operation, $field, $type, $value)
     {
         $key = ':' . implode('_', [$operation, count($this->query->getParameters()), $field]);
+
         return $this->query->createNamedParameter($value, $type, $key);
     }
 
@@ -104,6 +106,7 @@ trait QueryTrait
     {
         if ($prefix === null) {
             $this->query->setParameters([]);
+
             return;
         }
 
@@ -128,5 +131,4 @@ trait QueryTrait
     {
         return $this->query->getParameters();
     }
-
 }
