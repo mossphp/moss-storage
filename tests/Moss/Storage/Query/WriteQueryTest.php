@@ -109,7 +109,7 @@ class WriteQueryTest extends QueryMocks
 
         $query = new WriteQuery($dbal, $entity, $model, $factory);
         $query->values(['foo', 'bar']);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testValuesForUpdate()
@@ -147,7 +147,7 @@ class WriteQueryTest extends QueryMocks
 
         $query = new WriteQuery($dbal, $entity, $model, $factory);
         $query->values(['foo', 'bar']);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testValueForInsert()
@@ -184,7 +184,7 @@ class WriteQueryTest extends QueryMocks
         $query = new WriteQuery($dbal, $entity, $model, $factory);
         $query->values(['foo']);
         $query->value('bar');
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testValueForUpdate()
@@ -221,7 +221,7 @@ class WriteQueryTest extends QueryMocks
         $query = new WriteQuery($dbal, $entity, $model, $factory);
         $query->values(['foo']);
         $query->value('bar');
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testWith()
@@ -386,7 +386,7 @@ class WriteQueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new WriteQuery($dbal, $entity, $model, $factory);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testBinds()

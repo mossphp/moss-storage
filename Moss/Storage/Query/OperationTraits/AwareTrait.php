@@ -43,7 +43,7 @@ trait AwareTrait
      *
      * @return QueryBuilder
      */
-    abstract public function query();
+    abstract public function builder();
 
     /**
      * Binds value to unique key and returns it

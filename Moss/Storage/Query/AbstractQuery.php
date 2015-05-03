@@ -64,7 +64,7 @@ abstract class AbstractQuery
      *
      * @return QueryBuilder
      */
-    public function query()
+    public function builder()
     {
         return $this->query;
     }
@@ -74,7 +74,7 @@ abstract class AbstractQuery
      *
      * @return string
      */
-    public function queryString()
+    public function getSQL()
     {
         return (string) $this->query->getSQL();
     }

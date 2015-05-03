@@ -40,12 +40,12 @@ trait ConditionTrait
         $condition = $this->condition($field, $value, $comparison, $logical);
 
         if ($this->normalizeLogical($logical) === 'or') {
-            $this->query()->orWhere($condition);
+            $this->builder()->orWhere($condition);
 
             return $this;
         }
 
-        $this->query()->andWhere($condition);
+        $this->builder()->andWhere($condition);
 
         return $this;
     }

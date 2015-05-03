@@ -306,7 +306,7 @@ class InsertQueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new InsertQuery($dbal, $entity, $model, $factory);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testBinds()

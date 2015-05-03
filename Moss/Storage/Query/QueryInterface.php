@@ -34,7 +34,7 @@ interface QueryInterface
      *
      * @return QueryBuilder
      */
-    public function query();
+    public function builder();
 
     /**
      * Executes query
@@ -49,7 +49,7 @@ interface QueryInterface
      *
      * @return string
      */
-    public function queryString();
+    public function getSQL();
 
     /**
      * Returns array with bound values and their placeholders as keys

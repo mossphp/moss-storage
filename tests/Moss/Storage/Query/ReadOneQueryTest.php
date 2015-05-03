@@ -512,7 +512,7 @@ class ReadOneQueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new ReadOneQuery($dbal, $model, $factory);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testBinds()

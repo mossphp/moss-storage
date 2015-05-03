@@ -110,7 +110,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
      */
     public function execute()
     {
-        $this->query()->execute();
+        $this->builder()->execute();
 
         $result = $this->connection->lastInsertId();
 

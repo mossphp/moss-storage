@@ -122,10 +122,10 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
      *
      * @return string
      */
-    public function queryString()
+    public function getSQL()
     {
         return $this->buildQuery()
-            ->queryString();
+            ->getSQL();
     }
 
     /**

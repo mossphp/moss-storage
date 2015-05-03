@@ -484,7 +484,7 @@ class ReadQueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new ReadQuery($dbal, $model, $factory);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testBinds()

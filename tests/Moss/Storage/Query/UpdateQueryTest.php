@@ -509,7 +509,7 @@ class UpdateQueryTest extends QueryMocks
         $factory = $this->mockRelFactory();
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $query->queryString();
+        $query->getSQL();
     }
 
     public function testBinds()
