@@ -18,7 +18,6 @@ use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
 use Moss\Storage\Query\OperationTraits\ConditionTrait;
-use Moss\Storage\Query\OperationTraits\LimitTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\OperationTraits\ValuesTrait;
@@ -34,7 +33,6 @@ class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
 {
     use ValuesTrait;
     use ConditionTrait;
-    use LimitTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use AssertEntityTrait;

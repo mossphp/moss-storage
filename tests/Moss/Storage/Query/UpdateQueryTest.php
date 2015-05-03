@@ -357,41 +357,6 @@ class UpdateQueryTest extends QueryMocks
         $query->where('bar', 'barbar', '=', 'xyz');
     }
 
-    public function testLimitWithOffset()
-    {
-        $entity = ['foo' => 'foo'];
-        $limit = 10;
-        $offset = 20;
-
-        $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())->method('setFirstResult')->with($offset);
-        $builder->expects($this->once())->method('setMaxResults')->with($limit);
-
-        $dbal = $this->mockDBAL($builder);
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
-
-        $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $query->limit($limit, $offset);
-    }
-
-    public function testLimitWithoutOffset()
-    {
-        $entity = ['foo' => 'foo'];
-        $limit = 10;
-
-        $builder = $this->mockQueryBuilder();
-        $builder->expects($this->never())->method('setFirstResult');
-        $builder->expects($this->once())->method('setMaxResults')->with($limit);
-
-        $dbal = $this->mockDBAL($builder);
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
-
-        $query = new UpdateQuery($dbal, $entity, $model, $factory);
-        $query->limit($limit);
-    }
-
     public function testWith()
     {
         $entity = ['foo' => 'foo', 'bar' => 'bar'];

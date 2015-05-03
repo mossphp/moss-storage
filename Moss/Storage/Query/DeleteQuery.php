@@ -18,7 +18,6 @@ use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
 use Moss\Storage\Query\OperationTraits\ConditionTrait;
 use Moss\Storage\Query\OperationTraits\IdentifyEntityTrait;
-use Moss\Storage\Query\OperationTraits\LimitTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
@@ -32,7 +31,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
 class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
 {
     use ConditionTrait;
-    use LimitTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use IdentifyEntityTrait;

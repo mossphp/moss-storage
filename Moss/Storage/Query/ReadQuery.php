@@ -33,7 +33,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
 class ReadQuery extends AbstractQuery implements ReadQueryInterface
 {
     use ConditionTrait;
-    use LimitTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use GetTypeTrait;
@@ -233,13 +232,32 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      *
      * @return array
      */
-    public function applyDefaults(array $array, array $defaults = [])
+    protected function applyDefaults(array $array, array $defaults = [])
     {
         foreach ($defaults as $key => $value) {
             $array[$key] = array_key_exists($key, $array) ? $array[$key] : $value;
         }
 
         return $array;
+    }
+
+    /**
+     * Sets limits to query
+     *
+     * @param int      $limit
+     * @param null|int $offset
+     *
+     * @return $this
+     */
+    public function limit($limit, $offset = null)
+    {
+        if ($offset !== null) {
+            $this->query->setFirstResult((int) $offset);
+        }
+
+        $this->query->setMaxResults((int) $limit);
+
+        return $this;
     }
 
     /**
@@ -357,8 +375,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     protected function convertToPHPValue($value, $type)
     {
-        return Type::getType($type)
-            ->convertToPHPValue($value, $this->connection->getDatabasePlatform());
+        return Type::getType($type)->convertToPHPValue($value, $this->connection->getDatabasePlatform());
     }
 
     /**

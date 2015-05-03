@@ -31,14 +31,4 @@ interface DeleteQueryInterface extends QueryInterface, RelationalQueryInterface
      * @return $this
      */
     public function where($field, $value, $comparison = '==', $logical = 'and');
-
-    /**
-     * Sets limits to query
-     *
-     * @param int      $limit
-     * @param null|int $offset
-     *
-     * @return $this
-     */
-    public function limit($limit, $offset = null);
 }
