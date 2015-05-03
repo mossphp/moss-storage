@@ -17,7 +17,6 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
-use Moss\Storage\Query\OperationTraits\ConditionTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\OperationTraits\ValuesTrait;
@@ -32,7 +31,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
 class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
 {
     use ValuesTrait;
-    use ConditionTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use AssertEntityTrait;
@@ -67,8 +65,8 @@ class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
      */
     protected function setQuery()
     {
-        $this->query = $this->connection->createQueryBuilder();
-        $this->query->update($this->connection->quoteIdentifier($this->model->table()));
+        $this->builder = $this->connection->createQueryBuilder();
+        $this->builder->update($this->connection->quoteIdentifier($this->model->table()));
     }
 
     /**
@@ -80,7 +78,13 @@ class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
     {
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->getPropertyValue($this->instance, $field->name());
-            $this->where($field->name(), $value, '=', 'and');
+            $this->builder->andWhere(
+                sprintf(
+                    '%s = %s',
+                    $this->connection->quoteIdentifier($field->name()),
+                    $this->bind('condition', $field->name(), $field->type(), $value)
+                )
+            );
         }
     }
 
@@ -116,7 +120,7 @@ class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
             }
         }
 
-        $this->query->set(
+        $this->builder->set(
             $this->connection->quoteIdentifier($field->mappedName()),
             $this->bind('value', $field->name(), $field->type(), $value)
         );
@@ -130,7 +134,7 @@ class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
      */
     public function execute()
     {
-        $this->query->execute();
+        $this->builder->execute();
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);
@@ -146,7 +150,7 @@ class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
      */
     public function reset()
     {
-        $this->query->resetQueryParts();
+        $this->builder->resetQueryParts();
         $this->relations = [];
         $this->resetBinds();
 

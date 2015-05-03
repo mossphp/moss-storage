@@ -46,7 +46,7 @@ class ReadOneQuery extends ReadQuery
      */
     public function execute()
     {
-        $stmt = $this->query->execute();
+        $stmt = $this->builder->execute();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
 
         if (!count($result)) {

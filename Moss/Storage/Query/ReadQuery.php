@@ -64,9 +64,9 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     protected function setQuery()
     {
-        $this->query = $this->connection->createQueryBuilder();
-        $this->query->select([]);
-        $this->query->from($this->connection->quoteIdentifier($this->model->table()));
+        $this->builder = $this->connection->createQueryBuilder();
+        $this->builder->select([]);
+        $this->builder->from($this->connection->quoteIdentifier($this->model->table()));
     }
 
     /**
@@ -78,7 +78,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function fields($fields = [])
     {
-        $this->query->select([]);
+        $this->builder->select([]);
         $this->casts = [];
 
         if (empty($fields)) {
@@ -118,7 +118,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     protected function assignField(FieldInterface $field)
     {
         if ($field->mapping() !== null) {
-            $this->query->addSelect(
+            $this->builder->addSelect(
                 sprintf(
                     '%s AS %s',
                     $this->connection->quoteIdentifier($field->mapping()),
@@ -126,10 +126,236 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
                 )
             );
         } else {
-            $this->query->addSelect($this->connection->quoteIdentifier($field->name()));
+            $this->builder->addSelect($this->connection->quoteIdentifier($field->name()));
         }
 
         $this->casts[$field->name()] = $field->type();
+    }
+
+    /**
+     * Adds where condition to query
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     * @throws QueryException
+     */
+    public function where($field, $value, $comparison = '=', $logical = 'and')
+    {
+        $condition = $this->condition($field, $value, $comparison, $logical);
+
+        if ($this->normalizeLogical($logical) === 'or') {
+            $this->builder()->orWhere($condition);
+
+            return $this;
+        }
+
+        $this->builder()->andWhere($condition);
+
+        return $this;
+    }
+
+    /**
+     * Adds where condition to query
+     *
+     * @param mixed  $field
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return $this
+     * @throws QueryException
+     */
+    public function condition($field, $value, $comparison, $logical)
+    {
+        $comparison = $this->normalizeComparison($comparison);
+        $logical = $this->normalizeLogical($logical);
+
+        if (!is_array($field)) {
+            return $this->buildSingularFieldCondition($field, $value, $comparison);
+        }
+
+        return $this->buildMultipleFieldsCondition($field, $value, $comparison, $logical);
+    }
+
+    /**
+     * Builds condition for singular field
+     *
+     * @param string $field
+     * @param mixed  $value
+     * @param string $comparison
+     *
+     * @return array
+     */
+    protected function buildSingularFieldCondition($field, $value, $comparison)
+    {
+        $field = $this->model()->field($field);
+
+        return $this->buildConditionString(
+            $this->connection()->quoteIdentifier($field->mappedName()),
+            $value === null ? null : $this->bindValues($field->mappedName(), $field->type(), $value),
+            $comparison
+        );
+    }
+
+    /**
+     * Builds conditions for multiple fields
+     *
+     * @param array  $fields
+     * @param mixed  $value
+     * @param string $comparison
+     * @param string $logical
+     *
+     * @return array
+     */
+    protected function buildMultipleFieldsCondition($fields, $value, $comparison, $logical)
+    {
+        $conditions = [];
+        foreach ((array) $fields as $field) {
+            $field = $this->model()->field($field);
+
+            $fieldName = $field->mappedName();
+            $conditions[] = $this->buildConditionString(
+                $this->connection()->quoteIdentifier($fieldName),
+                $value === null ? null : $this->bindValues($fieldName, $field->type(), $value),
+                $comparison
+            );
+
+            $conditions[] = $logical;
+        }
+
+        array_pop($conditions);
+
+        return '(' . implode(' ', $conditions) . ')';
+    }
+
+    /**
+     * Builds condition string
+     *
+     * @param string       $field
+     * @param string|array $bind
+     * @param string       $operator
+     *
+     * @return string
+     */
+    protected function buildConditionString($field, $bind, $operator)
+    {
+        if (is_array($bind)) {
+            foreach ($bind as &$val) {
+                $val = $this->buildConditionString($field, $val, $operator);
+                unset($val);
+            }
+
+            $logical = $operator === '!=' ? ' and ' : ' or ';
+
+            return '(' . implode($logical, $bind) . ')';
+        }
+
+        if ($bind === null) {
+            return $field . ' ' . ($operator == '!=' ? 'IS NOT NULL' : 'IS NULL');
+        }
+
+        if ($operator === 'regexp') {
+            return sprintf('%s regexp %s', $field, $bind);
+        }
+
+        return $field . ' ' . $operator . ' ' . $bind;
+    }
+
+    /**
+     * Asserts correct comparison operator
+     *
+     * @param string $operator
+     *
+     * @return string
+     * @throws QueryException
+     */
+    protected function normalizeComparison($operator)
+    {
+        switch (strtolower($operator)) {
+            case '<':
+            case 'lt':
+                return '<';
+            case '<=':
+            case 'lte':
+                return '<=';
+            case '>':
+            case 'gt':
+                return '>';
+            case '>=':
+            case 'gte':
+                return '>=';
+            case '~':
+            case '~=':
+            case '=~':
+            case 'regex':
+            case 'regexp':
+                return "regexp";
+            // LIKE
+            case 'like':
+                return "like";
+            case '||':
+            case 'fulltext':
+            case 'fulltext_boolean':
+                return 'fulltext';
+            case '<>':
+            case '!=':
+            case 'ne':
+            case 'not':
+                return '!=';
+            case '=':
+            case 'eq':
+                return '=';
+            default:
+                throw new QueryException(sprintf('Query does not supports comparison operator "%s" in query "%s"', $operator, $this->model()->entity()));
+        }
+    }
+
+    /**
+     * Asserts correct logical operation
+     *
+     * @param string $operator
+     *
+     * @return string
+     * @throws QueryException
+     */
+    protected function normalizeLogical($operator)
+    {
+        switch (strtolower($operator)) {
+            case '&&':
+            case 'and':
+                return 'and';
+            case '||':
+            case 'or':
+                return 'or';
+            default:
+                throw new QueryException(sprintf('Query does not supports logical operator "%s" in query "%s"', $operator, $this->model()->entity()));
+        }
+    }
+
+    /**
+     * Binds condition value to key
+     *
+     * @param $name
+     * @param $type
+     * @param $values
+     *
+     * @return string
+     */
+    protected function bindValues($name, $type, $values)
+    {
+        if (!is_array($values)) {
+            return $this->bind('condition', $name, $type, $values);
+        }
+
+        foreach ($values as $key => $value) {
+            $values[$key] = $this->bindValues($name, $type, $value);
+        }
+
+        return $values;
     }
 
     /**
@@ -145,7 +371,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
         $field = $this->model->field($field);
         $order = $this->normalizeOrder($order);
 
-        $this->query->addOrderBy($this->connection->quoteIdentifier($field->mappedName()), $order);
+        $this->builder->addOrderBy($this->connection->quoteIdentifier($field->mappedName()), $order);
 
         return $this;
     }
@@ -252,10 +478,10 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     public function limit($limit, $offset = null)
     {
         if ($offset !== null) {
-            $this->query->setFirstResult((int) $offset);
+            $this->builder->setFirstResult((int) $offset);
         }
 
-        $this->query->setMaxResults((int) $limit);
+        $this->builder->setMaxResults((int) $limit);
 
         return $this;
     }
@@ -267,7 +493,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function count()
     {
-        $stmt = $this->query->execute();
+        $stmt = $this->builder->execute();
 
         return (int) $stmt->rowCount();
     }
@@ -280,7 +506,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function execute()
     {
-        $stmt = $this->query->execute();
+        $stmt = $this->builder->execute();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
 
         foreach ($this->relations as $relation) {
@@ -385,7 +611,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function reset()
     {
-        $this->query->resetQueryParts();
+        $this->builder->resetQueryParts();
         $this->relations = [];
         $this->casts = [];
         $this->resetBinds();

@@ -37,7 +37,7 @@ abstract class AbstractQuery
     /**
      * @var QueryBuilder
      */
-    protected $query;
+    protected $builder;
 
     /**
      * Returns connection
@@ -66,7 +66,7 @@ abstract class AbstractQuery
      */
     public function builder()
     {
-        return $this->query;
+        return $this->builder;
     }
 
     /**
@@ -76,7 +76,7 @@ abstract class AbstractQuery
      */
     public function getSQL()
     {
-        return (string) $this->query->getSQL();
+        return (string) $this->builder->getSQL();
     }
 
     /**
@@ -91,9 +91,9 @@ abstract class AbstractQuery
      */
     protected function bind($operation, $field, $type, $value)
     {
-        $key = ':' . implode('_', [$operation, count($this->query->getParameters()), $field]);
+        $key = ':' . implode('_', [$operation, count($this->builder->getParameters()), $field]);
 
-        return $this->query->createNamedParameter($value, $type, $key);
+        return $this->builder->createNamedParameter($value, $type, $key);
     }
 
     /**
@@ -105,13 +105,13 @@ abstract class AbstractQuery
     protected function resetBinds($prefix = null)
     {
         if ($prefix === null) {
-            $this->query->setParameters([]);
+            $this->builder->setParameters([]);
 
             return;
         }
 
-        $params = (array) $this->query->getParameters();
-        $types = (array) $this->query->getParameterTypes();
+        $params = (array) $this->builder->getParameters();
+        $types = (array) $this->builder->getParameterTypes();
 
         foreach (array_keys($params) as $key) {
             if (strpos($key, $prefix) === 1) {
@@ -119,7 +119,7 @@ abstract class AbstractQuery
             }
         }
 
-        $this->query->setParameters($params, $types);
+        $this->builder->setParameters($params, $types);
     }
 
     /**
@@ -129,6 +129,6 @@ abstract class AbstractQuery
      */
     public function binds()
     {
-        return $this->query->getParameters();
+        return $this->builder->getParameters();
     }
 }

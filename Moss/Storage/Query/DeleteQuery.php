@@ -16,7 +16,6 @@ use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
-use Moss\Storage\Query\OperationTraits\ConditionTrait;
 use Moss\Storage\Query\OperationTraits\IdentifyEntityTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
@@ -30,7 +29,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
 {
-    use ConditionTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use IdentifyEntityTrait;
@@ -65,8 +63,8 @@ class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
      */
     protected function setQuery()
     {
-        $this->query = $this->connection->createQueryBuilder();
-        $this->query->delete($this->connection->quoteIdentifier($this->model->table()));
+        $this->builder = $this->connection->createQueryBuilder();
+        $this->builder->delete($this->connection->quoteIdentifier($this->model->table()));
     }
 
     /**
@@ -78,7 +76,13 @@ class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
     {
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->getPropertyValue($this->instance, $field->name());
-            $this->where($field->name(), $value, '=', 'and');
+            $this->builder->andWhere(
+                sprintf(
+                    '%s = %s',
+                    $this->connection->quoteIdentifier($field->name()),
+                    $this->bind('condition', $field->name(), $field->type(), $value)
+                )
+            );
         }
     }
 
@@ -94,7 +98,7 @@ class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
             $relation->delete($this->instance);
         }
 
-        $this->query->execute();
+        $this->builder->execute();
         $this->identifyEntity($this->instance, null);
 
         return $this->instance;
@@ -107,7 +111,7 @@ class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
      */
     public function reset()
     {
-        $this->query->resetQueryParts();
+        $this->builder->resetQueryParts();
         $this->relations = [];
         $this->resetBinds();
 

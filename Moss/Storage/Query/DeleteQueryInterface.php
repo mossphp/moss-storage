@@ -20,15 +20,4 @@ namespace Moss\Storage\Query;
  */
 interface DeleteQueryInterface extends QueryInterface, RelationalQueryInterface
 {
-    /**
-     * Adds where condition to query
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     */
-    public function where($field, $value, $comparison = '==', $logical = 'and');
 }

@@ -65,8 +65,8 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
      */
     protected function setQuery()
     {
-        $this->query = $this->connection->createQueryBuilder();
-        $this->query->insert($this->connection->quoteIdentifier($this->model->table()));
+        $this->builder = $this->connection->createQueryBuilder();
+        $this->builder->insert($this->connection->quoteIdentifier($this->model->table()));
     }
 
     /**
@@ -96,7 +96,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
             return;
         }
 
-        $this->query->setValue(
+        $this->builder->setValue(
             $this->connection->quoteIdentifier($field->mappedName()),
             $this->bind('value', $field->name(), $field->type(), $value)
         );
@@ -130,7 +130,7 @@ class InsertQuery extends AbstractQuery implements InsertQueryInterface
      */
     public function reset()
     {
-        $this->query->resetQueryParts();
+        $this->builder->resetQueryParts();
         $this->relations = [];
         $this->resetBinds();
 

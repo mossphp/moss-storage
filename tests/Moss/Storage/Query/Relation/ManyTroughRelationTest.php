@@ -71,7 +71,7 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
         $mediatorUpdateQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
         $mediatorUpdateQuery->expects($this->once())->method('execute')->willReturn(true);
 
-        $readQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
+        $readQuery = $this->getMock('\Moss\Storage\Query\ReadQueryInterface');
         $readQuery->expects($this->once())->method('execute')->willReturn([]);
 
         $query = $this->getMockBuilder('\Moss\Storage\Query\StorageInterface')->disableOriginalConstructor()->getMock();
@@ -161,7 +161,7 @@ class ManyTroughRelationTest extends \PHPUnit_Framework_TestCase
             'rel' => []
         ];
 
-        $readQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
+        $readQuery = $this->getMock('\Moss\Storage\Query\ReadQueryInterface');
         $readQuery->expects($this->once())->method('execute')->willReturn([['l_id' => 1, 'r_id' => 1]]);
 
         $deleteQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');

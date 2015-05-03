@@ -36,16 +36,4 @@ interface UpdateQueryInterface extends QueryInterface, RelationalQueryInterface
      * @return $this
      */
     public function value($field);
-
-    /**
-     * Adds where condition to query
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     */
-    public function where($field, $value, $comparison = '==', $logical = 'and');
 }

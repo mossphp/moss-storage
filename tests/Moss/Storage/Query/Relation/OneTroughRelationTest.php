@@ -101,7 +101,7 @@ class OneTroughRelationTest extends \PHPUnit_Framework_TestCase
             'rel' => null
         ];
 
-        $readQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
+        $readQuery = $this->getMock('\Moss\Storage\Query\ReadQueryInterface');
         $readQuery->expects($this->once())->method('execute')->willReturn([['l_id' => 1, 'r_id' => 1]]);
 
         $deleteQuery = $this->getMock('\Moss\Storage\Query\UpdateQueryInterface');
