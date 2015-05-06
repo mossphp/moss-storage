@@ -9,22 +9,22 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Query\OperationTraits;
+namespace Moss\Storage\Query;
 
-
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\Definition\FieldInterface;
+use Moss\Storage\Model\ModelInterface;
+
 
 /**
- * Trait ValuesTrait
- *
- * Adds values & value methods
+ * Abstract Query
+ * Implements basic query methods
  *
  * @package Moss\Storage\Query\OperationTraits
  */
-trait ValuesTrait
+abstract class AbstractEntityQuery extends AbstractQuery
 {
-    use AwareTrait;
-
     /**
      * Sets field names which values will be written
      *

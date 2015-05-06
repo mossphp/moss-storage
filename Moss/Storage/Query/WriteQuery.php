@@ -14,6 +14,7 @@ namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
+use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
 use Moss\Storage\Query\OperationTraits\IdentifyEntityTrait;
@@ -27,7 +28,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class WriteQuery extends AbstractQuery implements WriteQueryInterface
+class WriteQuery extends AbstractEntityQuery implements WriteQueryInterface
 {
     use RelationTrait;
     use PropertyAccessorTrait;
@@ -70,15 +71,14 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
 
         if (empty($fields)) {
             foreach ($this->model->fields() as $field) {
-                $this->values[] = $field->name();
+                $this->assignValue($field);
             }
 
             return $this;
         }
 
         foreach ($fields as $field) {
-            $this->values[] = $this->model->field($field)
-                ->name();
+            $this->assignValue($this->model->field($field));
         }
 
         return $this;
@@ -93,11 +93,21 @@ class WriteQuery extends AbstractQuery implements WriteQueryInterface
      */
     public function value($field)
     {
-        $this->values[] = $this->model->field($field)
-            ->name();
+        $this->assignValue($this->model->field($field));
 
         return $this;
     }
+
+    /**
+     * Assigns value to query
+     *
+     * @param FieldInterface $field
+     */
+    protected function assignValue(FieldInterface $field)
+    {
+        $this->values[] = $field->name();
+    }
+
 
     /**
      * Executes query

@@ -19,7 +19,6 @@ use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
-use Moss\Storage\Query\OperationTraits\ValuesTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -28,9 +27,8 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class UpdateQuery extends AbstractQuery implements UpdateQueryInterface
+class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
 {
-    use ValuesTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use AssertEntityTrait;
