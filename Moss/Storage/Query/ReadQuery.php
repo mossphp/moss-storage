@@ -18,8 +18,6 @@ use Doctrine\DBAL\Types\Type;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\OperationTraits\ConditionTrait;
-use Moss\Storage\Query\OperationTraits\LimitTrait;
 use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
@@ -32,7 +30,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class ReadQuery extends AbstractQuery implements ReadQueryInterface
 {
-    use ConditionTrait;
     use RelationTrait;
     use PropertyAccessorTrait;
     use GetTypeTrait;
