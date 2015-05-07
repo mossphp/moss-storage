@@ -16,8 +16,7 @@ use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\OperationTraits\AssertEntityTrait;
-use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
+use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
@@ -30,8 +29,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
 class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
 {
     use RelationTrait;
-    use PropertyAccessorTrait;
-    use AssertEntityTrait;
     use GetTypeTrait;
 
     protected $instance;
@@ -49,6 +46,7 @@ class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
         $this->connection = $connection;
         $this->model = $model;
         $this->factory = $factory;
+        $this->accessor = new Accessor();
 
         $this->assertEntityInstance($entity);
         $this->instance = $entity;
@@ -75,7 +73,7 @@ class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
     protected function setPrimaryConditions()
     {
         foreach ($this->model->primaryFields() as $field) {
-            $value = $this->getPropertyValue($this->instance, $field->name());
+            $value = $this->accessor->getPropertyValue($this->instance, $field->name());
             $this->builder->andWhere(
                 sprintf(
                     '%s = %s',
@@ -103,17 +101,17 @@ class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
      */
     protected function assignValue(FieldInterface $field)
     {
-        $value = $this->getPropertyValue($this->instance, $field->name());
+        $value = $this->accessor->getPropertyValue($this->instance, $field->name());
         if ($value === null) {
             $references = $this->model->referredIn($field->name());
             foreach ($references as $foreign => $reference) {
-                $entity = $this->getPropertyValue($this->instance, $reference->container());
+                $entity = $this->accessor->getPropertyValue($this->instance, $reference->container());
                 if ($entity === null) {
                     continue;
                 }
 
-                $value = $this->getPropertyValue($entity, $foreign);
-                $this->setPropertyValue($this->instance, $field->name(), $value);
+                $value = $this->accessor->getPropertyValue($entity, $foreign);
+                $this->accessor->setPropertyValue($this->instance, $field->name(), $value);
                 break;
             }
         }

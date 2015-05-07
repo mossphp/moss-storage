@@ -152,7 +152,7 @@ class DeleteQueryTest extends QueryMocks
 
     public function testExecute()
     {
-        $entity = ['foo' => 'foo'];
+        $entity = (object) ['foo' => 'foo']; // because phpunit can't handle simple types by reference
 
         $builder = $this->mockQueryBuilder();
 

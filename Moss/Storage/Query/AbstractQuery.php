@@ -14,6 +14,7 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\Accessor\AccessorInterface;
 
 
 /**
@@ -38,6 +39,31 @@ abstract class AbstractQuery
      * @var QueryBuilder
      */
     protected $builder;
+
+    /**
+     * @var AccessorInterface
+     */
+    protected $accessor;
+
+    /**
+     * Asserts entity instance
+     *
+     * @param array|object $entity
+     *
+     * @throws QueryException
+     */
+    protected function assertEntityInstance($entity)
+    {
+        $entityClass = $this->model->entity();
+
+        if ($entity === null) {
+            throw new QueryException(sprintf('Missing required entity of class "%s"', $entityClass));
+        }
+
+        if (!is_array($entity) && !$entity instanceof $entityClass) {
+            throw new QueryException(sprintf('Entity must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
+        }
+    }
 
     /**
      * Returns connection

@@ -248,7 +248,7 @@ class InsertQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
-        $relation->expects($this->once())->method('write')->with($entity)->willReturn($entity);
+        $relation->expects($this->once())->method('write')->with(['foo' => null])->willReturn(['foo' => null]);
 
         $factory = $this->mockRelFactory();
         $factory->expects($this->any())->method('build')->willReturn($relation);
