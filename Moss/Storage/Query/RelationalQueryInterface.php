@@ -11,9 +11,6 @@
 
 namespace Moss\Storage\Query;
 
-
-use Moss\Storage\Query\Relation\RelationInterface;
-
 /**
  * Query interface
  *
@@ -40,22 +37,4 @@ interface RelationalQueryInterface
      * @return QueryInterface
      */
     public function relation($relation);
-
-    /**
-     * Adds relation to query or if relation with same name exists - replaces it with new one
-     *
-     * @param RelationInterface $relation
-     *
-     * @return $this
-     */
-    public function setRelation(RelationInterface $relation);
-
-    /**
-     * Returns relation with set name
-     *
-     * @param string $name
-     *
-     * @return RelationInterface
-     */
-    public function getRelation($name);
 }
