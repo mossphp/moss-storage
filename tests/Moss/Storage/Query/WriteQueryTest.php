@@ -89,7 +89,8 @@ class WriteQueryTest extends QueryMocks
         $builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
         $builder->expects($this->once())->method('getSQL')->with();
         $builder->expects($this->once())->method('insert')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
+        $builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             // values from insert
             ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
@@ -127,7 +128,8 @@ class WriteQueryTest extends QueryMocks
         $builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
         $builder->expects($this->once())->method('getSQL')->with();
         $builder->expects($this->once())->method('update')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
+        $builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $builder->expects($this->exactly(4))->method('set')->withConsecutive(
         // values from insert
             ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
@@ -165,7 +167,8 @@ class WriteQueryTest extends QueryMocks
         $builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
         $builder->expects($this->once())->method('getSQL')->with();
         $builder->expects($this->once())->method('insert')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
+        $builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
         // values from insert
             ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
@@ -202,7 +205,8 @@ class WriteQueryTest extends QueryMocks
         $builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
         $builder->expects($this->once())->method('getSQL')->with();
         $builder->expects($this->once())->method('update')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
+        $builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $builder->expects($this->exactly(4))->method('set')->withConsecutive(
         // values from insert
             ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],

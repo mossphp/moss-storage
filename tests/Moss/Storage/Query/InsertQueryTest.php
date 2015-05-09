@@ -81,7 +81,8 @@ class InsertQueryTest extends QueryMocks
 
         $builder = $this->mockQueryBuilder();
         $builder->expects($this->once())->method('insert')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
+        $builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],
@@ -102,8 +103,9 @@ class InsertQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
         $builder = $this->mockQueryBuilder();
-        $builder->expects($this->at(0))->method('insert')->with('`table`');
-        $builder->expects($this->exactly(2))->method('resetQueryParts')->with(['set', 'value']);
+        $builder->expects($this->once())->method('insert')->with('`table`');
+        $builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
+        $builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
             ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],

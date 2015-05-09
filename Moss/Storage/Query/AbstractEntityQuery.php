@@ -34,7 +34,13 @@ abstract class AbstractEntityQuery extends AbstractQuery
      */
     public function values($fields = [])
     {
-        $this->builder()->resetQueryParts(['set', 'value']);
+        $parts = $this->builder()->getQueryParts();
+        foreach (['set', 'value'] as $part) {
+            if (isset($parts[$part])) {
+                $this->builder()->resetQueryPart($part);
+            }
+        }
+
         $this->resetBinds('value');
 
         if (empty($fields)) {
