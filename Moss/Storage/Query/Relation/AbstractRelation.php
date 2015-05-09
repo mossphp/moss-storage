@@ -16,7 +16,8 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\OperationTraits\PropertyAccessorTrait;
+use Moss\Storage\Query\Accessor\Accessor;
+use Moss\Storage\Query\Accessor\AccessorInterface;
 use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\StorageInterface;
 
@@ -29,7 +30,6 @@ use Moss\Storage\Query\StorageInterface;
 abstract class AbstractRelation
 {
     use RelationTrait;
-    use PropertyAccessorTrait;
     use GetTypeTrait;
 
     /**
@@ -41,6 +41,11 @@ abstract class AbstractRelation
      * @var ModelBag
      */
     protected $models;
+
+    /**
+     * @var AccessorInterface
+     */
+    protected $accessor;
 
     /**
      * @var DefinitionInterface
@@ -66,6 +71,7 @@ abstract class AbstractRelation
         $this->definition = $relation;
         $this->models = $models;
         $this->factory = $factory;
+        $this->accessor = new Accessor();
     }
 
     /**
@@ -186,7 +192,7 @@ abstract class AbstractRelation
     {
         $key = [];
         foreach ($pairs as $local => $refer) {
-            $key[] = $local . ':' . $this->getPropertyValue($entity, $refer);
+            $key[] = $local . ':' . $this->accessor->getPropertyValue($entity, $refer);
         }
 
         return implode('-', $key);
@@ -318,7 +324,7 @@ abstract class AbstractRelation
 
         $id = [];
         foreach ($fields as $field) {
-            $id[] = $this->getPropertyValue($instance, $field->name());
+            $id[] = $this->accessor->getPropertyValue($instance, $field->name());
         }
 
         return implode(':', $id);

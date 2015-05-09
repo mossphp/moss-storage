@@ -32,13 +32,13 @@ class ManyRelation extends AbstractRelation implements RelationInterface
         $conditions = [];
 
         foreach ($result as $i => $entity) {
-            $container = $this->getPropertyValue($entity, $this->definition->container());
+            $container = $this->accessor->getPropertyValue($entity, $this->definition->container());
             if (empty($container)) {
-                $this->setPropertyValue($entity, $this->definition->container(), []);
+                $this->accessor->setPropertyValue($entity, $this->definition->container(), []);
             }
 
             foreach ($this->definition->keys() as $local => $refer) {
-                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
+                $conditions[$refer][] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $relations[$this->buildLocalKey($entity, $this->definition->keys())][] = &$result[$i];
@@ -54,7 +54,7 @@ class ManyRelation extends AbstractRelation implements RelationInterface
             }
 
             foreach ($relations[$key] as &$entity) {
-                $this->addPropertyValue($entity, $this->definition->container(), $relEntity);
+                $this->accessor->addPropertyValue($entity, $this->definition->container(), $relEntity);
                 unset($entity);
             }
         }
@@ -72,11 +72,11 @@ class ManyRelation extends AbstractRelation implements RelationInterface
      */
     public function write(&$result)
     {
-        $container = $this->getPropertyValue($result, $this->definition->container());
+        $container = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($container)) {
             $conditions = [];
             foreach ($this->definition->keys() as $local => $foreign) {
-                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+                $conditions[$foreign][] = $this->accessor->getPropertyValue($result, $local);
             }
 
             $this->cleanup($this->definition->entity(), [], $conditions);
@@ -87,17 +87,17 @@ class ManyRelation extends AbstractRelation implements RelationInterface
 
         foreach ($container as $relEntity) {
             foreach ($this->definition->keys() as $local => $foreign) {
-                $this->setPropertyValue($relEntity, $foreign, $this->getPropertyValue($result, $local));
+                $this->accessor->setPropertyValue($relEntity, $foreign, $this->accessor->getPropertyValue($result, $local));
             }
 
             $this->storage->write($relEntity, $this->definition->entity())->execute();
         }
 
-        $this->setPropertyValue($result, $this->definition->container(), $container);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $container);
 
         $conditions = [];
         foreach ($this->definition->keys() as $local => $foreign) {
-            $conditions[$foreign] = $this->getPropertyValue($result, $local);
+            $conditions[$foreign] = $this->accessor->getPropertyValue($result, $local);
         }
 
         $this->cleanup($this->definition->entity(), $container, $conditions);
@@ -115,7 +115,7 @@ class ManyRelation extends AbstractRelation implements RelationInterface
      */
     public function delete(&$result)
     {
-        $container = $this->getPropertyValue($result, $this->definition->container());
+        $container = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($container)) {
             return $result;
         }
@@ -127,7 +127,7 @@ class ManyRelation extends AbstractRelation implements RelationInterface
                 ->execute();
         }
 
-        $this->setPropertyValue($result, $this->definition->container(), $container);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $container);
 
         return $result;
     }

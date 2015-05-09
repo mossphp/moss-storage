@@ -33,7 +33,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
 
         foreach ($result as $i => $entity) {
             foreach ($this->definition->localKeys() as $local => $refer) {
-                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
+                $conditions[$refer][] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $relations[$this->buildLocalKey($entity, $this->definition->localKeys())][] = &$result[$i];
@@ -47,7 +47,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
         $conditions = [];
         foreach ($collection as $entity) {
             foreach ($this->definition->foreignKeys() as $local => $refer) {
-                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
+                $conditions[$refer][] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $in = $this->buildForeignKey($entity, $this->definition->localKeys());
@@ -71,7 +71,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
                 }
 
                 foreach ($relations[$mkey] as &$entity) {
-                    $this->addPropertyValue($entity, $this->definition->container(), $relEntity);
+                    $this->accessor->addPropertyValue($entity, $this->definition->container(), $relEntity);
                     unset($entity);
                 }
             }
@@ -90,11 +90,11 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
      */
     public function write(&$result)
     {
-        $container = $this->getPropertyValue($result, $this->definition->container());
+        $container = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($container)) {
             $conditions = [];
             foreach ($this->definition->localKeys() as $local => $foreign) {
-                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+                $conditions[$foreign][] = $this->accessor->getPropertyValue($result, $local);
             }
 
             $this->cleanup($this->definition->mediator(), [], $conditions);
@@ -111,11 +111,11 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
             $mediator = [];
 
             foreach ($this->definition->localKeys() as $local => $foreign) {
-                $mediator[$foreign] = $this->getPropertyValue($result, $local);
+                $mediator[$foreign] = $this->accessor->getPropertyValue($result, $local);
             }
 
             foreach ($this->definition->foreignKeys() as $foreign => $local) {
-                $mediator[$foreign] = $this->getPropertyValue($entity, $local);
+                $mediator[$foreign] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $this->storage->write($mediator, $this->definition->mediator())
@@ -124,12 +124,12 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
             $mediators[] = $mediator;
         }
 
-        $this->setPropertyValue($result, $this->definition->container(), $container);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $container);
 
         $conditions = [];
         foreach ($this->definition->localKeys() as $foreign) {
             foreach ($mediators as $mediator) {
-                $conditions[$foreign][] = $this->getPropertyValue($mediator, $foreign);
+                $conditions[$foreign][] = $this->accessor->getPropertyValue($mediator, $foreign);
             }
         }
 
@@ -148,7 +148,7 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
      */
     public function delete(&$result)
     {
-        $container = $this->getPropertyValue($result, $this->definition->container());
+        $container = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($container)) {
             return $result;
         }
@@ -157,17 +157,17 @@ class ManyTroughRelation extends AbstractRelation implements RelationInterface
             $mediator = [];
 
             foreach ($this->definition->localKeys() as $local => $foreign) {
-                $mediator[$foreign] = $this->getPropertyValue($result, $local);
+                $mediator[$foreign] = $this->accessor->getPropertyValue($result, $local);
             }
 
             foreach ($this->definition->foreignKeys() as $foreign => $local) {
-                $mediator[$foreign] = $this->getPropertyValue($entity, $local);
+                $mediator[$foreign] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $this->storage->delete($mediator, $this->definition->mediator())->execute();
 
         }
-        $this->setPropertyValue($result, $this->definition->container(), $container);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $container);
 
         return $result;
     }

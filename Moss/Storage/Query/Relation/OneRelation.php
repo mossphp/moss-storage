@@ -33,7 +33,7 @@ class OneRelation extends AbstractRelation implements RelationInterface
 
         foreach ($result as $i => $entity) {
             foreach ($this->definition->keys() as $local => $refer) {
-                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
+                $conditions[$refer][] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $relations[$this->buildLocalKey($entity, $this->definition->keys())][] = &$result[$i];
@@ -49,7 +49,7 @@ class OneRelation extends AbstractRelation implements RelationInterface
             }
 
             foreach ($relations[$key] as &$entity) {
-                $this->setPropertyValue($entity, $this->definition->container(), $relEntity);
+                $this->accessor->setPropertyValue($entity, $this->definition->container(), $relEntity);
                 unset($entity);
             }
         }
@@ -67,11 +67,11 @@ class OneRelation extends AbstractRelation implements RelationInterface
      */
     public function write(&$result)
     {
-        $entity = $this->getPropertyValue($result, $this->definition->container());
+        $entity = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($entity)) {
             $conditions = [];
             foreach ($this->definition->keys() as $local => $foreign) {
-                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+                $conditions[$foreign][] = $this->accessor->getPropertyValue($result, $local);
             }
 
             $this->cleanup($this->definition->entity(), [], $conditions);
@@ -81,11 +81,11 @@ class OneRelation extends AbstractRelation implements RelationInterface
         $this->assertInstance($entity);
 
         foreach ($this->definition->keys() as $local => $foreign) {
-            $this->setPropertyValue($entity, $foreign, $this->getPropertyValue($result, $local));
+            $this->accessor->setPropertyValue($entity, $foreign, $this->accessor->getPropertyValue($result, $local));
         }
 
         $this->storage->write($entity, $this->definition->entity())->execute();
-        $this->setPropertyValue($result, $this->definition->container(), $entity);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $entity);
 
         return $result;
     }
@@ -100,7 +100,7 @@ class OneRelation extends AbstractRelation implements RelationInterface
      */
     public function delete(&$result)
     {
-        $entity = $this->getPropertyValue($result, $this->definition->container());
+        $entity = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($entity)) {
             return $result;
         }

@@ -33,7 +33,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
 
         foreach ($result as $i => $entity) {
             foreach ($this->definition->localKeys() as $local => $refer) {
-                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
+                $conditions[$refer][] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $relations[$this->buildLocalKey($entity, $this->definition->localKeys())][] = & $result[$i];
@@ -45,7 +45,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
         $conditions = [];
         foreach ($collection as $entity) {
             foreach ($this->definition->foreignKeys() as $local => $refer) {
-                $conditions[$refer][] = $this->getPropertyValue($entity, $local);
+                $conditions[$refer][] = $this->accessor->getPropertyValue($entity, $local);
             }
 
             $in = $this->buildForeignKey($entity, $this->definition->localKeys());
@@ -63,7 +63,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
             }
 
             foreach ($relations[$mediator[$key]] as &$entity) {
-                $this->setPropertyValue($entity, $this->definition->container(), $relEntity);
+                $this->accessor->setPropertyValue($entity, $this->definition->container(), $relEntity);
                 unset($entity);
             }
         }
@@ -80,11 +80,11 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
      */
     public function write(&$result)
     {
-        $entity = $this->getPropertyValue($result, $this->definition->container());
+        $entity = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($entity)) {
             $conditions = [];
             foreach ($this->definition->localKeys() as $local => $foreign) {
-                $conditions[$foreign][] = $this->getPropertyValue($result, $local);
+                $conditions[$foreign][] = $this->accessor->getPropertyValue($result, $local);
             }
 
             $this->cleanup($this->definition->mediator(), [], $conditions);
@@ -96,19 +96,19 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
         $mediator = [];
 
         foreach ($this->definition->localKeys() as $local => $foreign) {
-            $mediator[$foreign] = $this->getPropertyValue($result, $local);
+            $mediator[$foreign] = $this->accessor->getPropertyValue($result, $local);
         }
 
         foreach ($this->definition->foreignKeys() as $foreign => $local) {
-            $mediator[$foreign] = $this->getPropertyValue($entity, $local);
+            $mediator[$foreign] = $this->accessor->getPropertyValue($entity, $local);
         }
 
         $this->storage->write($mediator, $this->definition->mediator())->execute();
-        $this->setPropertyValue($result, $this->definition->container(), $entity);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $entity);
 
         $conditions = [];
         foreach ($this->definition->localKeys() as $foreign) {
-            $conditions[$foreign][] = $this->getPropertyValue($mediator, $foreign);
+            $conditions[$foreign][] = $this->accessor->getPropertyValue($mediator, $foreign);
         }
 
         return $result;
@@ -123,7 +123,7 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
      */
     public function delete(&$result)
     {
-        $entity = $this->getPropertyValue($result, $this->definition->container());
+        $entity = $this->accessor->getPropertyValue($result, $this->definition->container());
         if (empty($entity)) {
             return $result;
         }
@@ -131,15 +131,15 @@ class OneTroughRelation extends AbstractRelation implements RelationInterface
         $mediator = [];
 
         foreach ($this->definition->localKeys() as $entityField => $mediatorField) {
-            $mediator[$mediatorField] = $this->getPropertyValue($result, $entityField);
+            $mediator[$mediatorField] = $this->accessor->getPropertyValue($result, $entityField);
         }
 
         foreach ($this->definition->foreignKeys() as $mediatorField => $entityField) {
-            $mediator[$mediatorField] = $this->getPropertyValue($entity, $entityField);
+            $mediator[$mediatorField] = $this->accessor->getPropertyValue($entity, $entityField);
         }
 
         $this->storage->delete($mediator, $this->definition->mediator())->execute();
-        $this->setPropertyValue($result, $this->definition->container(), $entity);
+        $this->accessor->setPropertyValue($result, $this->definition->container(), $entity);
 
         return $result;
     }
