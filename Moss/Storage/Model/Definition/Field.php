@@ -113,7 +113,7 @@ class Field implements FieldInterface
     }
 
     /**
-     * Returns fields mapped name
+     * Returns fields mapped name or if not mapped returns property name
      *
      * @return string
      */

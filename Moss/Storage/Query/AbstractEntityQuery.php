@@ -76,7 +76,7 @@ abstract class AbstractEntityQuery extends AbstractQuery
             $this->builder->andWhere(
                 sprintf(
                     '%s = %s',
-                    $this->connection->quoteIdentifier($field->name()),
+                    $this->connection->quoteIdentifier($field->mappedName()),
                     $this->bind('condition', $field->name(), $field->type(), $value)
                 )
             );
