@@ -11,12 +11,8 @@
 
 namespace Moss\Storage\Query;
 
-use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Accessor\Accessor;
-use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
  * Query used to read data from table
@@ -24,32 +20,13 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class WriteQuery extends AbstractEntityQuery implements WriteQueryInterface
+class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
 {
     use GetTypeTrait;
 
     protected $instance;
 
     protected $values = [];
-
-    /**
-     * Constructor
-     *
-     * @param Connection               $connection
-     * @param mixed                    $entity
-     * @param ModelInterface           $model
-     * @param RelationFactoryInterface $factory
-     */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
-    {
-        $this->connection = $connection;
-        $this->model = $model;
-        $this->factory = $factory;
-        $this->accessor = new Accessor();
-
-        $this->assertEntityInstance($entity);
-        $this->instance = $entity;
-    }
 
     /**
      * Sets field names which values will be written

@@ -17,7 +17,6 @@ use Doctrine\DBAL\Types\Type;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -44,10 +43,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
     {
-        $this->connection = $connection;
-        $this->model = $model;
-        $this->factory = $factory;
-        $this->accessor = new Accessor();
+        parent::__construct($connection, $model, $factory);
 
         $this->setQuery();
         $this->fields();

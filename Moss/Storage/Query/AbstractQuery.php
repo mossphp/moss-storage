@@ -14,7 +14,9 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
  * Abstract Query
@@ -45,23 +47,18 @@ abstract class AbstractQuery extends AbstractRelational
     protected $accessor;
 
     /**
-     * Asserts entity instance
+     * Constructor
      *
-     * @param array|object $entity
-     *
-     * @throws QueryException
+     * @param Connection               $connection
+     * @param ModelInterface           $model
+     * @param RelationFactoryInterface $factory
      */
-    protected function assertEntityInstance($entity)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
     {
-        $entityClass = $this->model->entity();
-
-        if ($entity === null) {
-            throw new QueryException(sprintf('Missing required entity of class "%s"', $entityClass));
-        }
-
-        if (!is_array($entity) && !$entity instanceof $entityClass) {
-            throw new QueryException(sprintf('Entity must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
-        }
+        $this->connection = $connection;
+        $this->model = $model;
+        $this->factory = $factory;
+        $this->accessor = new Accessor();
     }
 
     /**

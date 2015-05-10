@@ -24,7 +24,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class InsertQuery extends AbstractEntityQuery implements InsertQueryInterface
+class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterface
 {
     use GetTypeTrait;
 
@@ -40,13 +40,7 @@ class InsertQuery extends AbstractEntityQuery implements InsertQueryInterface
      */
     public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
     {
-        $this->connection = $connection;
-        $this->model = $model;
-        $this->factory = $factory;
-        $this->accessor = new Accessor();
-
-        $this->assertEntityInstance($entity);
-        $this->instance = $entity;
+        parent::__construct($connection, $entity, $model, $factory);
 
         $this->setQuery();
         $this->values();

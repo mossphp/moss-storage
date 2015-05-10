@@ -14,7 +14,6 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -23,7 +22,7 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
+class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
 {
     use GetTypeTrait;
 
@@ -39,13 +38,7 @@ class DeleteQuery extends AbstractQuery implements DeleteQueryInterface
      */
     public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
     {
-        $this->connection = $connection;
-        $this->model = $model;
-        $this->factory = $factory;
-        $this->accessor = new Accessor();
-
-        $this->assertEntityInstance($entity);
-        $this->instance = $entity;
+        parent::__construct($connection, $entity, $model, $factory);
 
         $this->setQuery();
         $this->setPrimaryConditions();

@@ -11,67 +11,56 @@
 
 namespace Moss\Storage\Query;
 
+use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\Definition\FieldInterface;
+use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
- * Abstract Query
- * Implements basic query methods
+ * Abstract Entity Query
+ * For queries that expect require entity instance
+ * Ensures that entity is of expected type
  *
  * @package Moss\Storage\Query\OperationTraits
  */
 abstract class AbstractEntityQuery extends AbstractQuery
 {
+    protected $instance;
+
     /**
-     * Sets field names which values will be written
+     * Constructor
      *
-     * @param array $fields
-     *
-     * @return $this
+     * @param Connection               $connection
+     * @param mixed                    $entity
+     * @param ModelInterface           $model
+     * @param RelationFactoryInterface $factory
      */
-    public function values($fields = [])
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
     {
-        $parts = $this->builder()->getQueryParts();
-        foreach (['set', 'value'] as $part) {
-            if (isset($parts[$part])) {
-                $this->builder()->resetQueryPart($part);
-            }
-        }
-
-        $this->resetBinds('value');
-
-        if (empty($fields)) {
-            foreach ($this->model()->fields() as $field) {
-                $this->assignValue($field);
-            }
-
-            return $this;
-        }
-
-        foreach ($fields as $field) {
-            $this->assignValue($this->model()->field($field));
-        }
-
-        return $this;
+        parent::__construct($connection, $model, $factory);
+        $this->assignEntity($entity);
     }
 
     /**
-     * Adds field which value will be written
+     * Assigns entity instance
+     * Asserts if entity instance is of expected type
      *
-     * @param string $field
+     * @param array|object $entity
      *
-     * @return $this
+     * @throws QueryException
      */
-    public function value($field)
+    protected function assignEntity($entity)
     {
-        $this->assignValue($this->model()->field($field));
+        $entityClass = $this->model->entity();
 
-        return $this;
+        if ($entity === null) {
+            throw new QueryException(sprintf('Missing required entity of class "%s"', $entityClass));
+        }
+
+        if (!is_array($entity) && !$entity instanceof $entityClass) {
+            throw new QueryException(sprintf('Entity must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
+        }
+
+        $this->instance = $entity;
     }
-
-    /**
-     * Assigns value to query
-     *
-     * @param FieldInterface $field
-     */
-    abstract protected function assignValue(FieldInterface $field);
 }
