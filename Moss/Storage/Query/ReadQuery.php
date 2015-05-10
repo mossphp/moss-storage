@@ -156,7 +156,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      * @param string $comparison
      * @param string $logical
      *
-     * @return $this
+     * @return string
      * @throws QueryException
      */
     public function condition($field, $value, $comparison, $logical)
@@ -329,9 +329,9 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     /**
      * Binds condition value to key
      *
-     * @param $name
-     * @param $type
-     * @param $values
+     * @param string $name
+     * @param string $type
+     * @param mixed  $values
      *
      * @return string
      */
@@ -369,7 +369,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     /**
      * Asserts correct order
      *
-     * @param string|array $order
+     * @param string $order
      *
      * @return string
      * @throws QueryException
@@ -446,6 +446,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     protected function fetchAsAssoc(Statement $stmt)
     {
         $stmt->setFetchMode(\PDO::FETCH_ASSOC);
+
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
