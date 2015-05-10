@@ -1,10 +1,10 @@
 # Moss Storage
 
-[![Build Status](https://travis-ci.org/potfur/moss-storage.png?branch=master)](https://travis-ci.org/potfur/moss-storage)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/quality-score.png?s=6b11b311a9dfe2d150f9b2ac8568426b2ed3bc9f)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
-[![Code Coverage](https://scrutinizer-ci.com/g/potfur/moss-storage/badges/coverage.png?s=f1e8ae97cb136068a9592fbb8f694cb392ec2a24)](https://scrutinizer-ci.com/g/potfur/moss-storage/)
+[![Build Status](https://travis-ci.org/mossphp/moss-storage.png?branch=master)](https://travis-ci.org/mossphp/moss-storage)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mossphp/moss-storage/badges/quality-score.png?s=6b11b311a9dfe2d150f9b2ac8568426b2ed3bc9f)](https://scrutinizer-ci.com/g/mossphp/moss-storage/)
+[![Code Coverage](https://scrutinizer-ci.com/g/mossphp/moss-storage/badges/coverage.png?s=f1e8ae97cb136068a9592fbb8f694cb392ec2a24)](https://scrutinizer-ci.com/g/mossphp/moss-storage/)
 
-**Storage** is a simple ORM developed for [MOSS framework](https://github.com/potfur/moss) as completely independent library. In philosophy similar to _Data Mapper_ pattern that allows moving data from object instances to database, while keeping them independent of each other.
+**Storage** is a simple ORM developed for [MOSS framework](https://github.com/mossphp/moss) as completely independent library. In philosophy similar to _Data Mapper_ pattern that allows moving data from object instances to database, while keeping them independent of each other.
 
 _Active Record_ brakes single responsibility principle (by extending some some base class), bloats entire design... and adds unnecessary coupling.
 **Storage** approaches this differently. Entities have no direct connection to database, business logic stays uninfluenced by repositories.
@@ -41,7 +41,7 @@ Just PHP >= 5.4, Doctrine DBAL and SQL database.
 
 ## Installation
 
-Download from [github](https://github.com/potfur/moss-storage)
+Download from [github](https://github.com/mossphp/moss-storage)
 Or via [Composer](https://getcomposer.org/)
 
 ```json
