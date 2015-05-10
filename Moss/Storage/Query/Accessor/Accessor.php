@@ -123,10 +123,10 @@ final class Accessor implements AccessorInterface
      */
     private function getReflection($object)
     {
-        $hash = spl_object_hash($object);
+        $hash = get_class($object);
 
         if (!array_key_exists($hash, $this->buffer)) {
-            $this->buffer[$hash] = new \ReflectionObject($object);
+            $this->buffer[$hash] = new \ReflectionClass($object);
         }
 
         return $this->buffer[$hash];
