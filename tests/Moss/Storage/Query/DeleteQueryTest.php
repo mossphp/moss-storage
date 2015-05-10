@@ -7,16 +7,42 @@ use Moss\Storage\TestEntity;
 class DeleteQueryTest extends QueryMocks
 {
     /**
+     * @var \Doctrine\DBAL\Query\QueryBuilder|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $builder;
+
+    /**
+     * @var \Doctrine\DBAL\Connection|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $dbal;
+
+    /**
+     * @var \Moss\Storage\Query\Relation\RelationFactoryInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $factory;
+
+    /**
+     * @var \Moss\Storage\Query\Accessor\AccessorInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $accessor;
+
+    public function setUp()
+    {
+        $this->builder = $this->mockQueryBuilder();
+        $this->dbal = $this->mockDBAL($this->builder);
+        $this->factory = $this->mockRelFactory();
+        $this->accessor = $this->mockAccessor();
+    }
+
+    /**
      * @expectedException \Moss\Storage\Query\QueryException
      * @expectedExceptionMessage Missing required entity of class
      */
     public function testEntityIsNull()
     {
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
 
-        new DeleteQuery($dbal, null, $model, $factory);
+        new DeleteQuery($this->dbal, null, $model, $this->factory, $this->accessor);
     }
 
     /**
@@ -25,84 +51,67 @@ class DeleteQueryTest extends QueryMocks
      */
     public function testEntityIsNotInstanceOfExpectedClass()
     {
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
 
-        new DeleteQuery($dbal, new \stdClass(), $model, $factory);
+        new DeleteQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor);
     }
 
     public function testEntityWithPublicProperties()
     {
-        $dbal = $this->mockDBAL();
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
-
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
-        new DeleteQuery($dbal, $entity, $model, $factory);
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
     }
 
     public function testEntityWithProtectedProperties()
     {
-        $dbal = $this->mockDBAL();
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
-
         $entity = new TestEntity('foo', 'bar');
-        new DeleteQuery($dbal, $entity, $model, $factory);
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
     }
 
     public function testEntityIsArray()
     {
-        $dbal = $this->mockDBAL();
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
-
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
-        new DeleteQuery($dbal, $entity, $model, $factory);
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
     }
 
     public function testConnection()
     {
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, ['foo' => 'foo'], $model, $factory);
+        $query = new DeleteQuery($this->dbal, ['foo' => 'foo'], $model, $this->factory, $this->accessor);
 
-        $this->assertSame($dbal, $query->connection());
+        $this->assertSame($this->dbal, $query->connection());
     }
 
     public function testWith()
     {
         $entity = ['foo' => 'foo'];
-
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
+        $this->factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
-        $factory = $this->mockRelFactory();
-        $factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
-
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $query->with('relation');
     }
 
     public function testRelation()
     {
         $entity = ['foo' => 'foo'];
-
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
         $relation->expects($this->any())->method('name')->willReturn('relation');
 
-        $factory = $this->mockRelFactory();
-        $factory->expects($this->once())->method('build')->willReturn($relation);
+        $this->factory->expects($this->once())->method('build')->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $result = $query->with('relation')->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -111,8 +120,6 @@ class DeleteQueryTest extends QueryMocks
     public function testRelationWithFurtherRelation()
     {
         $entity = ['foo' => 'foo'];
-
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $relation = $this->mockRelation();
@@ -120,10 +127,9 @@ class DeleteQueryTest extends QueryMocks
 
         $relation->expects($this->any())->method('relation')->willReturnSelf(); // hack so we can have nested relation
 
-        $factory = $this->mockRelFactory();
-        $factory->expects($this->any())->method('build')->willReturn($relation);
+        $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $result = $query->with('relation.relation')->relation('relation.relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -136,13 +142,11 @@ class DeleteQueryTest extends QueryMocks
     public function testRelationWithoutPriorCreation()
     {
         $entity = ['foo' => 'foo'];
-
-        $dbal = $this->mockDBAL();
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $factory = $this->mockRelFactory();
+        $this->factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -151,24 +155,19 @@ class DeleteQueryTest extends QueryMocks
     public function testExecute()
     {
         $entity = (object) ['foo' => 'foo']; // because phpunit can't handle simple types by reference
-
-        $builder = $this->mockQueryBuilder();
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
         $stmt->expects($this->any())->method('execute')->with();
 
-        $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
-
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+        $this->dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
 
         $relation = $this->mockRelation();
         $relation->expects($this->once())->method('delete')->with($entity)->willReturn($entity);
 
-        $factory = $this->mockRelFactory();
-        $factory->expects($this->any())->method('build')->willReturn($relation);
+        $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $query->with('relation');
         $query->execute();
     }
@@ -176,109 +175,47 @@ class DeleteQueryTest extends QueryMocks
     public function testExecutionDoesNothingWhenMultiplePrimaryKeys()
     {
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
-
-        $builder = $this->mockQueryBuilder();
-
-        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute')->with();
-
-        $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
-
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo', 'bar']);
 
-        $factory = $this->mockRelFactory();
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('execute')->with();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $this->dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
+
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $this->assertEquals($entity, $query->execute());
-    }
-
-    public function testExecutionRemovesIdFromPublicProperties()
-    {
-        $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
-
-        $builder = $this->mockQueryBuilder();
-
-        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute')->with();
-
-        $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
-
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-
-        $factory = $this->mockRelFactory();
-
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
-        $query->execute();
-
-        $this->assertEmpty($entity->foo);
-    }
-
-    public function testExecutionRemovesIdFromProtectedProperties()
-    {
-        $entity = new TestEntity('foo', 'bar');
-
-        $builder = $this->mockQueryBuilder();
-
-        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute')->with();
-
-        $dbal = $this->mockDBAL($builder);
-        $dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
-
-        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-
-        $factory = $this->mockRelFactory();
-
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
-        $query->execute();
-
-        $this->assertEmpty($entity->getFoo());
     }
 
     public function testQueryString()
     {
         $entity = ['foo' => 'foo'];
-
-        $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())->method('getSQL');
-
-        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $this->builder->expects($this->once())->method('getSQL');
+
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $query->getSQL();
     }
 
     public function testBinds()
     {
         $entity = ['foo' => 'foo'];
-
-        $builder = $this->mockQueryBuilder();
-        $builder->expects($this->any())->method('getParameters')->willReturn([':condition_0_foo' => 'foo']);
-
-        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $this->builder->expects($this->any())->method('getParameters')->willReturn([':condition_0_foo' => 'foo']);
+
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $this->assertEquals([':condition_0_foo' => 'foo'], $query->binds());
     }
 
     public function testReset()
     {
         $entity = ['foo' => 'foo'];
-
-        $builder = $this->mockQueryBuilder();
-        $builder->expects($this->once())->method('resetQueryParts');
-
-        $dbal = $this->mockDBAL($builder);
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
-        $factory = $this->mockRelFactory();
 
-        $query = new DeleteQuery($dbal, $entity, $model, $factory);
+        $this->builder->expects($this->once())->method('resetQueryParts');
+
+        $query = new DeleteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
         $query->reset();
     }
 }

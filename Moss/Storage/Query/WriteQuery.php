@@ -113,9 +113,9 @@ class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
     protected function buildQuery()
     {
         if ($this->checkIfEntityExists()) {
-            $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->factory);
+            $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->factory, $this->accessor);
         } else {
-            $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->factory);
+            $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->factory, $this->accessor);
         }
 
         $query->values($this->values);
@@ -130,7 +130,7 @@ class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
      */
     protected function checkIfEntityExists()
     {
-        $query = new ReadQuery($this->connection, $this->model, $this->factory);
+        $query = new ReadQuery($this->connection, $this->model, $this->factory, $this->accessor);
 
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->accessor->getPropertyValue($this->instance, $field->name());

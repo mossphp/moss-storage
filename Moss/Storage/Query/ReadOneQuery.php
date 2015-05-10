@@ -13,6 +13,7 @@ namespace Moss\Storage\Query;
 
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\Accessor\AccessorInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -29,10 +30,11 @@ class ReadOneQuery extends ReadQuery
      * @param Connection               $connection
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
+     * @param AccessorInterface        $accessor
      */
-    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
     {
-        parent::__construct($connection, $model, $factory);
+        parent::__construct($connection, $model, $factory, $accessor);
         $this->limit(1);
     }
 

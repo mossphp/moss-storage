@@ -16,6 +16,7 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\Accessor;
+use Moss\Storage\Query\Accessor\AccessorInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -37,10 +38,11 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
      * @param mixed                    $entity
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
+     * @param AccessorInterface        $accessor
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
     {
-        parent::__construct($connection, $entity, $model, $factory);
+        parent::__construct($connection, $entity, $model, $factory, $accessor);
 
         $this->setQuery();
         $this->values();

@@ -1,23 +1,23 @@
 <?php
 namespace Moss\Storage\Query;
 
+use Doctrine\DBAL\Query\QueryBuilder;
+
 abstract class QueryMocks extends \PHPUnit_Framework_TestCase
 {
     /**
      * @return \Doctrine\DBAL\Connection|\PHPUnit_Framework_MockObject_MockObject
      */
-    public function mockDBAL($queryBuilderMock = null)
+    public function mockDBAL(QueryBuilder $queryBuilderMock)
     {
-        $queryBuilderMock = $queryBuilderMock ?: $this->mockQueryBuilder();
-
         $dbalMock = $this->getMockBuilder('\Doctrine\DBAL\Connection')->disableOriginalConstructor()->getMock();
         $dbalMock->expects($this->any())->method('quoteIdentifier')->will(
-                $this->returnCallback(
-                    function ($val) {
-                        return sprintf('`%s`', $val);
-                    }
-                )
-            );
+            $this->returnCallback(
+                function ($val) {
+                    return sprintf('`%s`', $val);
+                }
+            )
+        );
         $dbalMock->expects($this->any())->method('createQueryBuilder')->will($this->returnValue($queryBuilderMock));
 
         $dbalMock->expects($this->any())->method('getDatabasePlatform')->will($this->returnValue($this->getMockForAbstractClass('\Doctrine\DBAL\Platforms\AbstractPlatform')));
@@ -110,21 +110,21 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
         $modelMock->expects($this->any())->method('referredIn')->will($this->returnValue($referredIn));
 
         $modelMock->expects($this->any())->method('isPrimary')->will(
-                $this->returnCallback(
-                    function ($field) use ($primaryFields) {
-                        return in_array($field, $primaryFields);
-                    }
-                )
-            );
+            $this->returnCallback(
+                function ($field) use ($primaryFields) {
+                    return in_array($field, $primaryFields);
+                }
+            )
+        );
         $modelMock->expects($this->any())->method('primaryFields')->will($this->returnValue($primaryFields));
 
         $modelMock->expects($this->any())->method('isIndex')->will(
-                $this->returnCallback(
-                    function ($field) use ($indexFields) {
-                        return in_array($field, $indexFields);
-                    }
-                )
-            );
+            $this->returnCallback(
+                function ($field) use ($indexFields) {
+                    return in_array($field, $indexFields);
+                }
+            )
+        );
         $modelMock->expects($this->any())->method('indexFields')->will($this->returnValue($indexFields));
 
         $modelMock->expects($this->any())->method('field')->will($this->returnValueMap($fieldsMap));
@@ -145,12 +145,12 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
         $fieldMock->expects($this->any())->method('mapping')->will($this->returnValue($mapping));
 
         $fieldMock->expects($this->any())->method('attribute')->will(
-                $this->returnCallback(
-                    function ($key) use ($attributes) {
-                        return array_key_exists($key, $attributes) ? $attributes[$key] : false;
-                    }
-                )
-            );
+            $this->returnCallback(
+                function ($key) use ($attributes) {
+                    return array_key_exists($key, $attributes) ? $attributes[$key] : false;
+                }
+            )
+        );
 
         $fieldMock->expects($this->any())->method('attributes')->will($this->returnValue($attributes));
 
@@ -158,13 +158,12 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @return \Moss\Storage\Converter\ConverterInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @return \Moss\Storage\Query\Accessor\AccessorInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    public function mockConverter()
+    public function mockAccessor()
     {
-        $ConverterMock = $this->getMock('\Moss\Storage\Converter\ConverterInterface');
-        $ConverterMock->expects($this->any())->method($this->anything())->will($this->returnArgument(0));
+        $accessorMock = $this->getMock('\Moss\Storage\Query\Accessor\AccessorInterface');
 
-        return $ConverterMock;
+        return $accessorMock;
     }
 }

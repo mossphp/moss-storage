@@ -14,7 +14,6 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Accessor\AccessorInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
@@ -52,13 +51,14 @@ abstract class AbstractQuery extends AbstractRelational
      * @param Connection               $connection
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
+     * @param AccessorInterface        $accessor
      */
-    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
     {
         $this->connection = $connection;
         $this->model = $model;
         $this->factory = $factory;
-        $this->accessor = new Accessor();
+        $this->accessor = $accessor;
     }
 
     /**
