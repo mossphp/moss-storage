@@ -65,7 +65,7 @@ final class Accessor implements AccessorInterface
 
         $ref = $this->getReflection($entity);
         if (!$ref->hasProperty($field)) {
-            return $default;
+            return isset($entity->{$field}) ? $entity->{$field} : $default;
         }
 
         return $this->getProperty($ref, $field)->getValue($entity);
@@ -119,28 +119,28 @@ final class Accessor implements AccessorInterface
      *
      * @param object $object
      *
-     * @return \ReflectionObject
+     * @return \ReflectionClass
      */
     private function getReflection($object)
     {
-        $hash = get_class($object);
+        $key = get_class($object);
 
-        if (!array_key_exists($hash, $this->buffer)) {
-            $this->buffer[$hash] = new \ReflectionClass($object);
+        if (!array_key_exists($key, $this->buffer)) {
+            $this->buffer[$key] = new \ReflectionClass($object);
         }
 
-        return $this->buffer[$hash];
+        return $this->buffer[$key];
     }
 
     /**
      * Returns object property instance
      *
-     * @param \ReflectionObject $ref
+     * @param \ReflectionClass $ref
      * @param string            $property
      *
      * @return \ReflectionProperty
      */
-    private function getProperty(\ReflectionObject $ref, $property)
+    private function getProperty(\ReflectionClass $ref, $property)
     {
         $prop = $ref->getProperty($property);
         $prop->setAccessible(true);
