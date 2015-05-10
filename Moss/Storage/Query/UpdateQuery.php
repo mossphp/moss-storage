@@ -44,7 +44,7 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
 
         $this->setQuery();
         $this->values();
-        $this->setPrimaryConditions();
+        $this->setPrimaryKeyConditions();
     }
 
     /**
@@ -57,25 +57,6 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
     }
 
     /**
-     * Assigns primary condition
-     *
-     * @throws QueryException
-     */
-    protected function setPrimaryConditions()
-    {
-        foreach ($this->model->primaryFields() as $field) {
-            $value = $this->accessor->getPropertyValue($this->instance, $field->name());
-            $this->builder->andWhere(
-                sprintf(
-                    '%s = %s',
-                    $this->connection->quoteIdentifier($field->name()),
-                    $this->bind('condition', $field->name(), $field->type(), $value)
-                )
-            );
-        }
-    }
-
-    /**
      * Assigns value to query
      *
      * @param FieldInterface $field
@@ -83,18 +64,9 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
     protected function assignValue(FieldInterface $field)
     {
         $value = $this->accessor->getPropertyValue($this->instance, $field->name());
-        if ($value === null) {
-            $references = $this->model->referredIn($field->name());
-            foreach ($references as $foreign => $reference) {
-                $entity = $this->accessor->getPropertyValue($this->instance, $reference->container());
-                if ($entity === null) {
-                    continue;
-                }
 
-                $value = $this->accessor->getPropertyValue($entity, $foreign);
-                $this->accessor->setPropertyValue($this->instance, $field->name(), $value);
-                break;
-            }
+        if ($value === null) {
+            $this->getValueFromReferencedEntity($field);
         }
 
         $this->builder->set(
@@ -133,7 +105,7 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
 
         $this->setQuery();
         $this->values();
-        $this->setPrimaryConditions();
+        $this->setPrimaryKeyConditions();
 
         return $this;
     }

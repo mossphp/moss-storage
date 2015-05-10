@@ -74,4 +74,25 @@ abstract class AbstractEntityValueQuery extends AbstractEntityQuery
      * @param FieldInterface $field
      */
     abstract protected function assignValue(FieldInterface $field);
+
+    /**
+     * Gets value from first referenced entity that has it
+     *
+     * @param FieldInterface $field
+     */
+    protected function getValueFromReferencedEntity(FieldInterface $field)
+    {
+        $references = $this->model->referredIn($field->name());
+        foreach ($references as $foreign => $reference) {
+            $entity = $this->accessor->getPropertyValue($this->instance, $reference->container());
+
+            if ($entity === null) {
+                continue;
+            }
+
+            $value = $this->accessor->getPropertyValue($entity, $foreign);
+            $this->accessor->setPropertyValue($this->instance, $field->name(), $value);
+            break;
+        }
+    }
 }

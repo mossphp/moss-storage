@@ -64,22 +64,12 @@ class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterfa
     {
         $value = $this->accessor->getPropertyValue($this->instance, $field->name());
 
-        if ($value === null) {
-            $references = $this->model->referredIn($field->name());
-            foreach ($references as $foreign => $reference) {
-                $entity = $this->accessor->getPropertyValue($this->instance, $reference->container());
-                if ($entity === null) {
-                    continue;
-                }
-
-                $value = $this->accessor->getPropertyValue($entity, $foreign);
-                $this->accessor->setPropertyValue($this->instance, $field->name(), $value);
-                break;
-            }
-        }
-
         if ($value === null && $field->attribute('autoincrement')) {
             return;
+        }
+
+        if ($value === null) {
+            $this->getValueFromReferencedEntity($field);
         }
 
         $this->builder->setValue(

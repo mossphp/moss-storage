@@ -41,7 +41,7 @@ class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
         parent::__construct($connection, $entity, $model, $factory);
 
         $this->setQuery();
-        $this->setPrimaryConditions();
+        $this->setPrimaryKeyConditions();
     }
 
     /**
@@ -51,25 +51,6 @@ class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
     {
         $this->builder = $this->connection->createQueryBuilder();
         $this->builder->delete($this->connection->quoteIdentifier($this->model->table()));
-    }
-
-    /**
-     * Assigns primary condition
-     *
-     * @throws QueryException
-     */
-    protected function setPrimaryConditions()
-    {
-        foreach ($this->model->primaryFields() as $field) {
-            $value = $this->accessor->getPropertyValue($this->instance, $field->name());
-            $this->builder->andWhere(
-                sprintf(
-                    '%s = %s',
-                    $this->connection->quoteIdentifier($field->name()),
-                    $this->bind('condition', $field->name(), $field->type(), $value)
-                )
-            );
-        }
     }
 
     /**
@@ -102,7 +83,7 @@ class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
         $this->resetBinds();
 
         $this->setQuery();
-        $this->setPrimaryConditions();
+        $this->setPrimaryKeyConditions();
 
         return $this;
     }

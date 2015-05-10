@@ -63,4 +63,23 @@ abstract class AbstractEntityQuery extends AbstractQuery
 
         $this->instance = $entity;
     }
+
+    /**
+     * Assigns primary condition
+     *
+     * @throws QueryException
+     */
+    protected function setPrimaryKeyConditions()
+    {
+        foreach ($this->model->primaryFields() as $field) {
+            $value = $this->accessor->getPropertyValue($this->instance, $field->name());
+            $this->builder->andWhere(
+                sprintf(
+                    '%s = %s',
+                    $this->connection->quoteIdentifier($field->name()),
+                    $this->bind('condition', $field->name(), $field->type(), $value)
+                )
+            );
+        }
+    }
 }
