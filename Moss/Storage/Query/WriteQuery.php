@@ -17,7 +17,6 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\Accessor;
-use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -28,7 +27,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class WriteQuery extends AbstractEntityQuery implements WriteQueryInterface
 {
-    use RelationTrait;
     use GetTypeTrait;
 
     protected $instance;
@@ -130,8 +128,7 @@ class WriteQuery extends AbstractEntityQuery implements WriteQueryInterface
      */
     public function getSQL()
     {
-        return $this->buildQuery()
-            ->getSQL();
+        return $this->buildQuery()->getSQL();
     }
 
     /**

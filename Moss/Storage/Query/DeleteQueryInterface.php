@@ -11,13 +11,12 @@
 
 namespace Moss\Storage\Query;
 
-
 /**
  * Query interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface DeleteQueryInterface extends QueryInterface, RelationalQueryInterface
+interface DeleteQueryInterface extends QueryInterface
 {
 }

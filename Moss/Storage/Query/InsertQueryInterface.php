@@ -11,14 +11,13 @@
 
 namespace Moss\Storage\Query;
 
-
 /**
  * Query interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface InsertQueryInterface extends QueryInterface, RelationalQueryInterface
+interface InsertQueryInterface extends QueryInterface
 {
     /**
      * Sets field names which values will be written

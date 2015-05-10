@@ -16,7 +16,6 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\Accessor;
-use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -27,7 +26,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class InsertQuery extends AbstractEntityQuery implements InsertQueryInterface
 {
-    use RelationTrait;
     use GetTypeTrait;
 
     protected $instance;

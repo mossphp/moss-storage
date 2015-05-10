@@ -17,7 +17,6 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\Accessor;
-use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -28,7 +27,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
 {
-    use RelationTrait;
     use GetTypeTrait;
 
     protected $instance;
@@ -82,16 +80,6 @@ class UpdateQuery extends AbstractEntityQuery implements UpdateQueryInterface
                 )
             );
         }
-    }
-
-    /**
-     * Returns connection
-     *
-     * @return Connection
-     */
-    public function connection()
-    {
-        return $this->connection;
     }
 
     /**

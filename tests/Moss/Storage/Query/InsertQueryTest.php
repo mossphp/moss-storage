@@ -168,9 +168,7 @@ class InsertQueryTest extends QueryMocks
         $relation = $this->mockRelation();
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->once())->method('reset')->with()->willReturnSelf();
-        $factory->expects($this->once())->method('relation')->with($model, 'relation')->willReturnSelf();
-        $factory->expects($this->once())->method('build')->willReturn($relation);
+        $factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
         $query = new InsertQuery($dbal, $entity, $model, $factory);
         $query->with('relation');

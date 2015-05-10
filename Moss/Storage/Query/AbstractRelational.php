@@ -9,32 +9,40 @@
 * file that was distributed with this source code.
 */
 
-namespace Moss\Storage\Query\OperationTraits;
+namespace Moss\Storage\Query;
 
-
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\QueryException;
+use Moss\Storage\Query\Accessor\AccessorInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\Query\Relation\RelationInterface;
 
-/**
- * Trait RelationTrait
- * Adds relational functionality
- *
- * @package Moss\Storage\Query\OperationTraits
- */
-trait RelationTrait
-{
 
+/**
+ * Abstract Relational
+ * Class implementing relational interface
+ *
+ * @package Moss\Storage
+ */
+abstract class AbstractRelational
+{
     /**
      * @var RelationFactoryInterface
      */
-    private $factory;
+    protected $factory;
 
     /**
      * @var RelationInterface[]
      */
     protected $relations = [];
+
+    /**
+     * Returns model
+     *
+     * @return ModelInterface
+     */
+    abstract public function model();
 
     /**
      * Adds relation to query
@@ -47,8 +55,7 @@ trait RelationTrait
     public function with($relation)
     {
         foreach ((array) $relation as $node) {
-            $this->factory->reset();
-            $instance = $this->factory->relation($this->model(), $node)->build();
+            $instance = $this->factory->build($this->model(), $node);
             $this->relations[$instance->name()] = $instance;
         }
 
@@ -65,23 +72,16 @@ trait RelationTrait
      */
     public function relation($relation)
     {
-        list($relation, $furtherRelations) = $this->factory->splitRelationName($relation);
+        list($name, $furtherRelations) = $this->factory->splitRelationName($relation);
 
-        if (!isset($this->relations[$relation])) {
-            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $relation, $this->model()->entity()));
+        if (!isset($this->relations[$name])) {
+            throw new QueryException(sprintf('Unable to retrieve relation "%s" query, relation does not exists in query "%s"', $name, $this->model()->entity()));
         }
 
         if ($furtherRelations) {
-            return $this->relations[$relation]->relation($furtherRelations);
+            return $this->relations[$name]->relation($furtherRelations);
         }
 
-        return $this->relations[$relation];
+        return $this->relations[$name];
     }
-
-    /**
-     * Returns model
-     *
-     * @return ModelInterface
-     */
-    abstract public function model();
 }

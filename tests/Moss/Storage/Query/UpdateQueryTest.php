@@ -167,9 +167,7 @@ class UpdateQueryTest extends QueryMocks
         $relation = $this->mockRelation();
 
         $factory = $this->mockRelFactory();
-        $factory->expects($this->at(0))->method('reset')->with()->willReturnSelf();
-        $factory->expects($this->at(1))->method('relation')->with($model, 'relation')->willReturnSelf();
-        $factory->expects($this->at(2))->method('build')->willReturn($relation);
+        $factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
         $query = new UpdateQuery($dbal, $entity, $model, $factory);
         $query->with('relation');

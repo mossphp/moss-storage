@@ -27,55 +27,9 @@ interface RelationFactoryInterface
      * @param ModelInterface $model
      * @param string         $relation
      *
-     * @return $this
-     */
-    public function relation(ModelInterface $model, $relation);
-
-    /**
-     * Adds where condition to relation
-     *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
-     *
-     * @return $this
-     */
-    public function where($field, $value, $comparison = '=', $logical = 'and');
-
-    /**
-     * Adds sorting to relation
-     *
-     * @param string       $field
-     * @param string|array $order
-     *
-     * @return $this
-     */
-    public function order($field, $order = 'desc');
-
-    /**
-     * Sets limits to relation
-     *
-     * @param int      $limit
-     * @param null|int $offset
-     *
-     * @return $this
-     */
-    public function limit($limit, $offset = null);
-
-    /**
-     * Builds relation instance
-     *
      * @return RelationInterface
      */
-    public function build();
-
-    /**
-     * Resets builder
-     *
-     * @return $this
-     */
-    public function reset();
+    public function build(ModelInterface $model, $relation);
 
     /**
      * Splits relation names

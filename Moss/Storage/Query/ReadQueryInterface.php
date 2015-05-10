@@ -11,14 +11,13 @@
 
 namespace Moss\Storage\Query;
 
-
 /**
  * Query interface
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-interface ReadQueryInterface extends QueryInterface, RelationalQueryInterface
+interface ReadQueryInterface extends QueryInterface
 {
     /**
      * Sets field names which will be read

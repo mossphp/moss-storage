@@ -45,6 +45,25 @@ interface QueryInterface
     public function execute();
 
     /**
+     * Adds relation to query
+     *
+     * @param string|array $relation
+     *
+     * @return $this
+     * @throws QueryException
+     */
+    public function with($relation);
+
+    /**
+     * Returns relation instance
+     *
+     * @param string $relation
+     *
+     * @return QueryInterface
+     */
+    public function relation($relation);
+
+    /**
      * Returns current query string
      *
      * @return string

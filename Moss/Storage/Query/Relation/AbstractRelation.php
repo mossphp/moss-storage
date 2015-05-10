@@ -16,9 +16,9 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\RelationInterface as DefinitionInterface;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
+use Moss\Storage\Query\AbstractRelational;
 use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Accessor\AccessorInterface;
-use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\StorageInterface;
 
 /**
@@ -27,9 +27,8 @@ use Moss\Storage\Query\StorageInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-abstract class AbstractRelation
+abstract class AbstractRelation extends AbstractRelational
 {
-    use RelationTrait;
     use GetTypeTrait;
 
     /**
@@ -221,7 +220,7 @@ abstract class AbstractRelation
         }
 
         foreach ($this->relations as $relation) {
-            $query->setRelation($relation);
+            $query->with($relation->name());
         }
 
         foreach ($this->conditions as $condition) {

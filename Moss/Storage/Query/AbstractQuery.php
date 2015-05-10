@@ -21,9 +21,9 @@ use Moss\Storage\Query\Accessor\AccessorInterface;
  * Abstract Query
  * Implements basic query methods
  *
- * @package Moss\Storage\Query\OperationTraits
+ * @package Moss\Storage
  */
-abstract class AbstractQuery
+abstract class AbstractQuery extends AbstractRelational
 {
     /**
      * @var Connection

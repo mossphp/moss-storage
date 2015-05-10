@@ -19,7 +19,6 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\Accessor;
-use Moss\Storage\Query\OperationTraits\RelationTrait;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -30,7 +29,6 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class ReadQuery extends AbstractQuery implements ReadQueryInterface
 {
-    use RelationTrait;
     use GetTypeTrait;
 
     /**
@@ -392,76 +390,6 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
                 throw new QueryException(sprintf('Unsupported sorting method "%s" in query "%s"', $this->getType($order), $this->model->entity()));
 
         }
-    }
-
-    /**
-     * Adds relation to query with optional conditions and sorting (as key value pairs)
-     *
-     * @param string|array $relation
-     * @param array        $conditions
-     * @param array        $order
-     * @param int          $limit
-     * @param int          $offset
-     *
-     * @return $this
-     */
-    public function with($relation, array $conditions = [], array $order = [], $limit = null, $offset = null)
-    {
-        foreach ((array) $relation as $node) {
-            $this->assignRelation($node, $conditions, $order, $limit, $offset);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Adds relation to query
-     *
-     * @param string $relation
-     * @param array  $conditions
-     * @param array  $order
-     * @param int    $limit
-     * @param int    $offset
-     */
-    protected function assignRelation($relation, array $conditions, array $order, $limit, $offset)
-    {
-        $this->factory->reset();
-        $this->factory->relation($this->model, $relation);
-
-        foreach ($conditions as $condition) {
-            $condition = $this->applyDefaults($condition, [null, null, '=', 'and']);
-            $this->factory->where($condition[0], $condition[1], $condition[2], $condition[3]);
-        }
-
-        if (!empty($order)) {
-            $order = $this->applyDefaults($order, [null, 'asc']);
-            $this->factory->order($order[0], $order[1]);
-        }
-
-        if ($limit !== null || $offset !== null) {
-            $this->factory->limit($limit, $offset);
-        }
-
-        $instance = $this->factory->build();
-
-        $this->relations[$instance->name()] = $instance;
-    }
-
-    /**
-     * Applies default values for missing keys in array
-     *
-     * @param array $array
-     * @param array $defaults
-     *
-     * @return array
-     */
-    protected function applyDefaults(array $array, array $defaults = [])
-    {
-        foreach ($defaults as $key => $value) {
-            $array[$key] = array_key_exists($key, $array) ? $array[$key] : $value;
-        }
-
-        return $array;
     }
 
     /**
