@@ -27,11 +27,11 @@ interface AccessorInterface
      *
      * @param ModelInterface $model
      * @param mixed $entity
-     * @param int|string   $identifier
+     * @param int   $identifier
      *
      * @return void
      */
-    public function identifyEntity(ModelInterface $model, $entity, $identifier);
+    public function identifyEntity(ModelInterface $model, &$entity, $identifier);
 
     /**
      * Returns property value
@@ -53,7 +53,7 @@ interface AccessorInterface
      *
      * @throws AccessorException
      */
-    public function setPropertyValue($entity, $field, $value);
+    public function setPropertyValue(&$entity, $field, $value);
 
     /**
      * Adds value to array property
@@ -65,5 +65,5 @@ interface AccessorInterface
      *
      * @throws AccessorException
      */
-    public function addPropertyValue($entity, $field, $value);
+    public function addPropertyValue(&$entity, $field, $value);
 }

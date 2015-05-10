@@ -19,7 +19,7 @@ use Moss\Storage\Model\ModelInterface;
  *
  * @package Moss\Storage
  */
-final class Accessor
+final class Accessor implements AccessorInterface
 {
     private $buffer = [];
 
@@ -48,9 +48,9 @@ final class Accessor
     /**
      * Returns property value
      *
-     * @param null|array|object $entity
-     * @param string            $field
-     * @param mixed             $default
+     * @param array|object $entity
+     * @param string       $field
+     * @param mixed        $default
      *
      * @return mixed
      * @throws AccessorException
@@ -74,9 +74,9 @@ final class Accessor
     /**
      * Sets property value
      *
-     * @param null|array|object $entity
-     * @param string            $field
-     * @param mixed             $value
+     * @param array|object $entity
+     * @param string       $field
+     * @param mixed        $value
      *
      * @throws AccessorException
      */
