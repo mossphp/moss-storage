@@ -11,7 +11,6 @@
 
 namespace Moss\Storage\Query;
 
-
 use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\ModelInterface;

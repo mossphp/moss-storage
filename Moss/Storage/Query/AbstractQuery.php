@@ -16,7 +16,6 @@ use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\AccessorInterface;
 
-
 /**
  * Abstract Query
  * Implements basic query methods
@@ -64,6 +63,15 @@ abstract class AbstractQuery extends AbstractRelational
             throw new QueryException(sprintf('Entity must be an instance of "%s" or array got "%s"', $entityClass, $this->getType($entity)));
         }
     }
+
+    /**
+     * Returns var type
+     *
+     * @param mixed $var
+     *
+     * @return string
+     */
+    abstract protected function getType($var);
 
     /**
      * Returns connection

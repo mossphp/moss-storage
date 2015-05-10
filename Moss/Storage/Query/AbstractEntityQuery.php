@@ -11,11 +11,7 @@
 
 namespace Moss\Storage\Query;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\ModelInterface;
-
 
 /**
  * Abstract Query

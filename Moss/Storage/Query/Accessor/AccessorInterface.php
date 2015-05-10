@@ -25,7 +25,7 @@ interface AccessorInterface
      * Assigns passed identifier to primary key
      * Possible only when entity has one primary key
      *
-     * @param ModelInterface $entity
+     * @param ModelInterface $model
      * @param mixed $entity
      * @param int|string   $identifier
      *

@@ -11,7 +11,6 @@
 
 namespace Moss\Storage\Query;
 
-
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Types\Type;
