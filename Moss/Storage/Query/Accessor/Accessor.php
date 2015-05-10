@@ -59,7 +59,7 @@ final class Accessor implements AccessorInterface
     {
         $this->assertEntity($entity);
 
-        if ($this->hasArrayAccess($entity)) {
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
             return isset($entity[$field]) ? $entity[$field] : $default;
         }
 
@@ -84,7 +84,7 @@ final class Accessor implements AccessorInterface
     {
         $this->assertEntity($entity);
 
-        if ($this->hasArrayAccess($entity)) {
+        if (is_array($entity) || $entity instanceof \ArrayAccess) {
             $entity[$field] = $value;
 
             return;
@@ -98,18 +98,6 @@ final class Accessor implements AccessorInterface
         }
 
         $this->getProperty($ref, $field)->setValue($entity, $value);
-    }
-
-    /**
-     * Returns true if entity can be treated as array
-     *
-     * @param mixed $entity
-     *
-     * @return bool
-     */
-    private function hasArrayAccess($entity)
-    {
-        return is_array($entity) || $entity instanceof \ArrayAccess;
     }
 
     /**
