@@ -47,15 +47,6 @@ interface ModelInterface
     public function alias($alias = null);
 
     /**
-     * Returns true if models table, entity or alias matches name
-     *
-     * @param string $name
-     *
-     * @return boolean
-     */
-    public function isNamed($name);
-
-    /**
      * Returns true if model has field
      *
      * @param string $field
@@ -67,7 +58,7 @@ interface ModelInterface
     /**
      * Returns array containing field definition
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function fields();
 
@@ -82,46 +73,25 @@ interface ModelInterface
     public function field($field);
 
     /**
-     * Returns true if field is primary index
-     *
-     * @param string $field
-     *
-     * @return bool
-     * @throws ModelException
-     */
-    public function isPrimary($field);
-
-    /**
      * Returns array containing names of primary indexes
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function primaryFields();
 
     /**
-     * Returns true if field is index of any type
+     * Returns all relation where field is listed as local key
      *
      * @param string $field
      *
-     * @return bool
-     * @throws ModelException
+     * @return RelationInterface[]
      */
-    public function isIndex($field);
-
-    /**
-     * Returns array containing all indexes in which field appears
-     *
-     * @param string $field
-     *
-     * @return bool
-     * @throws ModelException
-     */
-    public function inIndex($field);
+    public function referredIn($field);
 
     /**
      * Returns array containing names of indexes
      *
-     * @return array|FieldInterface[]
+     * @return FieldInterface[]
      */
     public function indexFields();
 
@@ -161,7 +131,7 @@ interface ModelInterface
     /**
      * Returns all relation definition
      *
-     * @return array|RelationInterface[]
+     * @return RelationInterface[]
      */
     public function relations();
 

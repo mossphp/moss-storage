@@ -9,13 +9,13 @@ class ForeignTest extends \PHPUnit_Framework_TestCase
 
     public function testName()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertEquals('foo', $index->name());
     }
 
     public function testType()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertEquals('foreign', $index->type());
     }
 
@@ -29,11 +29,11 @@ class ForeignTest extends \PHPUnit_Framework_TestCase
     }
 
     public function fieldsProvider() {
-        return array(
-            array(array('foo' => 'tfoo')),
-            array(array('foo' => 'tfoo', 'bar' => 'tbar')),
-            array(array('foo' => 'tfoo', 'bar' => 'tbar', 'yada' => 'tyada'))
-        );
+        return [
+            [['foo' => 'tfoo']],
+            [['foo' => 'tfoo', 'bar' => 'tbar']],
+            [['foo' => 'tfoo', 'bar' => 'tbar', 'yada' => 'tyada']]
+        ];
     }
 
     /**
@@ -42,43 +42,43 @@ class ForeignTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithoutAnyFields()
     {
-        new Foreign('foo', array(), 'table');
+        new Foreign('foo', [], 'table');
     }
 
 
     public function testHasField()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertTrue($index->hasField('foo'));
         $this->assertTrue($index->hasField('bar'));
     }
 
     public function testWithoutField()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertFalse($index->hasField('yada'));
     }
 
     public function testIsPrimary()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertFalse($index->isPrimary());
     }
 
     public function testIsNotUnique()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertFalse($index->isUnique());
     }
 
     public function testIsUnique()
     {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertFalse($index->isUnique());
     }
 
     public function testForeignTable() {
-        $index = new Foreign('foo', array('foo' => 'tfoo', 'bar' => 'tbar'), 'table');
+        $index = new Foreign('foo', ['foo' => 'tfoo', 'bar' => 'tbar'], 'table');
         $this->assertEquals('table', $index->table());
     }
 }

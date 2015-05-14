@@ -75,22 +75,4 @@ interface RelationInterface
      * @return array
      */
     public function foreignKeys();
-
-    /**
-     * Returns associative array containing local key - value pairs
-     *
-     * @param array $localValues ;
-     *
-     * @return array
-     */
-    public function localValues($localValues = array());
-
-    /**
-     * Returns associative array containing foreign key - value pairs
-     *
-     * @param array $foreignValues ;
-     *
-     * @return array
-     */
-    public function foreignValues($foreignValues = array());
 }

@@ -11,31 +11,17 @@
 
 namespace Moss\Storage\Model\Definition\Relation;
 
+use Moss\Storage\NormalizeNamespaceTrait;
+
 /**
  * One to one relation
  *
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class One extends Relation
+class One extends DirectRelation
 {
-    /**
-     * Constructor
-     *
-     * @param string      $entity
-     * @param array       $keys
-     * @param null|string $container
-     */
-    public function __construct($entity, array $keys, $container = null)
-    {
-        $this->entity = $entity ? ltrim($entity, '\\') : null;
-        $this->type = 'one';
-        $this->container = $this->containerName($container);
+    use NormalizeNamespaceTrait;
 
-        $this->assertKeys($keys);
-
-        $this->assignKeys($keys, $this->keys);
-        $this->in = array_keys($this->keys);
-        $this->out = array_values($this->keys);
-    }
+    protected $type = 'one';
 }

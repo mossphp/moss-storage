@@ -7,14 +7,6 @@
 			<directory>./tests/Moss/Storage/Model/</directory>
 			<directory>./tests/Moss/Storage/Query/</directory>
 			<directory>./tests/Moss/Storage/Schema/</directory>
-			<directory>./tests/Moss/Storage/StorageQueryTest.php</directory>
-			<directory>./tests/Moss/Storage/StorageSchemaTest.php</directory>
-		</testsuite>
-		<testsuite name="MySQL">
-			<directory>./tests/Moss/Storage/Builder/MySQL/</directory>
-		</testsuite>
-		<testsuite name="PgSQL">
-			<directory>./tests/Moss/Storage/Builder/PgSQL/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

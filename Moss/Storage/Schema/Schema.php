@@ -11,10 +11,8 @@
 
 namespace Moss\Storage\Schema;
 
-use Moss\Storage\Builder\SchemaBuilderInterface;
-use Moss\Storage\Driver\DriverInterface;
-use Moss\Storage\Model\Definition\FieldInterface;
-use Moss\Storage\Model\Definition\IndexInterface;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Schema as SchemaAsset;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
 
@@ -26,148 +24,97 @@ use Moss\Storage\Model\ModelInterface;
  */
 class Schema implements SchemaInterface
 {
+    const OPERATION_CREATE = 'create';
+    const OPERATION_ALTER = 'alter';
+    const OPERATION_DROP = 'drop';
 
     /**
-     * @var DriverInterface
+     * @var Connection
      */
-    protected $driver;
-
-    /**
-     * @var SchemaBuilderInterface
-     */
-    protected $builder;
+    protected $connection;
 
     /**
      * @var ModelBag
      */
     protected $models;
 
-    private $operation;
+    /**
+     * @var SchemaAsset;
+     */
+    protected $schema;
 
-    private $before = array();
-    private $queries = array();
-    private $after = array();
+    protected $queries = [];
 
     /**
      * Constructor
      *
-     * @param DriverInterface  $driver
-     * @param SchemaBuilderInterface $builder
-     * @param ModelBag         $models
+     * @param Connection $connection
+     * @param ModelBag   $models
      */
-    public function __construct(DriverInterface $driver, SchemaBuilderInterface $builder, ModelBag $models)
+    public function __construct(Connection $connection, ModelBag $models)
     {
-        $this->driver = & $driver;
-        $this->builder = & $builder;
-        $this->models = & $models;
+        $this->connection = $connection;
+        $this->models = $models;
+
+        $this->createCurrentSchema();
     }
 
     /**
-     * Returns driver instance
-     *
-     * @return DriverInterface
+     * Creates instance with current schema
      */
-    public function driver()
+    protected function createCurrentSchema()
     {
-        return $this->driver;
+        $this->schema = $this->connection->getSchemaManager()->createSchema();
     }
 
     /**
-     * Returns builder instance
+     * Returns connection
      *
-     * @return SchemaBuilderInterface
+     * @return Connection
      */
-    public function builder()
+    public function connection()
     {
-        return $this->builder;
-    }
-
-    /**
-     * Sets check operation
-     *
-     * @param array|string $entity
-     *
-     * @return $this
-     */
-    public function check($entity = array())
-    {
-        return $this->operation('check', $entity);
+        return $this->connection;
     }
 
     /**
      * Sets create operation
      *
-     * @param array|string $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function create($entity = array())
+    public function create(array $entityName = [])
     {
-        return $this->operation('create', $entity);
+        $this->buildCreate($this->retrieveModels($entityName));
+
+        return $this;
     }
 
     /**
      * Sets alter operation
      *
-     * @param array|string $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function alter($entity = array())
+    public function alter(array $entityName = [])
     {
-        return $this->operation('alter', $entity);
+        $this->buildAlter($this->retrieveModels($entityName));
+
+        return $this;
     }
 
     /**
      * Sets drop operation
      *
-     * @param array|string $entity
+     * @param array $entityName
      *
      * @return $this
      */
-    public function drop($entity = array())
+    public function drop(array $entityName = [])
     {
-        return $this->operation('drop', $entity);
-    }
-
-    /**
-     * Sets query operation
-     *
-     * @param string $operation
-     * @param string|array  $entity
-     *
-     * @return $this
-     * @throws SchemaException
-     */
-    public function operation($operation, $entity = array())
-    {
-        $this->operation = $operation;
-        $models = $this->retrieveModels($entity);
-
-        switch ($this->operation) {
-            case 'check':
-                foreach ($models as $model) {
-                    $this->buildCheck($model);
-                }
-                break;
-            case 'create':
-                foreach ($models as $model) {
-                    $this->buildCreate($model);
-                }
-                break;
-            case 'alter':
-                foreach ($models as $model) {
-                    $this->buildAlter($model);
-                }
-                break;
-            case 'drop':
-                foreach ($models as $model) {
-                    $this->buildDrop($model);
-                }
-                break;
-            default:
-                throw new SchemaException(sprintf('Unknown operation "%s" in schema query', $this->operation));
-        }
+        $this->buildDrop($this->retrieveModels($entityName));
 
         return $this;
     }
@@ -175,13 +122,13 @@ class Schema implements SchemaInterface
     /**
      * Returns array with models for operation
      *
-     * @param string|array $entity
+     * @param array $entity
      *
-     * @return array|ModelInterface[]
+     * @return ModelInterface[]
      */
-    protected function retrieveModels($entity = array())
+    protected function retrieveModels(array $entity = [])
     {
-        $models = array();
+        $models = [];
         foreach ((array) $entity as $node) {
             $models[] = $this->models->get($node);
         }
@@ -194,356 +141,146 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Builds check query
-     *
-     * @param ModelInterface $model
-     */
-    protected function buildCheck(ModelInterface $model)
-    {
-        $this->queries[$model->table()] = $this->builder->reset()
-            ->check($model->table())
-            ->build();
-    }
-
-    /**
      * Builds create table queries
      *
-     * @param ModelInterface $model
+     * @param ModelInterface[] $models
      *
      * @throws SchemaException
      */
-    protected function buildCreate(ModelInterface $model)
+    protected function buildCreate(array $models)
     {
-        if ($this->checkIfSchemaExists($model)) {
-            throw new SchemaException(sprintf('Unable to create table, table "%s" already exists', $model->table()));
-        }
+        $schemaManager = $this->connection->getSchemaManager();
 
-        $this->builder->reset()
-            ->create($model->table());
-
-        foreach ($model->fields() as $index) {
-            $this->builder->column($index->name(), $index->type(), $index->attributes());
-        }
-
-        $foreign = array();
-        foreach ($model->indexes() as $index) {
-            if ($index->type() === 'foreign') {
-                $foreign[] = $index;
-                continue;
+        foreach ($models as $model) {
+            if ($schemaManager->tablesExist([$model->table()])) {
+                throw new SchemaException(sprintf('Unable to create table, table "%s" already exists', $model->table()));
             }
 
-            $this->builder->index($index->name(), $index->fields(), $index->type(), $index->table());
+            $this->createTable($this->schema, $model);
         }
 
-        $this->queries[] = $this->builder->build();
-
-        $this->builder->reset()
-            ->add($model->table());
-
-        foreach ($foreign as $index) {
-            $this->after[] = $this->builder->reset()
-                ->add($model->table())
-                ->index($index->name(), $index->fields(), $index->type(), $index->table())
-                ->build();
-        }
+        $this->queries = array_merge(
+            $this->queries,
+            $this->schema->toSql($this->connection->getDatabasePlatform())
+        );
     }
 
     /**
      * Builds table alteration queries
      *
-     * @param ModelInterface $model
-     *
-     * @throws SchemaException
+     * @param ModelInterface[] $models
      */
-    protected function buildAlter(ModelInterface $model)
+    protected function buildAlter(array $models)
     {
-        if (!$this->checkIfSchemaExists($model)) {
-            throw new SchemaException(sprintf('Unable to alter table, table "%s" does not exists', $model->table()));
+        $fromSchema = $this->connection->getSchemaManager()->createSchema();
+        $toSchema = clone $fromSchema;
+
+        foreach ($models as $model) {
+            if ($toSchema->hasTable($model->table())) {
+                $toSchema->dropTable($model->table());
+            }
+
+            $this->createTable($toSchema, $model);
         }
 
-        $current = $this->getCurrentSchema($model);
+        $sql = $fromSchema->getMigrateToSql($toSchema, $this->connection->getDatabasePlatform());
 
-        // foreign keys
-        $this->buildForeignKeysAlterations($model, $current);
-
-        $before = array();
-        $after = array();
-        $queries = array();
-
-        $this->buildColumnsAlterations($model, $current, $queries);
-        $this->buildIndexesAlteration($model, $current, $before, $after);
-
-        $queries = array_merge($before, $queries, $after);
-        $queries = array_diff($queries, $this->before, $this->queries, $this->after);
-
-        if (empty($queries)) {
-            return;
-        }
-
-        $this->queries = array_merge($this->queries, array_values($queries));
+        $this->queries = array_merge($this->queries, $sql);
     }
 
     /**
-     * Builds remove and create queries for foreign keys
+     * Creates table from model into schema
      *
+     * @param SchemaAsset    $schema
      * @param ModelInterface $model
-     * @param                $current
      */
-    private function buildForeignKeysAlterations(ModelInterface $model, $current)
+    protected function createTable(SchemaAsset $schema, ModelInterface $model)
     {
-        foreach ($current['indexes'] as $index) {
-            if ($index['type'] === 'foreign') {
-                $this->before[] = $this->builder->reset()
-                    ->remove($model->table())
-                    ->index($index['name'], $index['fields'], $index['type'], $index['table'])
-                    ->build();
-            }
-        }
-
-        foreach ($model->indexes() as $index) {
-            if ($index->type() === 'foreign') {
-                $this->after[] = $this->builder->reset()
-                    ->add($model->table())
-                    ->index($index->name(), $index->fields(), $index->type(), $index->table())
-                    ->build();
-            }
-        }
-    }
-
-    /**
-     * Builds column alterations
-     *
-     * @param ModelInterface $model
-     * @param                $current
-     * @param array          $queries
-     */
-    private function buildColumnsAlterations(ModelInterface $model, $current, &$queries = array())
-    {
-        $fields = $current['fields'];
+        $table = $schema->createTable($this->quoteIdentifier($model->table()));
 
         foreach ($model->fields() as $field) {
-            if (false === $i = $this->findNodeByName($fields, $field->name())) {
-                $queries[] = $this->buildColumnOperation('add', $model->table(), $field->name(), $field->type(), $field->attributes());
-                continue;
-            }
-
-            if ($this->sameField($fields[$i], $field)) {
-                unset($fields[$i]);
-                continue;
-            }
-
-            $queries[] = $this->buildColumnOperation('change', $model->table(), $field->name(), $field->type(), $field->attributes());
-            unset($fields[$i]);
+            $table->addColumn(
+                $this->quoteIdentifier($field->mappedName()),
+                $field->type(),
+                $field->attributes()
+            );
         }
-
-        foreach ($fields as $field) {
-            $queries[] = $this->buildColumnOperation('remove', $model->table(), $field['name'], $field['type'], $field['attributes']);
-        }
-    }
-
-    /**
-     * Builds actual queries altering columns
-     *
-     * @param string      $operation
-     * @param string      $table
-     * @param string      $name
-     * @param string      $type
-     * @param array       $attributes
-     * @param null|string $after
-     *
-     * @return string
-     */
-    private function buildColumnOperation($operation, $table, $name, $type, $attributes, $after = null)
-    {
-        return $this->builder->reset()
-            ->operation($operation)
-            ->table($table)
-            ->column($name, $type, $attributes, $after)
-            ->build();
-    }
-
-    /**
-     * Builds keys/indexes alterations
-     *
-     * @param ModelInterface $model
-     * @param                $current
-     * @param array          $before
-     * @param array          $after
-     */
-    private function buildIndexesAlteration(ModelInterface $model, $current, &$before = array(), &$after = array())
-    {
-        $indexes = $current['indexes'];
 
         foreach ($model->indexes() as $index) {
-            if (false === $i = $this->findNodeByName($indexes, $index->name())) {
-                $after[] = $this->buildIndexOperation('add', $model->table(), $index->name(), $index->fields(), $index->type(), $index->table());
-                continue;
-            }
-
-            if ($this->sameIndex($indexes[$i], $index)) {
-                unset($indexes[$i]);
-                continue;
-            }
-        }
-
-        foreach ($indexes as $index) {
-            $before[] = $this->buildIndexOperation('remove', $model->table(), $index['name'], $index['fields'], $index['type'], $index['table']);
-        }
-    }
-
-    /**
-     * Builds actual index altering queries
-     *
-     * @param string      $operation
-     * @param string      $table
-     * @param string      $name
-     * @param array       $fields
-     * @param string      $type
-     * @param null|string $foreignTable
-     *
-     * @return string
-     */
-    private function buildIndexOperation($operation, $table, $name, $fields, $type, $foreignTable = null)
-    {
-        return $this->builder->reset()
-            ->operation($operation)
-            ->table($table)
-            ->index($name, $fields, $type, $foreignTable)
-            ->build();
-    }
-
-    /**
-     * Returns true if schema exists
-     *
-     * @param ModelInterface $model
-     *
-     * @return bool
-     */
-    protected function checkIfSchemaExists(ModelInterface $model)
-    {
-        $query = $this->builder->reset()
-            ->check($model->table())
-            ->build();
-
-        $count = $this->driver->prepare($query)
-            ->execute()
-            ->affectedRows();
-
-        return $count == 1;
-    }
-
-    /**
-     * Returns array representing current schema
-     *
-     * @param ModelInterface $model
-     *
-     * @return array
-     */
-    protected function getCurrentSchema(ModelInterface $model)
-    {
-        $query = $this->builder->reset()
-            ->info($model->table())
-            ->build();
-
-        $result = $this->driver->prepare($query)
-            ->execute()
-            ->fetchAll();
-
-        $array = $this->builder->parse($result);
-
-        return $array;
-    }
-
-    /**
-     * Finds node in array by its name
-     *
-     * @param $array
-     * @param $name
-     *
-     * @return bool|int|string
-     */
-    protected function findNodeByName($array, $name)
-    {
-        foreach ($array as $i => $node) {
-            if ($node['name'] == $name) {
-                return $i;
+            switch ($index->type()) {
+                case 'primary':
+                    $table->setPrimaryKey(
+                        $this->quoteIdentifier($index->fields()),
+                        $this->quoteIdentifier($index->name())
+                    );
+                    break;
+                case 'unique':
+                    $table->addUniqueIndex(
+                        $this->quoteIdentifier($index->fields()),
+                        $this->quoteIdentifier($index->name())
+                    );
+                    break;
+                case 'foreign':
+                    $table->addForeignKeyConstraint(
+                        $index->table(),
+                        $this->quoteIdentifier(array_keys($index->fields())),
+                        $this->quoteIdentifier(array_values($index->fields())),
+                        ['onUpdate' => 'CASCADE', 'onDelete' => 'RESTRICT'],
+                        $this->quoteIdentifier($index->name())
+                    );
+                    break;
+                case 'index':
+                default:
+                    $table->addIndex(
+                        $this->quoteIdentifier($index->fields()),
+                        $this->quoteIdentifier($index->name())
+                    );
             }
         }
-
-        return false;
     }
 
     /**
-     * Returns true if both fields are equal
+     * Quotes SQL identifier or array of identifiers
      *
-     * @param array          $old
-     * @param FieldInterface $new
+     * @param string|array $identifier
      *
-     * @return bool
+     * @return string|array
      */
-    protected function sameField($old, FieldInterface $new)
+    protected function quoteIdentifier($identifier)
     {
-        if ($old['type'] !== $new->type()) {
-            return false;
+        if (!is_array($identifier)) {
+            return $this->connection->quoteIdentifier($identifier);
         }
 
-        $attributes = array('length' => null, 'precision' => null, 'null' => false, 'auto_increment' => false, 'default' => null);
-        foreach ($new->attributes() as $key => $value) {
-            $attributes[$key] = $value;
+        foreach ($identifier as &$value) {
+            $value = $this->connection->quoteIdentifier($value);
+            unset($value);
         }
 
-        if (isset($old['attributes']['length']) && !isset($attributes['length'])) {
-            $attributes['length'] = $old['attributes']['length'];
-        }
-
-        if (isset($old['attributes']['precision']) && !isset($attributes['precision'])) {
-            $attributes['precision'] = $old['attributes']['precision'];
-        }
-
-        return $attributes == $old['attributes'];
-    }
-
-    /**
-     * Returns true if both indexes are equal
-     *
-     * @param array          $old
-     * @param IndexInterface $new
-     *
-     * @return bool
-     */
-    protected function sameIndex($old, IndexInterface $new)
-    {
-        if ($old['type'] !== $new->type()) {
-            return false;
-        }
-
-        return $old['fields'] == $new->fields();
+        return $identifier;
     }
 
     /**
      * Builds drop table query
      *
-     * @param ModelInterface $model
+     * @param ModelInterface[] $models
      */
-    protected function buildDrop(ModelInterface $model)
+    protected function buildDrop(array $models)
     {
-        if ($this->checkIfSchemaExists($model)) {
-            $current = $this->getCurrentSchema($model);
-            foreach ($current['indexes'] as $index) {
-                if ($index['type'] != 'foreign') {
-                    continue;
-                }
+        $fromSchema = $this->connection->getSchemaManager()->createSchema();
+        $toSchema = clone $fromSchema;
 
-                $this->before[] = $this->builder->reset()
-                    ->remove($model->table())
-                    ->index($index['name'], $index['fields'], $index['type'])
-                    ->build();
+        foreach ($models as $model) {
+            if (!$toSchema->hasTable($model->table())) {
+                continue;
             }
+
+            $toSchema->dropTable($model->table());
         }
 
-        $this->queries[] = $this->builder->reset()
-            ->drop($model->table())
-            ->build();
+        $sql = $fromSchema->getMigrateToSql($toSchema, $this->connection->getDatabasePlatform());
+
+        $this->queries = array_merge($this->queries, $sql);
     }
 
     /**
@@ -554,31 +291,12 @@ class Schema implements SchemaInterface
      */
     public function execute()
     {
-        $queries = array_merge($this->before, $this->queries, $this->after);
+        $result = [];
+        foreach ($this->queryString() as $query) {
+            $stmt = $this->connection->prepare($query);
+            $stmt->execute();
 
-        $result = array();
-        switch ($this->operation) {
-            case 'check':
-                foreach ($queries as $table => $query) {
-                    $result[$table] = $this->driver
-                            ->prepare($query)
-                            ->execute()
-                            ->affectedRows() == 1;
-                }
-                break;
-            case 'create':
-            case 'alter':
-            case 'drop':
-                foreach ($queries as $query) {
-                    $this->driver
-                        ->prepare($query)
-                        ->execute();
-
-                    $result[] = $query;
-                }
-                break;
-            default:
-                $result = array();
+            $result[] = $query;
         }
 
         $this->reset();
@@ -587,13 +305,13 @@ class Schema implements SchemaInterface
     }
 
     /**
-     * Returns current query string
+     * Returns array of queries that will be executed
      *
-     * @return string
+     * @return array
      */
     public function queryString()
     {
-        return array_merge($this->before, $this->queries, $this->after);
+        return $this->queries;
     }
 
     /**
@@ -603,10 +321,8 @@ class Schema implements SchemaInterface
      */
     public function reset()
     {
-        $this->operation = null;
-        $this->before = array();
-        $this->queries = array();
-        $this->after = array();
+        $this->queries = [];
+        $this->createCurrentSchema();
 
         return $this;
     }

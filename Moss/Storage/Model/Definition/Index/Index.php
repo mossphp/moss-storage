@@ -25,7 +25,7 @@ class Index implements IndexInterface
     protected $table;
     protected $name;
     protected $type;
-    protected $fields = array();
+    protected $fields = [];
 
     /**
      * Constructor

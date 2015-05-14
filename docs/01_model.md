@@ -6,7 +6,7 @@ Each `Model` consists of:
 
  * namespaced entity class name
  * table name
- * any number of field definitions
+ * one or more field definitions
  * any number of index definitions
  * any number of relation definitions
 
@@ -15,80 +15,91 @@ To create model type:
 ```php
 use Moss\Storage\Model\Model;
 
-$model = new Model(
-	'\some\Entity',
-	'someTable',
-	array(...), // array containing field definitions
-	array(...), // array containing index definitions
-	array(...) // another array with relation definitions
-)
+$model = new Moss\Storage\Model\Model(
+	'\Post',
+	'post',
+	[
+		new Field('id', 'integer', ['autoincrement']),
+		new Field('created', 'datetime'),
+		new Field('title', 'string', ['length' => 128]),
+		new Field('body', 'string', []),
+	],
+	[
+		new Primary(['id']),
+		new Index('created', ['created']),
+	],  
+	[
+		new Many('comment', ['id' => 'post_id']),
+	]
+);
 ```
 
-Each entity class must have separate model which must be registered in **Storage**:
-When creating query you can call entity by namespaced class name or by alias, as in example below:
+Each entity class must have separate model which must be registered in `ModelBag`:
+When creating query you can call entity by namespaced class name or by provided alias, as in example below:
 
 ```php
-$storage->register($someNamespacedClassModel, 'someAlias');
+$model = new Moss\Storage\Model\Model('\some\Class', ... );
+$bag->register($model, 'someAlias');
 
-$result = $storage->read('\some\namespaced\Class')->execute();
+$result = $storage->read('\some\Class')->execute();
 $result = $storage->read('someAlias')->execute();
 ```
 
 ## Fields
 
 Object mapping means that entity properties are represented as table fields.
-Therefore `Model` must contain at least one field definition.
+`Model` must contain at least one field which is represented by instance of `Field`.
 
 ```php
-use Moss\Storage\Model\Definition\Field\Integer;
-
-$field = new Integer($name, $attributes, $mapping);
+$field = new Field('title', 'text', []); 
 ```
 
-Each field definition consists of its name (`$name`), array with attributes (`$attribute`) and mapping.
-Only name is required.
+**Storage** allows for all field types allowed by _Doctrines DBAL_:
 
-Attributes array is different for each field, eg only `integer` fields can have `auto_increment` attribute, but `integers` do not support `precision`.
+ * Integer types
+    * `smallint`
+    * `integer`
+    * `bigint`
+ * Decimal types
+    * `decimal`
+    * `float`
+ * Character string types
+    * `string`
+    * `text`
+    * `guid`
+ * Binary string types
+    * `binary`
+    * `blob`
+ * Bit types
+    * `boolean`
+ * Date and time types
+    * `date`
+    * `datetime`
+    * `datetimetz`
+    * `time`
+ * Array types
+    * `array`
+    * `simple_array`
+    * `json_array`
+ * Object types
+    * `object`
 
-Parameter `$mapping` is provided for situations where field name is different than property name.
-For instance property `companyAddress` can be represented as `company_address` field.
-
-Field types:
-  * `Boolean` - boolean field (attributes: `null`, `default`)
-  * `Integer` - signed integer (attributes: `length`, `null`, `auto_increment`, `default`)
-  * `Decimal` - decimal field (attributes: `length`, `precision`, `null`, `default`)
-  * `String` - string, text (attributes: `length`, `null`)
-  * `DateTime` - datatime field, can convert itself from and into `\DateTime` instance (attributes: `null`, `default`)
-  * `Serial` - serialized data: array, object or maybe file (attributes: `null`)
-
-Supported attributes:
-
-  * `null` - marks field as nullable
-  * `default` - sets default value
-  * `auto_increment` - field is auto incremented (only `Integer`)
-  * `length` - field length
-  * `precision` - field precision (used only in `Decimal`)
-
-For example - decimal field, with 4 digits, 2 of which on the fractional, can be null, entity property is called `fooBar` but stored in `foo_bar` field:
-
-```php
-use Moss\Storage\Model\Definition\Field\Decimal;
-
-$field = new Decimal('fooBar', array('null', 'length' => 4, 'precision' => 2), 'foo_bar');
-```
+And should handle any custom type that DBAL can.
 
 ## Indexes, Constraints & Keys
 
-Model may contain index or key definitions
+`Model` may contain index or key definitions.
+They are not needed for mapping but since model can be used (and is) to create schema, why not do it with keys and constraints.
 
 ### Primary key
 
-As primary keys name is often reserved, there is no need to type its name, just define columns used in key
+Primary key consists of array of columns.
+As primary keys name is often reserved, there is no need to type its name.
 
 ```php
 use Moss\Storage\Model\Definition\Index\Primary;
 
-$primary = new Primary(array('id'));
+$primary = new Primary(['id']);
 ```
 
 ### Foreign key
@@ -98,10 +109,10 @@ Foreign key definition must include its name, array containing fields from local
 ```php
 use Moss\Storage\Model\Definition\Index\Foreign;
 
-$foreign = new Foreign('fk_other_id', array('other_id' => 'id'), 'other');
+$foreign = new Foreign('fk_other_id', ['other_id' => 'id'], 'other');
 ```
 
-Above definition says that foreign key `fk_other_id` will constrain field `other_id` to values from `other.id`.
+Above definition says that foreign key `fk_other_id` will constrain field `other_id` to values from field `id` from table `other`.
 
 ### Unique
 
@@ -110,7 +121,7 @@ To define unique constraint just type its name and array with columns
 ```php
 use Moss\Storage\Model\Definition\Index\Unique;
 
-$unique = new Unique('uk_id', array('id'));
+$unique = new Unique('uk_id', ['id']);
 ```
 
 ### Index
@@ -120,7 +131,7 @@ Index definition consists from its name and column names
 ```php
 use Moss\Storage\Model\Definition\Index\Index;
 
-$index = new Index('i_id', array('id'));
+$index = new Index('i_id', ['id']);
 ```
 
 ## Relations
@@ -142,7 +153,19 @@ Where:
  * `$keys` - array containing local fields as keys and referenced fields as corresponding values
  * `$container` - entity field where relation entities exist, if not set - field will be same as entity class without namespace
 
-And more complicated `many-to-many` relation. Also **Storage** supports `one-to-one with mediator/pivot` relation.
+
+**Example**
+Book has one author and relation between book and author can be represented this way:
+```php
+new One('author', ['author_id' => 'id'])
+```
+
+Author wrote many books:
+```php
+new Many('book', ['id' => 'author_id']),
+```
+
+And more complicated `many-to-many` and `one-to-one` (trough mediator/pivot table)` relation.
 
 ```php
 use Moss\Storage\Model\Definition\Relation\OneTrough;
@@ -152,28 +175,25 @@ $rel = new OneTrough($entity, $in, $out, $mediator, $container);
 $rel = new ManyTrough($entity, $in, $out, $mediator, $container);
 ```
 
-`$entity` and `$container` are same as in previous relations. Main difference is in defining keys.
+`$entity` and `$container` have same meaning as in previous relations. Main difference is in defining keys.
 Both relations require some kind of mediator/pivot table, therefore `$in` and `$out` keys need to be defined.
 Also, `$mediator` must point to mediator/pivot table that binds both entities.
+
+**Example**
+Same case as in simple relations, but this time with mediator/pivot table:
+```php
+new OneTrough('author', ['id' => 'book_id'], ['author_id' => 'id'], 'book_author')
+```
+
+Author wrote many books:
+```php
+new ManyTrough('book', ['id' => 'author_id'], ['book_id' => 'id'], 'book_author')
+```
 
 **Important**
 Table acting as mediator/pivot must be described by `Model` as any other table, but does not require class representing entity.
 In such cache, while defining `Model` its class name can be omitted wit `null` value.
 Results from such table, will be represented as associative arrays (if there should be any need for them).
-
-For example, one `BlogEntry` can contain `Author` entity and many `Comment` entities.
-To retrieve them in one operation two relations must be defined: one-to-one for `Author` and one-to-many for `Comment`, `Author` will be available in `Author` property.:
-
-```php
-$commentRelation = new Many('\cms\Comment', array('id' => 'article_id'));
-$authorRelation = new One('\cms\Author', array('author_id' => 'id'));
-```
-
-If `BlogEntry` should have tags:
-
-```php
-$tagRelation = new ManyTrough('\cms\Tag', array('id' => 'article_id'), array('tag_id' => 'id'), 'article_tag`);
-```
 
 **Important**
 Relation definitions are unidirectional, therefore if `Author` should point to `BlogEntry`, new relation in `Author` model must be defined.

@@ -15,7 +15,7 @@ use Moss\Storage\Model\Definition\RelationInterface as RelationDefinitionInterfa
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\QueryException;
-use Moss\Storage\Query\QueryInterface;
+use Moss\Storage\Query\StorageInterface;
 
 /**
  * Entity relationship factory
@@ -23,97 +23,68 @@ use Moss\Storage\Query\QueryInterface;
  * @author  Michal Wachowski <wachowski.michal@gmail.com>
  * @package Moss\Storage
  */
-class RelationFactory
+class RelationFactory implements RelationFactoryInterface
 {
+    const RELATION_ONE = 'one';
+    const RELATION_MANY = 'many';
+    const RELATION_ONE_TROUGH = 'oneTrough';
+    const RELATION_MANY_TROUGH = 'manyTrough';
 
     /**
-     * @var QueryInterface
+     * @var StorageInterface
      */
-    private $query;
+    protected $storage;
 
     /**
      * @var ModelBag
      */
-    private $bag;
+    protected $bag;
 
     /**
      * Constructor
      *
-     * @param QueryInterface $query
-     * @param ModelBag       $models
+     * @param StorageInterface $storage
+     * @param ModelBag         $models
      */
-    public function __construct(QueryInterface $query, ModelBag $models)
+    public function __construct(StorageInterface $storage, ModelBag $models)
     {
-        $this->query = $query;
+        $this->storage = $storage;
         $this->bag = $models;
     }
 
     /**
-     * Adds relation to query with optional conditions and sorting (as key value pairs)
-     *
-     * @param ModelInterface $model
-     * @param string|array   $relation
-     * @param array          $conditions
-     * @param array          $order
-     *
-     * @return $this
-     */
-    public function create(ModelInterface $model, $relation, array $conditions = array(), array $order = array())
-    {
-        if (!is_array($relation)) {
-            return array($this->assignRelation($model, $relation, $conditions, $order));
-        }
-
-        $instances = array();
-        foreach (array_keys($relation) as $i) {
-            $instances[] = $this->assignRelation(
-                $model,
-                $relation[$i],
-                isset($conditions[$i]) ? $conditions[$i] : array(),
-                isset($order[$i]) ? $order[$i] : array()
-            );
-        }
-
-        return $instances;
-    }
-
-    /**
-     * Assigns relation to query
+     * Sets model and its relation
      *
      * @param ModelInterface $model
      * @param string         $relation
-     * @param array          $conditions
-     * @param array          $order
      *
      * @return RelationInterface
-     * @throws QueryException
+     * @throws RelationException
      */
-    private function assignRelation($model, $relation, array $conditions = array(), array $order = array())
+    public function build(ModelInterface $model, $relation)
     {
-        list($relation, $furtherRelations) = $this->splitRelationName($relation);
+        list($current, $further) = $this->splitRelationName($relation);
+        $definition = $this->fetchDefinition($model, $current);
 
-        $instance = $this->buildRelationInstance($this->fetchDefinition($model, $relation));
-
-        foreach ($conditions as $node) {
-            if (!is_array($node)) {
-                throw new QueryException(sprintf('Invalid condition, must be an array, got %s', gettype($node)));
-            }
-
-            $instance->query()
-                ->where($node[0], $node[1], isset($node[2]) ? $node[2] : '=', isset($node[3]) ? $node[3] : 'and');
+        switch ($definition->type()) {
+            case self::RELATION_ONE:
+                $instance = new OneRelation($this->storage, $definition, $this->bag, $this);
+                break;
+            case self::RELATION_MANY:
+                $instance = new ManyRelation($this->storage, $definition, $this->bag, $this);
+                break;
+            case self::RELATION_ONE_TROUGH:
+                $instance = new OneTroughRelation($this->storage, $definition, $this->bag, $this);
+                break;
+            case self::RELATION_MANY_TROUGH:
+                $instance = new ManyTroughRelation($this->storage, $definition, $this->bag, $this);
+                break;
+            default:
+                throw new RelationException(sprintf('Invalid relation type "%s" for "%s"', $definition->type(), $definition->entity()));
         }
 
-        foreach ($order as $node) {
-            if (!is_array($node)) {
-                throw new QueryException(sprintf('Invalid order, must be an array, got %s', gettype($node)));
-            }
-
-            $instance->query()
-                ->order($node[0], isset($node[1]) ? $node[1] : 'desc');
-        }
-
-        if ($furtherRelations) {
-            $instance->with($furtherRelations);
+        if ($further) {
+            $instance->with($further);
         }
 
         return $instance;
@@ -128,49 +99,13 @@ class RelationFactory
      * @return RelationDefinitionInterface
      * @throws QueryException
      */
-    private function fetchDefinition(ModelInterface $model, $relation)
+    protected function fetchDefinition(ModelInterface $model, $relation)
     {
         if ($model->hasRelation($relation)) {
             return $model->relation($relation);
         }
 
-        if ($this->bag->has($relation)) {
-            $entity = $this->bag->get($relation);
-
-            if ($model->hasRelation($entity->alias())) {
-                return $model->relation($entity->alias());
-            }
-
-            if ($model->hasRelation($entity->entity())) {
-                return $model->relation($entity->entity());
-            }
-        }
-
-        throw new QueryException(sprintf('Unable to resolve relation "%s" not found in model "%s"', $relation, $model->entity()));
-    }
-
-    /**
-     * Builds relation instance
-     *
-     * @param RelationDefinitionInterface $definition
-     *
-     * @return ManyRelation|ManyTroughRelation|OneRelation|OneTroughRelation
-     * @throws QueryException
-     */
-    private function buildRelationInstance(RelationDefinitionInterface $definition)
-    {
-        switch ($definition->type()) {
-            case 'one':
-                return new OneRelation(clone $this->query, $definition, $this->bag);
-            case 'many':
-                return new ManyRelation(clone $this->query, $definition, $this->bag);
-            case 'oneTrough':
-                return new OneTroughRelation(clone $this->query, $definition, $this->bag);
-            case 'manyTrough':
-                return new ManyTroughRelation(clone $this->query, $definition, $this->bag);
-            default:
-                throw new QueryException(sprintf('Invalid relation type "%s" for "%s"', $definition->type(), $definition->entity()));
-        }
+        throw new RelationException(sprintf('Unable to resolve relation "%s" not found in model "%s"', $relation, $model->entity()));
     }
 
     /**
@@ -186,6 +121,6 @@ class RelationFactory
             return explode('.', $relationName, 2);
         }
 
-        return array($relationName, null);
+        return [$relationName, null];
     }
 }

@@ -51,6 +51,13 @@ interface FieldInterface
     public function mapping();
 
     /**
+     * Returns fields mapped name or if not mapped returns property name
+     *
+     * @return string
+     */
+    public function mappedName();
+
+    /**
      * Returns attribute value or null if not set
      *
      * @param string $attribute

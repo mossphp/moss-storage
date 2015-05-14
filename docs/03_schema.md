@@ -1,23 +1,30 @@
 # Schema
 
-`StorageSchema` responsibility is to create, alter and drop entity tables.
-Since `StorageSchema` can use multiple queries to perform required task, it will always return array containing queries.
+`Schema` responsibility is to create, alter and drop entity tables.
+Since `Schema` can use multiple queries to perform required task, it will always return array containing queries.
 
-Each `StorageSchema` operation can be called for all modeled tables or for just one.
+Each `Schema` operation can be called for all modeled tables or for just one.
 Note, that not all operations can be executed on just one table, especially when there are foreign keys.
 
 ## Create instance
 
-`StorageSchema` depends on `DriverInterface` and `SchemaBuilderInterface`.
+`Schema` depends on `Connection` and `ModelBag`.
 
 ```php
-$dsn = sprintf('%s:dbname=%s;host=%s;port=%u', 'mysql', 'database', 'localhost', 3306);
-$driver = new \Moss\Storage\Driver\PDO($dsn, 'user', 'password');
+$conn = DriverManager::getConnection([
+    'dbname' => 'test',
+    'user' => 'user',
+    'password' => 'password',
+    'host' => 'localhost',
+    'driver' => 'pdo_mysql',
+    'charset' => 'utf8'
+]);
 
-$builder = new \Moss\Storage\Builder\MySQL\SchemaBuilder();
+$models = new ModelBag();
+$models->set(...); // register some models
 
-$storage = new \Moss\Storage\StorageSchema($driver, $builder);
-$storage->register('...'); // register models
+$query = new Query($conn, $models);
+
 ```
 
 **Important**
@@ -25,7 +32,7 @@ A said before, You must register models, without them storage will be unable to 
 
 ## Query string & Execute
 
-When `::execute()` method is called, `StorageSchema` builds all queries and sends them to driver where they are executed.
+When `::execute()` method is called, `Schema` builds all queries and sends them to driver where they are executed.
 To check what queries will be executed without sending them to database, instead `::execute()` call `::queryString()`.
 This will return array containing all build queries in same order that they are sent to database driver.
 
@@ -90,11 +97,14 @@ You should check what alterations will be performed before executing them - just
 
 ## Drop
 
-Drops entity table
+Drops all defined entity tables
 
-```sql
-DROP TABLE IF EXISTS ...
+```php
+$storage
+	->drop()
+	->execute();
 ```
+
 ```php
 $storage
 	->drop('entity')
