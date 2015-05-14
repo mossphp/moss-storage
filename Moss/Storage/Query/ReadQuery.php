@@ -127,10 +127,10 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     /**
      * Adds where condition to query
      *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
+     * @param string|array $field
+     * @param mixed        $value
+     * @param string       $comparison
+     * @param string       $logical
      *
      * @return $this
      * @throws QueryException
@@ -153,10 +153,10 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     /**
      * Adds where condition to query
      *
-     * @param mixed  $field
-     * @param mixed  $value
-     * @param string $comparison
-     * @param string $logical
+     * @param string|array $field
+     * @param mixed        $value
+     * @param string       $comparison
+     * @param string       $logical
      *
      * @return string
      * @throws QueryException
