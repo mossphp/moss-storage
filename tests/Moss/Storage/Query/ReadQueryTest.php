@@ -452,4 +452,32 @@ class ReadQueryTest extends QueryMocks
         $query = new ReadQuery($this->dbal, $model, $this->factory, $this->accessor);
         $query->reset();
     }
+
+    public function testCustomQueryCount()
+    {
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('rowCount')->willReturn(10);
+
+        $this->dbal->expects($this->once())->method('executeQuery')->with('CUSTOM SQL QUERY', ['param' => 'val'])->willReturn($stmt);
+        $this->builder->expects($this->never())->method('execute');
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $query = new ReadQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query->query('CUSTOM SQL QUERY', ['param' => 'val'])->count();
+    }
+
+    public function testCustomQueryExecution()
+    {
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('fetchAll')->willReturn([]);
+
+        $this->dbal->expects($this->once())->method('executeQuery')->with('CUSTOM SQL QUERY', ['param' => 'val'])->willReturn($stmt);
+        $this->builder->expects($this->never())->method('execute');
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $query = new ReadQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query->query('CUSTOM SQL QUERY', ['param' => 'val'])->execute();
+    }
 }

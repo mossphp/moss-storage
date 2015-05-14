@@ -30,6 +30,9 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
 {
     use GetTypeTrait;
 
+    protected $queryString;
+    protected $queryParams = [];
+
     /**
      * @var array
      */
@@ -415,9 +418,33 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function count()
     {
-        $stmt = $this->builder->execute();
+        if (empty($this->queryString)) {
+            $builder = clone $this->builder;
+            $builder->resetQueryPart('orderBy');
+            $builder->setFirstResult(0);
+            $builder->setMaxResults(0);
+            $stmt = $builder->execute();
+        } else {
+            $stmt = $this->connection->executeQuery($this->queryString, $this->queryParams);
+        }
 
         return (int) $stmt->rowCount();
+    }
+
+    /**
+     * Sets custom query to be executed instead of one based on entity structure
+     *
+     * @param string $query
+     * @param array $params
+     *
+     * @return $this
+     */
+    public function query($query, array $params = [])
+    {
+        $this->queryString = $query;
+        $this->queryParams = $params;
+
+        return $this;
     }
 
     /**
@@ -428,7 +455,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function execute()
     {
-        $stmt = $this->builder->execute();
+        $stmt = $this->executeQuery();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
 
         foreach ($this->relations as $relation) {
@@ -436,6 +463,21 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Executes query - from builder or custom
+     *
+     * @return Statement
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    protected function executeQuery()
+    {
+        if (empty($this->queryString)) {
+            return $this->builder->execute();
+        }
+
+        return $this->connection->executeQuery($this->queryString, $this->queryParams);
     }
 
     /**
@@ -536,6 +578,8 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     {
         $this->builder->resetQueryParts();
         $this->relations = [];
+        $this->queryString = null;
+        $this->queryParams = [];
         $this->casts = [];
         $this->resetBinds();
 

@@ -467,12 +467,42 @@ class ReadOneQueryTest extends QueryMocks
 
     public function testReset()
     {
-        $builder = $this->mockQueryBuilder();
         $this->builder->expects($this->once())->method('resetQueryParts');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
         $query->reset();
+    }
+
+    public function testCustomQueryCount()
+    {
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('rowCount')->willReturn(10);
+
+        $this->dbal->expects($this->once())->method('executeQuery')->with('CUSTOM SQL QUERY', ['param' => 'val'])->willReturn($stmt);
+        $this->builder->expects($this->never())->method('execute');
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query->query('CUSTOM SQL QUERY', ['param' => 'val'])->count();
+    }
+
+    public function testCustomQueryExecution()
+    {
+        $result = [new TestEntity('foo')];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('execute');
+        $stmt->expects($this->any())->method('fetchAll')->willReturn($result);
+
+        $this->dbal->expects($this->once())->method('executeQuery')->with('CUSTOM SQL QUERY', ['param' => 'val'])->willReturn($stmt);
+        $this->builder->expects($this->never())->method('execute');
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query->query('CUSTOM SQL QUERY', ['param' => 'val'])->execute();
     }
 }
