@@ -15,6 +15,7 @@ use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -25,6 +26,9 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
 {
+    const EVENT_BEFORE = 'delete.before';
+    const EVENT_AFTER = 'delete.after';
+
     use GetTypeTrait;
 
     protected $instance;
@@ -37,10 +41,11 @@ class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
-        parent::__construct($connection, $entity, $model, $factory, $accessor);
+        parent::__construct($connection, $entity, $model, $factory, $accessor, $dispatcher);
 
         $this->setQuery();
         $this->setPrimaryKeyConditions();
@@ -67,8 +72,12 @@ class DeleteQuery extends AbstractEntityQuery implements DeleteQueryInterface
             $relation->delete($this->instance);
         }
 
+        $this->dispatcher->fire(self::EVENT_BEFORE, $this->instance);
+
         $this->builder->execute();
         $this->accessor->identifyEntity($this->model, $this->instance, null);
+
+        $this->dispatcher->fire(self::EVENT_AFTER, $this->instance);
 
         return $this->instance;
     }

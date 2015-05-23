@@ -25,12 +25,18 @@ class UpdateQueryTest extends QueryMocks
      */
     private $accessor;
 
+    /**
+     * @var \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $dispatcher;
+
     public function setUp()
     {
         $this->builder = $this->mockQueryBuilder();
         $this->dbal = $this->mockDBAL($this->builder);
         $this->factory = $this->mockRelFactory();
         $this->accessor = $this->mockAccessor();
+        $this->dispatcher = $this->mockEventDispatcher();
     }
 
     /**
@@ -41,7 +47,7 @@ class UpdateQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new UpdateQuery($this->dbal, null, $model, $this->factory, $this->accessor);
+        new UpdateQuery($this->dbal, null, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     /**
@@ -52,7 +58,7 @@ class UpdateQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
 
-        new UpdateQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor);
+        new UpdateQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityWithPublicProperties()
@@ -60,7 +66,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityWithProtectedProperties()
@@ -68,7 +74,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = new TestEntity('foo', 'bar');
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityIsArray()
@@ -76,7 +82,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testConnection()
@@ -84,7 +90,7 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
 
         $this->assertSame($this->dbal, $query->connection());
     }
@@ -105,7 +111,7 @@ class UpdateQueryTest extends QueryMocks
             ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
         );
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo', 'bar']);
     }
 
@@ -124,7 +130,7 @@ class UpdateQueryTest extends QueryMocks
             ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
         );
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->value('bar');
     }
 
@@ -138,7 +144,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => null, ':value_1_bar' => 'bar']);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $this->assertEquals([':value_0_foo' => null, ':value_1_bar' => 'bar'], $query->binds());
     }
 
@@ -152,7 +158,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => 'yada', ':value_1_bar' => 'bar']);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $this->assertEquals([':value_0_foo' => 'yada', ':value_1_bar' => 'bar'], $query->binds());
     }
 
@@ -165,7 +171,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
     }
 
@@ -179,7 +185,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($relation);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation')->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -196,7 +202,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation.relation')->relation('relation.relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -211,7 +217,7 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -223,7 +229,6 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute')->with();
 
         $this->dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
 
@@ -232,7 +237,12 @@ class UpdateQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $this->dispatcher->expects($this->exactly(2))->method('fire')->withConsecutive(
+            [UpdateQuery::EVENT_BEFORE, $entity],
+            [UpdateQuery::EVENT_AFTER, $entity]
+        );
+
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
         $query->execute();
     }
@@ -244,7 +254,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->builder->expects($this->once())->method('getSQL');
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->getSQL();
     }
 
@@ -255,7 +265,7 @@ class UpdateQueryTest extends QueryMocks
 
         $this->builder->expects($this->any())->method('getParameters')->willReturn([':condition_2_foo' => 'foo', ':value_1_foo' => 'foo']);
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo']);
         $this->assertEquals([':condition_2_foo' => 'foo', ':value_1_foo' => 'foo'], $query->binds());
     }
@@ -268,7 +278,7 @@ class UpdateQueryTest extends QueryMocks
         $builder = $this->mockQueryBuilder();
         $this->builder->expects($this->any())->method('resetQueryParts');
 
-        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->reset();
     }
 }

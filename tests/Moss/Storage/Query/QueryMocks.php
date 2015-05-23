@@ -166,4 +166,14 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
 
         return $accessorMock;
     }
+
+    /**
+     * @return \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockEventDispatcher()
+    {
+        $dispatcherMock = $this->getMock('\Moss\Storage\Query\EventDispatcher\EventDispatcherInterface');
+
+        return $dispatcherMock;
+    }
 }

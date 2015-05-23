@@ -18,6 +18,7 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -28,6 +29,9 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class ReadQuery extends AbstractQuery implements ReadQueryInterface
 {
+    const EVENT_BEFORE = 'read.before';
+    const EVENT_AFTER = 'read.after';
+
     use GetTypeTrait;
 
     protected $queryString;
@@ -45,10 +49,11 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
-        parent::__construct($connection, $model, $factory, $accessor);
+        parent::__construct($connection, $model, $factory, $accessor, $dispatcher);
 
         $this->setQuery();
         $this->fields();
@@ -421,8 +426,6 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
         if (empty($this->queryString)) {
             $builder = clone $this->builder;
             $builder->resetQueryPart('orderBy');
-            $builder->setFirstResult(0);
-            $builder->setMaxResults(0);
             $stmt = $builder->execute();
         } else {
             $stmt = $this->connection->executeQuery($this->queryString, $this->queryParams);
@@ -435,7 +438,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      * Sets custom query to be executed instead of one based on entity structure
      *
      * @param string $query
-     * @param array $params
+     * @param array  $params
      *
      * @return $this
      */
@@ -455,12 +458,17 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function execute()
     {
+        $this->dispatcher->fire(self::EVENT_BEFORE);
+
         $stmt = $this->executeQuery();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
+
+        $this->dispatcher->fire(self::EVENT_AFTER, $result);
 
         foreach ($this->relations as $relation) {
             $result = $relation->read($result);
         }
+
 
         return $result;
     }

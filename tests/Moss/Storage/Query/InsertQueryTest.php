@@ -26,12 +26,18 @@ class InsertQueryTest extends QueryMocks
      */
     private $accessor;
 
+    /**
+     * @var \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $dispatcher;
+
     public function setUp()
     {
         $this->builder = $this->mockQueryBuilder();
         $this->dbal = $this->mockDBAL($this->builder);
         $this->factory = $this->mockRelFactory();
         $this->accessor = $this->mockAccessor();
+        $this->dispatcher = $this->mockEventDispatcher();
     }
 
     /**
@@ -42,7 +48,7 @@ class InsertQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new InsertQuery($this->dbal, null, $model, $this->factory, $this->accessor);
+        new InsertQuery($this->dbal, null, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     /**
@@ -53,7 +59,7 @@ class InsertQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
 
-        new InsertQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor);
+        new InsertQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityWithPublicProperties()
@@ -61,7 +67,7 @@ class InsertQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
-        new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityWithProtectedProperties()
@@ -69,7 +75,7 @@ class InsertQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $entity = new TestEntity('foo', 'bar');
-        new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityIsArray()
@@ -77,7 +83,7 @@ class InsertQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testConnection()
@@ -85,7 +91,7 @@ class InsertQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
 
         $this->assertSame($this->dbal, $query->connection());
     }
@@ -105,7 +111,7 @@ class InsertQueryTest extends QueryMocks
             ['`bar`', $this->matchesRegularExpression('/^:value_.*/')]
         );
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo', 'bar']);
     }
 
@@ -126,7 +132,7 @@ class InsertQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo']);
         $query->value('bar');
     }
@@ -141,7 +147,7 @@ class InsertQueryTest extends QueryMocks
 
         $this->builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => null, ':value_1_bar' => 'bar']);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $this->assertEquals([':value_0_foo' => null, ':value_1_bar' => 'bar'], $query->binds());
     }
 
@@ -156,7 +162,7 @@ class InsertQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $this->assertEquals([':value_0_foo' => 'yada', ':value_1_bar' => 'bar'], $query->binds());
     }
 
@@ -170,7 +176,7 @@ class InsertQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
     }
 
@@ -188,7 +194,7 @@ class InsertQueryTest extends QueryMocks
 
         $accessor = $this->mockAccessor();
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation')->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -206,7 +212,7 @@ class InsertQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation.relation')->relation('relation.relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -221,7 +227,7 @@ class InsertQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -233,7 +239,6 @@ class InsertQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute')->with();
 
         $this->dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
 
@@ -244,7 +249,12 @@ class InsertQueryTest extends QueryMocks
 
         $this->accessor->expects($this->any())->method('setPropertyValue')->willReturnArgument(0);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $this->dispatcher->expects($this->exactly(2))->method('fire')->withConsecutive(
+            [InsertQuery::EVENT_BEFORE, $entity],
+            [InsertQuery::EVENT_AFTER, $entity]
+        );
+
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
         $query->execute();
     }
@@ -256,7 +266,7 @@ class InsertQueryTest extends QueryMocks
 
         $this->builder->expects($this->once())->method('getSQL');
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->getSQL();
     }
 
@@ -267,7 +277,7 @@ class InsertQueryTest extends QueryMocks
 
         $this->builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => 'foo']);
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo']);
         $this->assertEquals([':value_0_foo' => 'foo'], $query->binds());
     }
@@ -279,7 +289,7 @@ class InsertQueryTest extends QueryMocks
 
         $this->builder->expects($this->any())->method('resetQueryParts');
 
-        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->reset();
     }
 }

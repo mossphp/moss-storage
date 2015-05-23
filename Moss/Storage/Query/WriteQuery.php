@@ -22,6 +22,9 @@ use Moss\Storage\Model\Definition\FieldInterface;
  */
 class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
 {
+    const EVENT_BEFORE = 'write.before';
+    const EVENT_AFTER = 'write.after';
+
     use GetTypeTrait;
 
     protected $instance;
@@ -87,8 +90,12 @@ class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
      */
     public function execute()
     {
+        $this->dispatcher->fire(self::EVENT_BEFORE, $this->instance);
+
         $this->buildQuery()
             ->execute();
+
+        $this->dispatcher->fire(self::EVENT_AFTER, $this->instance);
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);
@@ -113,9 +120,9 @@ class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
     protected function buildQuery()
     {
         if ($this->checkIfEntityExists()) {
-            $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->factory, $this->accessor);
+            $query = new UpdateQuery($this->connection, $this->instance, $this->model, $this->factory, $this->accessor, $this->dispatcher);
         } else {
-            $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->factory, $this->accessor);
+            $query = new InsertQuery($this->connection, $this->instance, $this->model, $this->factory, $this->accessor, $this->dispatcher);
         }
 
         $query->values($this->values);
@@ -130,7 +137,7 @@ class WriteQuery extends AbstractEntityValueQuery implements WriteQueryInterface
      */
     protected function checkIfEntityExists()
     {
-        $query = new ReadQuery($this->connection, $this->model, $this->factory, $this->accessor);
+        $query = new ReadQuery($this->connection, $this->model, $this->factory, $this->accessor, $this->dispatcher);
 
         foreach ($this->model->primaryFields() as $field) {
             $value = $this->accessor->getPropertyValue($this->instance, $field->name());

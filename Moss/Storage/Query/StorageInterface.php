@@ -29,6 +29,16 @@ interface StorageInterface
     public function connection();
 
     /**
+     * Registers event listener
+     *
+     * @param string $event
+     * @param callable $listener
+     *
+     * @return $this
+     */
+    public function registerEventListener($event, callable $listener);
+
+    /**
      * Sets read operation
      *
      * @param string $entityName
