@@ -80,7 +80,7 @@ class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterfa
 
         $this->builder->setValue(
             $this->connection->quoteIdentifier($field->mappedName()),
-            $this->bind('value', $field->name(), $field->type(), $value)
+            $this->builder->createNamedParameter($value, $field->type())
         );
     }
 

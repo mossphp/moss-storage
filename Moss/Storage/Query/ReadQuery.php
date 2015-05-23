@@ -348,7 +348,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     protected function bindValues($name, $type, $values)
     {
         if (!is_array($values)) {
-            return $this->bind('condition', $name, $type, $values);
+            return $this->builder->createNamedParameter($values, $type);
         }
 
         foreach ($values as $key => $value) {

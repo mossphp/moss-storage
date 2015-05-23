@@ -107,19 +107,19 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`'], ['`bar`']);
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('insert')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')],
 
             // forced values
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
@@ -143,19 +143,19 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`'], ['`bar`']);
-        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('update')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('set')->withConsecutive(
             // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')],
 
             // forced values
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
 
@@ -180,17 +180,17 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`']);
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('insert')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
 
             // forced values
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
@@ -215,17 +215,17 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`']);
-        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('update')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('set')->withConsecutive(
         // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
 
             // forced values
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));

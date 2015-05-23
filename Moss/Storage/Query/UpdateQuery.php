@@ -77,7 +77,7 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
 
         $this->builder->set(
             $this->connection->quoteIdentifier($field->mappedName()),
-            $this->bind('value', $field->name(), $field->type(), $value)
+            $this->builder->createNamedParameter($value, $field->type())
         );
     }
 

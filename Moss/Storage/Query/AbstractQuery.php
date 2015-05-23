@@ -119,23 +119,6 @@ abstract class AbstractQuery extends AbstractRelational
     }
 
     /**
-     * Binds value to unique key and returns it
-     *
-     * @param string $operation
-     * @param string $field
-     * @param string $type
-     * @param mixed  $value
-     *
-     * @return string
-     */
-    protected function bind($operation, $field, $type, $value)
-    {
-        $key = ':' . implode('_', [$operation, count($this->builder->getParameters()), $field]);
-
-        return $this->builder->createNamedParameter($value, $type, $key);
-    }
-
-    /**
      * Removes bound values by their prefix
      * If prefix is null - clears all bound values
      *

@@ -101,14 +101,14 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $this->builder->expects($this->once())->method('update')->with('`table`');
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('set')->withConsecutive(
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+$/')]
         );
 
         $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
@@ -121,13 +121,13 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $this->builder->expects($this->once())->method('update')->with('`table`');
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(3))->method('set')->withConsecutive(
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+$/')]
         );
 
         $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
@@ -142,10 +142,10 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => null, 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
 
-        $this->builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => null, ':value_1_bar' => 'bar']);
+        $this->builder->expects($this->any())->method('getParameters')->willReturn([':dcValue1' => null, ':dcValue2' => 'bar']);
 
         $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
-        $this->assertEquals([':value_0_foo' => null, ':value_1_bar' => 'bar'], $query->binds());
+        $this->assertEquals([':dcValue1' => null, ':dcValue2' => 'bar'], $query->binds());
     }
 
     public function testValueFromRelationalEntity()
@@ -156,10 +156,10 @@ class UpdateQueryTest extends QueryMocks
         $entity = ['foo' => null, 'bar' => 'bar', 'yada' => ['yada' => 'yada']];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo'], [], ['yada' => $reference]);
 
-        $this->builder->expects($this->any())->method('getParameters')->willReturn([':value_0_foo' => 'yada', ':value_1_bar' => 'bar']);
+        $this->builder->expects($this->any())->method('getParameters')->willReturn([':dcValue1' => 'yada', ':dcValue2' => 'bar']);
 
         $query = new UpdateQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
-        $this->assertEquals([':value_0_foo' => 'yada', ':value_1_bar' => 'bar'], $query->binds());
+        $this->assertEquals([':dcValue1' => 'yada', ':dcValue2' => 'bar'], $query->binds());
     }
 
     public function testWith()
@@ -229,6 +229,7 @@ class UpdateQueryTest extends QueryMocks
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('execute')->with();
 
         $this->dbal->expects($this->any())->method('prepare')->will($this->returnValue($stmt));
 

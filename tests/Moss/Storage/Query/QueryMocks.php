@@ -30,8 +30,9 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
      */
     public function mockQueryBuilder()
     {
+        $counter = 0;
         $builderMock = $this->getMockBuilder('\Doctrine\DBAL\Query\QueryBuilder')->disableOriginalConstructor()->getMock();
-        $builderMock->expects($this->any())->method('createNamedParameter')->willReturnArgument(2);
+        $builderMock->expects($this->any())->method('createNamedParameter')->willReturnCallback(function() use (&$counter) { return ':dcValue' . ++$counter; });
 
         return $builderMock;
     }

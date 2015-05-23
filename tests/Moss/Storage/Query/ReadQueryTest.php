@@ -98,7 +98,7 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereSimple()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :condition_0_bar');
+        $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :dcValue1');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
@@ -118,7 +118,7 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithMultipleFields()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`foo` = :condition_\d_foo and `bar` = :condition_\d_bar\)$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`foo` = :dcValue\d+ and `bar` = :dcValue\d+\)$/'));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
@@ -128,7 +128,7 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithMultipleValues()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`bar` = :condition_\d_bar or `bar` = :condition_\d_bar\)$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`bar` = :dcValue\d+ or `bar` = :dcValue\d+\)$/'));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
@@ -138,7 +138,7 @@ class ReadQueryTest extends QueryMocks
 
     public function testWhereWithMultipleFieldsAndValues()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(\(`foo` = :condition_\d_foo or `foo` = :condition_\d_foo\) and \(`bar` = :condition_\d_bar or `bar` = :condition_\d_bar\)\)$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(\(`foo` = :dcValue\d+ or `foo` = :dcValue\d+\) and \(`bar` = :dcValue\d+ or `bar` = :dcValue\d+\)\)$/'));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
@@ -174,14 +174,14 @@ class ReadQueryTest extends QueryMocks
     public function comparisonOperatorsProvider()
     {
         return [
-            ['=', '`bar` = :condition_0_bar'],
-            ['!=', '`bar` != :condition_0_bar'],
-            ['>', '`bar` > :condition_0_bar'],
-            ['>=', '`bar` >= :condition_0_bar'],
-            ['<', '`bar` < :condition_0_bar'],
-            ['<=', '`bar` <= :condition_0_bar'],
-            ['like', '`bar` like :condition_0_bar'],
-            ['regexp', '`bar` regexp :condition_0_bar'],
+            ['=', '`bar` = :dcValue1'],
+            ['!=', '`bar` != :dcValue1'],
+            ['>', '`bar` > :dcValue1'],
+            ['>=', '`bar` >= :dcValue1'],
+            ['<', '`bar` < :dcValue1'],
+            ['<=', '`bar` <= :dcValue1'],
+            ['like', '`bar` like :dcValue1'],
+            ['regexp', '`bar` regexp :dcValue1'],
         ];
     }
 
@@ -192,11 +192,11 @@ class ReadQueryTest extends QueryMocks
     {
         switch ($operator) {
             case 'or':
-                $this->builder->expects($this->once())->method('orWhere')->with('`bar` = :condition_0_bar');
+                $this->builder->expects($this->once())->method('orWhere')->with('`bar` = :dcValue1');
                 break;
             case 'and':
             default:
-                $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :condition_0_bar');
+                $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :dcValue1');
         }
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);

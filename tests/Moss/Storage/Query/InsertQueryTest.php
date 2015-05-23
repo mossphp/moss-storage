@@ -105,10 +105,10 @@ class InsertQueryTest extends QueryMocks
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
-            ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],
-            ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_.*/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $query = new InsertQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
@@ -124,10 +124,10 @@ class InsertQueryTest extends QueryMocks
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
-            ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_.*/')],
-            ['`foo`', $this->matchesRegularExpression('/^:value_.*/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_.*/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);

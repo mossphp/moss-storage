@@ -80,7 +80,7 @@ abstract class AbstractEntityQuery extends AbstractQuery
                 sprintf(
                     '%s = %s',
                     $this->connection->quoteIdentifier($field->mappedName()),
-                    $this->bind('condition', $field->name(), $field->type(), $value)
+                    $this->builder->createNamedParameter($value, $field->type())
                 )
             );
         }
