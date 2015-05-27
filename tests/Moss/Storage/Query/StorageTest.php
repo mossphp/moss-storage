@@ -35,9 +35,9 @@ class StorageTest extends QueryMocks
     private $bag;
 
     /**
-     * @var \Moss\Storage\Query\Relation\RelationFactoryInterface|\PHPUnit_Framework_MockObject_MockObject
+     * @var \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
      */
-    private $factory;
+    private $dispatcher;
 
     public function setUp()
     {
@@ -45,12 +45,12 @@ class StorageTest extends QueryMocks
         $this->dbal = $this->mockDBAL($this->builder);
         $this->model = $this->mockModel('\\stdClass', 'table');
         $this->bag = $this->mockBag([$this->model]);
-        $this->factory = $this->mockRelFactory();
+        $this->dispatcher = $this->mockEventDispatcher();
     }
 
     public function testConnection()
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertSame($this->dbal, $query->connection());
     }
 
@@ -59,7 +59,7 @@ class StorageTest extends QueryMocks
      */
     public function testRead()
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->read('\\stdClass'));
     }
 
@@ -68,7 +68,7 @@ class StorageTest extends QueryMocks
      */
     public function testReadOne()
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertInstanceOf('\Moss\Storage\Query\ReadQueryInterface', $query->readOne('\\stdClass'));
     }
 
@@ -77,7 +77,7 @@ class StorageTest extends QueryMocks
      */
     public function testWrite($instance, $entity)
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertInstanceOf('\Moss\Storage\Query\WriteQueryInterface', $query->write($instance, $entity));
     }
 
@@ -86,7 +86,7 @@ class StorageTest extends QueryMocks
      */
     public function testInsert($instance, $entity)
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertInstanceOf('\Moss\Storage\Query\InsertQueryInterface', $query->insert($instance, $entity));
     }
 
@@ -95,7 +95,7 @@ class StorageTest extends QueryMocks
      */
     public function testUpdate($instance, $entity)
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertInstanceOf('\Moss\Storage\Query\UpdateQueryInterface', $query->update($instance, $entity));
     }
 
@@ -104,7 +104,7 @@ class StorageTest extends QueryMocks
      */
     public function testDelete($instance, $entity)
     {
-        $query = new Storage($this->dbal, $this->bag, $this->factory);
+        $query = new Storage($this->dbal, $this->bag, $this->dispatcher);
         $this->assertInstanceOf('\Moss\Storage\Query\DeleteQueryInterface', $query->delete($instance, $entity));
     }
 
