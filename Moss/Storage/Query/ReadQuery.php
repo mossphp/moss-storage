@@ -18,6 +18,7 @@ use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -28,7 +29,13 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class ReadQuery extends AbstractQuery implements ReadQueryInterface
 {
+    const EVENT_BEFORE = 'read.before';
+    const EVENT_AFTER = 'read.after';
+
     use GetTypeTrait;
+
+    protected $queryString;
+    protected $queryParams = [];
 
     /**
      * @var array
@@ -42,10 +49,11 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
-        parent::__construct($connection, $model, $factory, $accessor);
+        parent::__construct($connection, $model, $factory, $accessor, $dispatcher);
 
         $this->setQuery();
         $this->fields();
@@ -340,7 +348,7 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     protected function bindValues($name, $type, $values)
     {
         if (!is_array($values)) {
-            return $this->bind('condition', $name, $type, $values);
+            return $this->builder->createNamedParameter($values, $type);
         }
 
         foreach ($values as $key => $value) {
@@ -415,9 +423,31 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function count()
     {
-        $stmt = $this->builder->execute();
+        if (empty($this->queryString)) {
+            $builder = clone $this->builder;
+            $builder->resetQueryPart('orderBy');
+            $stmt = $builder->execute();
+        } else {
+            $stmt = $this->connection->executeQuery($this->queryString, $this->queryParams);
+        }
 
         return (int) $stmt->rowCount();
+    }
+
+    /**
+     * Sets custom query to be executed instead of one based on entity structure
+     *
+     * @param string $query
+     * @param array  $params
+     *
+     * @return $this
+     */
+    public function query($query, array $params = [])
+    {
+        $this->queryString = $query;
+        $this->queryParams = $params;
+
+        return $this;
     }
 
     /**
@@ -428,14 +458,34 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
      */
     public function execute()
     {
-        $stmt = $this->builder->execute();
+        $this->dispatcher->fire(self::EVENT_BEFORE);
+
+        $stmt = $this->executeQuery();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
+
+        $this->dispatcher->fire(self::EVENT_AFTER, $result);
 
         foreach ($this->relations as $relation) {
             $result = $relation->read($result);
         }
 
+
         return $result;
+    }
+
+    /**
+     * Executes query - from builder or custom
+     *
+     * @return Statement
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    protected function executeQuery()
+    {
+        if (empty($this->queryString)) {
+            return $this->builder->execute();
+        }
+
+        return $this->connection->executeQuery($this->queryString, $this->queryParams);
     }
 
     /**
@@ -536,6 +586,8 @@ class ReadQuery extends AbstractQuery implements ReadQueryInterface
     {
         $this->builder->resetQueryParts();
         $this->relations = [];
+        $this->queryString = null;
+        $this->queryParams = [];
         $this->casts = [];
         $this->resetBinds();
 

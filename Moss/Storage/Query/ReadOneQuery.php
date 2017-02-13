@@ -14,6 +14,7 @@ namespace Moss\Storage\Query;
 use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -31,10 +32,11 @@ class ReadOneQuery extends ReadQuery
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
-        parent::__construct($connection, $model, $factory, $accessor);
+        parent::__construct($connection, $model, $factory, $accessor, $dispatcher);
         $this->limit(1);
     }
 
@@ -47,12 +49,16 @@ class ReadOneQuery extends ReadQuery
      */
     public function execute()
     {
-        $stmt = $this->builder->execute();
+        $this->dispatcher->fire(ReadQuery::EVENT_BEFORE);
+
+        $stmt = $this->executeQuery();
         $result = $this->model->entity() ? $this->fetchAsObject($stmt) : $this->fetchAsAssoc($stmt);
 
         if (!count($result)) {
             throw new QueryException(sprintf('Result out of range or does not exists for "%s"', $this->model->entity()));
         }
+
+        $this->dispatcher->fire(ReadQuery::EVENT_AFTER);
 
         $result = array_slice($result, 0, 1, false);
 

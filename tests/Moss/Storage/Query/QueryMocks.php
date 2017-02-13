@@ -30,8 +30,9 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
      */
     public function mockQueryBuilder()
     {
+        $counter = 0;
         $builderMock = $this->getMockBuilder('\Doctrine\DBAL\Query\QueryBuilder')->disableOriginalConstructor()->getMock();
-        $builderMock->expects($this->any())->method('createNamedParameter')->willReturnArgument(2);
+        $builderMock->expects($this->any())->method('createNamedParameter')->willReturnCallback(function() use (&$counter) { return ':dcValue' . ++$counter; });
 
         return $builderMock;
     }
@@ -165,5 +166,15 @@ abstract class QueryMocks extends \PHPUnit_Framework_TestCase
         $accessorMock = $this->getMock('\Moss\Storage\Query\Accessor\AccessorInterface');
 
         return $accessorMock;
+    }
+
+    /**
+     * @return \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    public function mockEventDispatcher()
+    {
+        $dispatcherMock = $this->getMock('\Moss\Storage\Query\EventDispatcher\EventDispatcherInterface');
+
+        return $dispatcherMock;
     }
 }

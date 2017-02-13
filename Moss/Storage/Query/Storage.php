@@ -15,6 +15,7 @@ use Doctrine\DBAL\Connection;
 use Moss\Storage\Model\ModelBag;
 use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactory;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 use Moss\Storage\NormalizeNamespaceTrait;
@@ -51,17 +52,24 @@ class Storage implements StorageInterface
     protected $accessor;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * Constructor
      *
-     * @param Connection $connection
-     * @param ModelBag   $models
+     * @param Connection               $connection
+     * @param ModelBag                 $models
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, ModelBag $models)
+    public function __construct(Connection $connection, ModelBag $models, EventDispatcherInterface $dispatcher)
     {
         $this->connection = $connection;
         $this->models = $models;
         $this->factory = new RelationFactory($this, $models);
         $this->accessor = new Accessor();
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -72,6 +80,21 @@ class Storage implements StorageInterface
     public function connection()
     {
         return $this->connection;
+    }
+
+    /**
+     * Registers event listener
+     *
+     * @param string   $event
+     * @param callable $listener
+     *
+     * @return $this
+     */
+    public function registerEventListener($event, callable $listener)
+    {
+        $this->dispatcher->register($event, $listener);
+
+        return $this;
     }
 
     /**
@@ -87,7 +110,8 @@ class Storage implements StorageInterface
             $this->connection,
             $this->models->get($entityName),
             $this->factory,
-            $this->accessor
+            $this->accessor,
+            $this->dispatcher
         );
     }
 
@@ -104,7 +128,8 @@ class Storage implements StorageInterface
             $this->connection,
             $this->models->get($entityName),
             $this->factory,
-            $this->accessor
+            $this->accessor,
+            $this->dispatcher
         );
     }
 
@@ -125,7 +150,8 @@ class Storage implements StorageInterface
             $instance,
             $this->models->get($entity),
             $this->factory,
-            $this->accessor
+            $this->accessor,
+            $this->dispatcher
         );
     }
 
@@ -146,7 +172,8 @@ class Storage implements StorageInterface
             $instance,
             $this->models->get($entity),
             $this->factory,
-            $this->accessor
+            $this->accessor,
+            $this->dispatcher
         );
     }
 
@@ -167,7 +194,8 @@ class Storage implements StorageInterface
             $instance,
             $this->models->get($entity),
             $this->factory,
-            $this->accessor
+            $this->accessor,
+            $this->dispatcher
         );
     }
 
@@ -188,7 +216,8 @@ class Storage implements StorageInterface
             $instance,
             $this->models->get($entity),
             $this->factory,
-            $this->accessor
+            $this->accessor,
+            $this->dispatcher
         );
     }
 

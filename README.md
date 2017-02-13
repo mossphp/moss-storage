@@ -50,9 +50,6 @@ Or via [Composer](https://getcomposer.org/)
 	}
 ```
 
-Storage has no external dependencies.
-(Only PHPUnit for developement).
-
 ## Contribute
 
 If you want to submit fix or some other enhancements, feel free to do so.

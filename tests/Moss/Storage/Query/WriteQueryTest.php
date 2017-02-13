@@ -25,12 +25,18 @@ class WriteQueryTest extends QueryMocks
      */
     private $accessor;
 
+    /**
+     * @var \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $dispatcher;
+
     public function setUp()
     {
         $this->builder = $this->mockQueryBuilder();
         $this->dbal = $this->mockDBAL($this->builder);
         $this->factory = $this->mockRelFactory();
         $this->accessor = $this->mockAccessor();
+        $this->dispatcher = $this->mockEventDispatcher();
     }
 
     /**
@@ -41,7 +47,7 @@ class WriteQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new WriteQuery($this->dbal, null, $model, $this->factory, $this->accessor);
+        new WriteQuery($this->dbal, null, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     /**
@@ -52,7 +58,7 @@ class WriteQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\Foo', 'table', ['foo', 'bar'], ['foo']);
 
-        new WriteQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor);
+        new WriteQuery($this->dbal, new \stdClass(), $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityWithPublicProperties()
@@ -60,7 +66,7 @@ class WriteQueryTest extends QueryMocks
         $entity = (object) ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityWithProtectedProperties()
@@ -68,7 +74,7 @@ class WriteQueryTest extends QueryMocks
         $entity = new TestEntity('foo', 'bar');
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testEntityIsArray()
@@ -76,7 +82,7 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testConnection()
@@ -84,7 +90,7 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
 
         $this->assertSame($this->dbal, $query->connection());
     }
@@ -101,26 +107,26 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`'], ['`bar`']);
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('insert')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')],
 
             // forced values
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
 
         $this->accessor->expects($this->any())->method('getPropertyValue')->willReturnArgument(1);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo', 'bar']);
         $query->getSQL();
     }
@@ -137,19 +143,19 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`'], ['`bar`']);
-        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('update')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('set')->withConsecutive(
             // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')],
 
             // forced values
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
 
@@ -157,7 +163,7 @@ class WriteQueryTest extends QueryMocks
 
         $this->accessor->expects($this->any())->method('getPropertyValue')->willReturnArgument(1);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo', 'bar']);
         $query->getSQL();
     }
@@ -174,24 +180,24 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`']);
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('insert')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('setValue')->withConsecutive(
             // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
 
             // forced values
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
 
         $this->accessor->expects($this->any())->method('getPropertyValue')->willReturnArgument(1);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo']);
         $query->value('bar');
         $query->getSQL();
@@ -209,24 +215,24 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->exactly(2))->method('select')->with([]);
         $this->builder->expects($this->at(1))->method('from')->with('`table`');
         $this->builder->expects($this->exactly(2))->method('addSelect')->withConsecutive(['`foo`']);
-        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :condition_\d_foo$/'));
+        $this->builder->expects($this->exactly(2))->method('andWhere')->with($this->matchesRegularExpression('/^`foo` = :dcValue\d+$/'));
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->once())->method('update')->with('`table`');
         $this->builder->expects($this->any())->method('getQueryParts')->willReturn(['set' => 'set', 'value' => 'value']);
         $this->builder->expects($this->atLeastOnce())->method('resetQueryPart')->withAnyParameters();
         $this->builder->expects($this->exactly(4))->method('set')->withConsecutive(
         // values from insert
-            ['`foo`', $this->matchesRegularExpression('/^:value_\d_foo$/')],
+            ['`foo`', $this->matchesRegularExpression('/^:dcValue\d+$/')],
 
             // forced values
-            ['`bar`', $this->matchesRegularExpression('/^:value_\d_bar$/')]
+            ['`bar`', $this->matchesRegularExpression('/^:dcValue\d+/')]
         );
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
 
         $this->accessor->expects($this->any())->method('getPropertyValue')->willReturnArgument(1);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo']);
         $query->value('bar');
         $query->getSQL();
@@ -241,7 +247,7 @@ class WriteQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
     }
 
@@ -255,7 +261,7 @@ class WriteQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($relation);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation')->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -272,7 +278,7 @@ class WriteQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation.relation')->relation('relation.relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -287,19 +293,18 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
     }
 
-    public function testExecute()
+    public function testExecuteWithInsert()
     {
         $entity = ['foo' => 'foo'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
         $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
-        $stmt->expects($this->any())->method('execute')->with();
 
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
 
@@ -308,7 +313,43 @@ class WriteQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $this->dispatcher->expects($this->exactly(4))->method('fire')->withConsecutive(
+            [WriteQuery::EVENT_BEFORE, $entity],
+            [InsertQuery::EVENT_BEFORE, $entity],
+            [InsertQuery::EVENT_AFTER, $entity],
+            [WriteQuery::EVENT_AFTER, $entity]
+        );
+
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
+        $query->with('relation');
+        $query->execute();
+    }
+
+    public function testExecuteWithUpdate()
+    {
+        $entity = ['foo' => 'foo'];
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('rowCount')->willReturn(1);
+
+        $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
+
+        $relation = $this->mockRelation();
+        $relation->expects($this->once())->method('write')->with($entity)->willReturn($entity);
+
+        $this->factory->expects($this->any())->method('build')->willReturn($relation);
+
+        $this->accessor->expects($this->any())->method('getPropertyValue')->willReturnArgument(1);
+
+        $this->dispatcher->expects($this->exactly(4))->method('fire')->withConsecutive(
+            [WriteQuery::EVENT_BEFORE, $entity],
+            [UpdateQuery::EVENT_BEFORE, $entity],
+            [UpdateQuery::EVENT_AFTER, $entity],
+            [WriteQuery::EVENT_AFTER, $entity]
+        );
+
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
         $query->execute();
     }
@@ -325,7 +366,7 @@ class WriteQueryTest extends QueryMocks
         $this->builder->expects($this->once())->method('getSQL')->with();
         $this->builder->expects($this->any())->method('execute')->will($this->returnValue($stmt));
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->getSQL();
     }
 
@@ -334,7 +375,7 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->values(['foo']);
 
         $this->assertEmpty($query->binds());
@@ -345,7 +386,7 @@ class WriteQueryTest extends QueryMocks
         $entity = ['foo' => 'foo', 'bar' => 'bar'];
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor);
+        $query = new WriteQuery($this->dbal, $entity, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->reset();
     }
 }

@@ -15,6 +15,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Moss\Storage\Model\ModelInterface;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -46,19 +47,26 @@ abstract class AbstractQuery extends AbstractRelational
     protected $accessor;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    protected $dispatcher;
+
+    /**
      * Constructor
      *
      * @param Connection               $connection
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
         $this->connection = $connection;
         $this->model = $model;
         $this->factory = $factory;
         $this->accessor = $accessor;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -108,23 +116,6 @@ abstract class AbstractQuery extends AbstractRelational
     public function getSQL()
     {
         return (string) $this->builder->getSQL();
-    }
-
-    /**
-     * Binds value to unique key and returns it
-     *
-     * @param string $operation
-     * @param string $field
-     * @param string $type
-     * @param mixed  $value
-     *
-     * @return string
-     */
-    protected function bind($operation, $field, $type, $value)
-    {
-        $key = ':' . implode('_', [$operation, count($this->builder->getParameters()), $field]);
-
-        return $this->builder->createNamedParameter($value, $type, $key);
     }
 
     /**

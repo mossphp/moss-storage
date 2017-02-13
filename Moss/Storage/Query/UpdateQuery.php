@@ -15,8 +15,8 @@ use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -27,6 +27,9 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterface
 {
+    const EVENT_BEFORE = 'update.before';
+    const EVENT_AFTER = 'update.after';
+
     use GetTypeTrait;
 
     protected $instance;
@@ -39,10 +42,11 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
-        parent::__construct($connection, $entity, $model, $factory, $accessor);
+        parent::__construct($connection, $entity, $model, $factory, $accessor, $dispatcher);
 
         $this->setQuery();
         $this->values();
@@ -73,7 +77,7 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
 
         $this->builder->set(
             $this->connection->quoteIdentifier($field->mappedName()),
-            $this->bind('value', $field->name(), $field->type(), $value)
+            $this->builder->createNamedParameter($value, $field->type())
         );
     }
 
@@ -85,7 +89,11 @@ class UpdateQuery extends AbstractEntityValueQuery implements UpdateQueryInterfa
      */
     public function execute()
     {
+        $this->dispatcher->fire(self::EVENT_BEFORE, $this->instance);
+
         $this->builder->execute();
+
+        $this->dispatcher->fire(self::EVENT_AFTER, $this->instance);
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);

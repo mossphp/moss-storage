@@ -15,8 +15,8 @@ use Doctrine\DBAL\Connection;
 use Moss\Storage\GetTypeTrait;
 use Moss\Storage\Model\Definition\FieldInterface;
 use Moss\Storage\Model\ModelInterface;
-use Moss\Storage\Query\Accessor\Accessor;
 use Moss\Storage\Query\Accessor\AccessorInterface;
+use Moss\Storage\Query\EventDispatcher\EventDispatcherInterface;
 use Moss\Storage\Query\Relation\RelationFactoryInterface;
 
 /**
@@ -27,6 +27,9 @@ use Moss\Storage\Query\Relation\RelationFactoryInterface;
  */
 class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterface
 {
+    const EVENT_BEFORE = 'insert.before';
+    const EVENT_AFTER = 'insert.after';
+
     use GetTypeTrait;
 
     protected $instance;
@@ -39,10 +42,11 @@ class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterfa
      * @param ModelInterface           $model
      * @param RelationFactoryInterface $factory
      * @param AccessorInterface        $accessor
+     * @param EventDispatcherInterface $dispatcher
      */
-    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor)
+    public function __construct(Connection $connection, $entity, ModelInterface $model, RelationFactoryInterface $factory, AccessorInterface $accessor, EventDispatcherInterface $dispatcher)
     {
-        parent::__construct($connection, $entity, $model, $factory, $accessor);
+        parent::__construct($connection, $entity, $model, $factory, $accessor, $dispatcher);
 
         $this->setQuery();
         $this->values();
@@ -76,7 +80,7 @@ class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterfa
 
         $this->builder->setValue(
             $this->connection->quoteIdentifier($field->mappedName()),
-            $this->bind('value', $field->name(), $field->type(), $value)
+            $this->builder->createNamedParameter($value, $field->type())
         );
     }
 
@@ -88,11 +92,14 @@ class InsertQuery extends AbstractEntityValueQuery implements InsertQueryInterfa
      */
     public function execute()
     {
+        $this->dispatcher->fire(self::EVENT_BEFORE, $this->instance);
+
         $this->builder()->execute();
 
         $result = $this->connection->lastInsertId();
-
         $this->accessor->identifyEntity($this->model, $this->instance, $result);
+
+        $this->dispatcher->fire(self::EVENT_AFTER, $this->instance);
 
         foreach ($this->relations as $relation) {
             $relation->write($this->instance);

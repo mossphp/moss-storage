@@ -25,19 +25,25 @@ class ReadOneQueryTest extends QueryMocks
      */
     private $accessor;
 
+    /**
+     * @var \Moss\Storage\Query\EventDispatcher\EventDispatcherInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    private $dispatcher;
+
     public function setUp()
     {
         $this->builder = $this->mockQueryBuilder();
         $this->dbal = $this->mockDBAL($this->builder);
         $this->factory = $this->mockRelFactory();
         $this->accessor = $this->mockAccessor();
+        $this->dispatcher = $this->mockEventDispatcher();
     }
 
     public function testConnection()
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
 
         $this->assertSame($this->dbal, $query->connection());
     }
@@ -55,7 +61,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->fields(['foo', 'bar']);
     }
 
@@ -71,7 +77,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->field('foo');
     }
 
@@ -86,16 +92,16 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', [['foo', 'string', [], 'foo_foo'], 'bar'], ['foo']);
 
-        new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
     }
 
     public function testWhereSimple()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :condition_0_bar');
+        $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :dcValue1');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', 'barbar', '=', 'and');
     }
 
@@ -105,37 +111,37 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', null, '=', 'and');
     }
 
     public function testWhereWithMultipleFields()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`foo` = :condition_\d_foo and `bar` = :condition_\d_bar\)$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`foo` = :dcValue\d+ and `bar` = :dcValue\d+\)$/'));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where(['foo', 'bar'], 'barbar', '=', 'and');
     }
 
     public function testWhereWithMultipleValues()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`bar` = :condition_\d_bar or `bar` = :condition_\d_bar\)$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(`bar` = :dcValue\d+ or `bar` = :dcValue\d+\)$/'));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', ['foofoo', 'barbar'], '=', 'and');
     }
 
     public function testWhereWithMultipleFieldsAndValues()
     {
-        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(\(`foo` = :condition_\d_foo or `foo` = :condition_\d_foo\) and \(`bar` = :condition_\d_bar or `bar` = :condition_\d_bar\)\)$/'));
+        $this->builder->expects($this->once())->method('andWhere')->with($this->matchesRegularExpression('/^\(\(`foo` = :dcValue\d+ or `foo` = :dcValue\d+\) and \(`bar` = :dcValue\d+ or `bar` = :dcValue\d+\)\)$/'));
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where(['foo', 'bar'], ['foofoo', 'barbar'], '=', 'and');
     }
 
@@ -148,7 +154,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', 'barbar', $operator, 'and');
     }
 
@@ -160,21 +166,21 @@ class ReadOneQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', 'barbar', 'xyz', 'and');
     }
 
     public function comparisonOperatorsProvider()
     {
         return [
-            ['=', '`bar` = :condition_0_bar'],
-            ['!=', '`bar` != :condition_0_bar'],
-            ['>', '`bar` > :condition_0_bar'],
-            ['>=', '`bar` >= :condition_0_bar'],
-            ['<', '`bar` < :condition_0_bar'],
-            ['<=', '`bar` <= :condition_0_bar'],
-            ['like', '`bar` like :condition_0_bar'],
-            ['regexp', '`bar` regexp :condition_0_bar'],
+            ['=', '`bar` = :dcValue1'],
+            ['!=', '`bar` != :dcValue1'],
+            ['>', '`bar` > :dcValue1'],
+            ['>=', '`bar` >= :dcValue1'],
+            ['<', '`bar` < :dcValue1'],
+            ['<=', '`bar` <= :dcValue1'],
+            ['like', '`bar` like :dcValue1'],
+            ['regexp', '`bar` regexp :dcValue1'],
         ];
     }
 
@@ -185,16 +191,16 @@ class ReadOneQueryTest extends QueryMocks
     {
         switch ($operator) {
             case 'or':
-                $this->builder->expects($this->once())->method('orWhere')->with('`bar` = :condition_0_bar');
+                $this->builder->expects($this->once())->method('orWhere')->with('`bar` = :dcValue1');
                 break;
             case 'and':
             default:
-                $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :condition_0_bar');
+                $this->builder->expects($this->once())->method('andWhere')->with('`bar` = :dcValue1');
         }
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', 'barbar', '=', $operator);
     }
 
@@ -206,7 +212,7 @@ class ReadOneQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('bar', 'barbar', '=', 'xyz');
     }
 
@@ -227,7 +233,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->order('foo', $order);
     }
 
@@ -247,7 +253,7 @@ class ReadOneQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->order('foo', 'xyz');
     }
 
@@ -264,7 +270,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->limit($limit, $offset);
     }
 
@@ -280,7 +286,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->limit($limit);
     }
 
@@ -292,7 +298,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($model, 'relation')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation', [['foo', 'bar', '=']], ['foo', 'asc'], 1, 2);
     }
 
@@ -305,7 +311,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->once())->method('build')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation')->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -321,7 +327,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->with('relation.relation')->relation('relation.relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -335,7 +341,7 @@ class ReadOneQueryTest extends QueryMocks
     {
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $result = $query->relation('relation');
 
         $this->assertInstanceOf('\Moss\Storage\Query\Relation\RelationInterface', $result);
@@ -354,7 +360,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
 
         $this->assertEquals(10, $query->count());
     }
@@ -376,7 +382,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
         $query->execute();
     }
@@ -398,7 +404,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
         $query->execute();
     }
@@ -422,7 +428,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $this->factory->expects($this->any())->method('build')->willReturn($relation);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->with('relation');
         $query->execute();
     }
@@ -438,7 +444,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $entity = $query->execute();
 
         $this->assertSame($result[0], $entity);
@@ -450,7 +456,7 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->getSQL();
     }
 
@@ -460,19 +466,49 @@ class ReadOneQueryTest extends QueryMocks
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->where('foo', 'foo');
         $this->assertEquals([':condition_0_foo' => 'foo'], $query->binds());
     }
 
     public function testReset()
     {
-        $builder = $this->mockQueryBuilder();
         $this->builder->expects($this->once())->method('resetQueryParts');
 
         $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
 
-        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor);
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
         $query->reset();
+    }
+
+    public function testCustomQueryCount()
+    {
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('rowCount')->willReturn(10);
+
+        $this->dbal->expects($this->once())->method('executeQuery')->with('CUSTOM SQL QUERY', ['param' => 'val'])->willReturn($stmt);
+        $this->builder->expects($this->never())->method('execute');
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
+        $query->query('CUSTOM SQL QUERY', ['param' => 'val'])->count();
+    }
+
+    public function testCustomQueryExecution()
+    {
+        $result = [new TestEntity('foo')];
+
+        $stmt = $this->getMock('\\Doctrine\DBAL\Driver\Statement');
+        $stmt->expects($this->any())->method('execute');
+        $stmt->expects($this->any())->method('fetchAll')->willReturn($result);
+
+        $this->dbal->expects($this->once())->method('executeQuery')->with('CUSTOM SQL QUERY', ['param' => 'val'])->willReturn($stmt);
+        $this->builder->expects($this->never())->method('execute');
+
+        $model = $this->mockModel('\\stdClass', 'table', ['foo', 'bar'], ['foo']);
+
+        $query = new ReadOneQuery($this->dbal, $model, $this->factory, $this->accessor, $this->dispatcher);
+        $query->query('CUSTOM SQL QUERY', ['param' => 'val'])->execute();
     }
 }
